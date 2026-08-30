@@ -41,21 +41,17 @@ hosts that serve from a subpath.
 
 Two ready-made options in this repo:
 
-1. **Supabase Edge Function** (interim public URL on the association's own
-   project — no extra accounts needed):
-
-   ```bash
-   SUPABASE_ACCESS_TOKEN=sbp_... node scripts/deploy-supabase.mjs
-   ```
-
-   Builds and deploys a `site` function serving the static build at
-   https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/site/
-
-2. **GitHub Pages** (`.github/workflows/deploy.yml`, currently manual-only):
-   make the repo public (or use a plan with private-repo Pages), enable
-   Settings → Pages → Source "GitHub Actions", run the workflow, then restore
-   its push trigger for deploy-on-push (see the note in the workflow file).
+1. **GitHub Pages** (`.github/workflows/deploy.yml`, deploys on every push to
+   main once activated): make the repo public (or use a plan with
+   private-repo Pages) and enable Settings → Pages → Source "GitHub Actions".
    Serves at https://msaco13.github.io/faemse-website/
+
+2. **Supabase Edge Function** (`scripts/deploy-supabase.mjs`) — deploys the
+   build as a `site` function on the association's Supabase project.
+   ⚠ Supabase's gateway rewrites HTML/XHTML content-types to text/plain on
+   `*.supabase.co` function URLs (anti-phishing), so pages will NOT render
+   there — assets serve fine. Only useful behind a Supabase custom domain
+   (paid add-on), where the rewrite doesn't apply.
 
 For the real faemse.org cutover, connect this repo to Netlify or Vercel
 (build command `npm run build`, output `dist/`, SPA fallback on) and point DNS

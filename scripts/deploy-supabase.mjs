@@ -57,12 +57,35 @@ function walk(dir) {
   });
 }
 
+// The Supabase functions gateway rewrites text/html responses to text/plain
+// on the shared *.supabase.co domain (anti-phishing). Browsers render
+// application/xhtml+xml identically, and the gateway leaves it alone — so the
+// HTML shell is converted to well-formed XHTML and served as XHTML.
+function toXhtml(html) {
+  // Chromium doesn't run module scripts in XML documents (crbug.com/717643);
+  // the single-chunk Vite bundle has no import/export, so load it as a classic
+  // script — and since defer is ignored in XML docs, at the end of <body>.
+  const src = /<script type="module"[^>]*\ssrc="([^"]*)"><\/script>/.exec(html)?.[1];
+  if (!src) throw new Error('module script tag not found in index.html');
+  return html
+    .replace(/^<!doctype html>/i, '<!DOCTYPE html>')
+    .replace('<html lang="en">', '<html lang="en" xmlns="http://www.w3.org/1999/xhtml">')
+    .replace(/\scrossorigin(?=[\s>])/g, ' crossorigin="anonymous"')
+    .replace(/<(meta|link)([^>]*?)\s*\/?>/g, '<$1$2 />')
+    .replace(/<script type="module"[^>]*\ssrc="[^"]*"><\/script>\s*/, '')
+    .replace(/<\/body>/, `  <script src="${src}"></script>\n  </body>`);
+}
+
 const files = {};
 for (const p of walk('dist')) {
   const rel = '/' + relative('dist', p).replaceAll('\\', '/');
+  const isHtml = extname(rel) === '.html';
   files[rel] = {
-    t: MIME[extname(rel)] ?? 'application/octet-stream',
-    d: readFileSync(p).toString('base64'),
+    t: isHtml ? 'application/xhtml+xml; charset=utf-8' : (MIME[extname(rel)] ?? 'application/octet-stream'),
+    d: (isHtml
+      ? Buffer.from(toXhtml(readFileSync(p, 'utf8')), 'utf8')
+      : readFileSync(p)
+    ).toString('base64'),
   };
 }
 console.log(`Embedding ${Object.keys(files).length} files from dist/`);

@@ -66,6 +66,18 @@ export default function Header() {
           <Link to="/contact" className="hidden lg:block font-semibold text-[15px] text-[#93A6C9] hover:text-white">
             Contact
           </Link>
+          <Link
+            to="/login"
+            className="hidden lg:flex items-center gap-1.5 font-semibold text-[15px] text-brand-goldsoft hover:text-white"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M12 12a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Zm0 2.1c-3.6 0-7.2 1.8-7.2 4.5v1.8h14.4v-1.8c0-2.7-3.6-4.5-7.2-4.5Z"
+                fill="currentColor"
+              />
+            </svg>
+            Members
+          </Link>
           <Link to="/membership" className="btn-red !px-5 !py-3">
             Join / Renew
           </Link>
@@ -91,7 +103,7 @@ export default function Header() {
       {open && (
         <div className="lg:hidden border-t border-white/10 bg-ink2">
           <ul className="px-6 py-3">
-            {[...nav, { to: '/contact', label: 'Contact' }].map((n) => (
+            {[...nav, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
               <li key={n.to}>
                 <NavLink
                   to={n.to}

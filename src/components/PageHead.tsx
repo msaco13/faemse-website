@@ -1,4 +1,7 @@
-// Dark page banner shared by every inner page.
+import { useEffect } from 'react';
+
+// Dark page banner shared by every inner page. Also owns the document title
+// and meta description for its route.
 export default function PageHead({
   eyebrow,
   title,
@@ -8,6 +11,11 @@ export default function PageHead({
   title: string;
   sub?: string;
 }) {
+  useEffect(() => {
+    document.title = `${title} · FAEMSE`;
+    if (sub) document.querySelector('meta[name="description"]')?.setAttribute('content', sub);
+  }, [title, sub]);
+
   return (
     <section className="bg-ink text-white relative overflow-hidden">
       <div

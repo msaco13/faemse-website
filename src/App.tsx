@@ -12,6 +12,8 @@ import News from './pages/News';
 import Resources from './pages/Resources';
 import Sponsors from './pages/Sponsors';
 import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Members from './pages/Members';
 import NotFound from './pages/NotFound';
 
 function ScrollToTop() {
@@ -23,9 +25,15 @@ function ScrollToTop() {
 export default function App() {
   return (
     <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-white focus:text-ink focus:font-bold focus:px-5 focus:py-3 focus:rounded-xl focus:shadow-xl"
+      >
+        Skip to content
+      </a>
       <ScrollToTop />
       <Header />
-      <main>
+      <main id="main">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -37,6 +45,8 @@ export default function App() {
           <Route path="/resources" element={<Resources />} />
           <Route path="/sponsors" element={<Sponsors />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/members" element={<Members />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

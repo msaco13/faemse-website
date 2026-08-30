@@ -9,6 +9,29 @@ export default function About() {
         title="Who we are"
         sub="A member-based association organized to provide resources to individuals and organizations that foster excellence in EMS education and training."
       />
+      {/* Heritage — verified dates from the association's bylaws */}
+      <section className="bg-ink2 text-white py-14 border-t border-white/5">
+        <div className="wrap">
+          <p className="font-disp font-semibold text-[13px] tracking-[0.28em] uppercase text-brand-goldsoft mb-8 flex items-center gap-3">
+            <span className="w-[22px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
+            Serving Florida's EMS educators since 1998
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { year: '1997', text: 'Founding educators draft the association bylaws.' },
+              { year: '1998', text: 'Bylaws adopted — FAEMSE is chartered as a Florida 501(c)(6).' },
+              { year: 'Foundation', text: 'The companion FAEMSE Foundation, a 501(c)(3), funds EMT and paramedic scholarships statewide.' },
+              { year: 'Today', text: 'A statewide network of educators, programs, and partners across every county and program type.' },
+            ].map((m) => (
+              <div key={m.year}>
+                <b className="block font-disp font-bold text-[34px] leading-none gold-text mb-2">{m.year}</b>
+                <p className="text-[14px] text-[#93A6C9]">{m.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-20 bg-white">
         <div className="wrap grid lg:grid-cols-2 gap-12">
           <div>
