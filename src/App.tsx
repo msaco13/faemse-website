@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from './lib/supabase';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -42,6 +43,20 @@ function ScrollToTop() {
   return null;
 }
 
+function RecoveryRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    // Password-reset emails land on the site root (the allow-listed redirect);
+    // supabase-js consumes the token from the URL hash and fires this event.
+    // Send the member straight to the portal's "Set a new password" card.
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') navigate('/members');
+    });
+    return () => data.subscription.unsubscribe();
+  }, [navigate]);
+  return null;
+}
+
 function CanonicalUrl() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -71,6 +86,7 @@ export default function App() {
       </a>
       <ScrollToTop />
       <CanonicalUrl />
+      <RecoveryRedirect />
       <Header />
       <main id="main" tabIndex={-1} className="outline-none">
         <Routes>

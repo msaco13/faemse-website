@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
-import { CONTENT_VERIFIED, honors, news, presidentMessage, sponsors, tiers, upcomingEvents } from '../content/data';
+import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
+import { splitEvents, useSiteEvents, useSiteNews } from '../lib/content';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -41,6 +42,9 @@ function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
 }
 
 export default function Home() {
+  const eventsState = useSiteEvents();
+  const newsState = useSiteNews();
+  const upcoming = splitEvents(eventsState.items).upcoming;
   useEffect(() => {
     // Inner pages set their own titles; restore the defaults when landing back home.
     document.title = 'FAEMSE — Florida Association of EMS Educators';
@@ -111,19 +115,19 @@ export default function Home() {
               <h2 className="font-disp font-semibold tracking-[0.22em] uppercase text-brand-bluesoft">
                 On the board
               </h2>
-              {!CONTENT_VERIFIED && (
+              {eventsState.loaded && !eventsState.live && (
                 <span className="text-[11px] font-bold tracking-widest text-brand-goldsoft">
                   SAMPLE CALENDAR
                 </span>
               )}
             </div>
-            {upcomingEvents().length === 0 && (
+            {eventsState.loaded && upcoming.length === 0 && (
               <p className="px-6 py-5 text-[14px] text-[#93A6C9]">
                 The 2026–27 calendar is being finalized — check back soon.
               </p>
             )}
-            {upcomingEvents().slice(0, 3).map((e) => (
-              <div key={e.title} className="flex gap-4 items-center px-6 py-4 border-b border-white/5 hover:bg-white/5">
+            {upcoming.slice(0, 3).map((e) => (
+              <div key={e.id ?? e.title} className="flex gap-4 items-center px-6 py-4 border-b border-white/5 hover:bg-white/5">
                 <div className="flex-none w-14 text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
                   <b className="block text-2xl text-white">{e.day}</b>
                   <span className="text-xs tracking-[0.14em] text-brand-bluesoft">{e.month}</span>
@@ -336,14 +340,14 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {news.map((n, i) => (
-              <Reveal key={n.title} delay={i * 110} className="flex">
+            {newsState.items.slice(0, 3).map((n, i) => (
+              <Reveal key={n.id ?? n.title} delay={i * 110} className="flex">
               <article
                 className="card overflow-hidden flex flex-col transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_80px_rgba(10,27,51,.16)]"
               >
                 <div className="p-6 flex flex-col flex-1">
                   <p className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-2">
-                    {!CONTENT_VERIFIED && (
+                    {!newsState.live && (
                       <span className="mr-2 px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]">
                         Sample
                       </span>
