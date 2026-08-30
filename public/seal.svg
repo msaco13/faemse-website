@@ -153,10 +153,8 @@
   <!-- one soft light across the medal, no seams -->
   <circle cx="512" cy="512" r="496" fill="url(#sheen)"/>
 
-  <!-- a single glint where the light catches the rim, in the quiet gap
-       between the two words -->
-  <g transform="translate(468,32) scale(.8)" fill="#FFF8E1">
-    <path d="M 0 -30 C 3 -10 10 -3 30 0 C 10 3 3 10 0 30 C -3 10 -10 3 -30 0 C -10 -3 -3 -10 0 -30 Z" opacity=".9"/>
-    <circle r="4" fill="#FFFFFF"/>
-  </g>
+  <!-- separator star centered in the band gap between the two words,
+       matching the ring lettering -->
+  <path transform="translate(512,86)" fill="#FFFFFF"
+        d="M 0 -24 L 5.6 -7.8 L 22.8 -7.4 L 9.1 3 L 14.1 19.4 L 0 9.6 L -14.1 19.4 L -9.1 3 L -22.8 -7.4 L -5.6 -7.8 Z"/>
 </svg>
