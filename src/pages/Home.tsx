@@ -414,7 +414,7 @@ export default function Home() {
           <img
             src={`${import.meta.env.BASE_URL}seal.svg`}
             alt="Seal of the Florida Association of EMS Educators"
-            className="w-36 h-36 mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
+            className="w-44 h-44 mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
           />
           <h2 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,7vw,96px)]">
             Raise the
