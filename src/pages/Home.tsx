@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Mark from '../components/Mark';
+import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, news, presidentMessage, sponsors, tiers, upcomingEvents } from '../content/data';
@@ -248,11 +248,7 @@ export default function Home() {
         </div>
         <div className="wrap relative py-24 text-center">
           <Reveal>
-            <Mark
-              className="w-[76px] h-[76px] mx-auto mb-7 drop-shadow-[0_8px_30px_rgba(223,175,55,.45)]"
-              blue="#DFAF37"
-              red="#FF5A62"
-            />
+            <Seal className="w-[88px] h-[88px] mx-auto mb-7 drop-shadow-[0_8px_30px_rgba(223,175,55,.45)]" />
             <p className="font-disp font-semibold text-[15px] tracking-[0.3em] uppercase text-brand-goldsoft mb-4">
               {honors.title}
             </p>

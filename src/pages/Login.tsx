@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Mark from '../components/Mark';
+import Seal from '../components/Seal';
 import { supabase } from '../lib/supabase';
 
 export default function Login() {
@@ -73,7 +73,7 @@ export default function Login() {
       </div>
       <div className="relative w-full max-w-[440px] px-6">
         <div className="text-center mb-8">
-          <Mark className="w-16 h-16 mx-auto mb-4 drop-shadow-[0_8px_26px_rgba(47,107,255,.5)]" />
+          <Seal className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,.55)]" />
           <p className="font-disp font-semibold text-[14px] tracking-[0.28em] uppercase text-brand-goldsoft">
             Member portal
           </p>
