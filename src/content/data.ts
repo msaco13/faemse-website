@@ -153,7 +153,7 @@ export const events = [
     detail: 'Team scenarios, judged by veteran educators',
     location: 'Tampa, FL',
     tag: 'Competition',
-    tagColor: 'red',
+    tagColor: 'gold',
   },
 ];
 
@@ -209,6 +209,23 @@ export const bylawsSummary = [
   { article: 'Article V', title: 'Committees', text: 'Standing and ad-hoc committees appointed to carry out the work of the association.' },
   { article: 'Article VI', title: 'Amendments', text: 'Bylaws amended by vote of the Active membership.' },
 ];
+
+// DRAFT welcome message — for President Anzardo to approve or rewrite in his own words.
+export const presidentMessage = {
+  name: 'Jorge Anzardo',
+  role: 'President, FAEMSE',
+  quote:
+    'Every EMT and paramedic in Florida can be traced back to an educator who refused to accept ‘good enough.’ This association exists so that none of those educators ever has to raise the standard alone.',
+};
+
+// The Educator of the Year program — seven categories honored annually.
+// (Category names to be confirmed with the association before publishing.)
+export const honors = {
+  title: 'EMS Educator of the Year',
+  categories: 7,
+  blurb:
+    'Seven categories, one standard: educators whose students are measurably better for having been in their classroom. Nominated by peers, honored by the association, announced each year.',
+};
 
 export const contact = {
   legalName: 'Florida Association of Emergency Medical Services Educators, Inc.',

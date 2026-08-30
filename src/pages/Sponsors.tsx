@@ -15,7 +15,7 @@ export default function Sponsors() {
             {sponsors.map((s) => (
               <div
                 key={s}
-                className="card p-6 grid place-items-center text-center font-disp font-semibold uppercase tracking-[0.08em] text-muted hover:text-body hover:shadow-[0_18px_50px_rgba(10,27,51,.1)] hover:-translate-y-1 transition-all min-h-[92px]"
+                className="card p-6 grid place-items-center text-center font-disp font-semibold uppercase tracking-[0.08em] text-muted hover:text-body hover:border-brand-gold/60 hover:shadow-[0_18px_50px_rgba(177,133,22,.16)] hover:-translate-y-1 transition-all min-h-[92px]"
               >
                 {s}
               </div>
@@ -29,7 +29,7 @@ export default function Sponsors() {
                 programs buy, teach, and recommend.
               </p>
             </div>
-            <a href="mailto:info@faemse.org?subject=Sponsorship" className="btn-red">
+            <a href="mailto:info@faemse.org?subject=Sponsorship" className="btn-gold">
               Get sponsorship info
             </a>
           </div>

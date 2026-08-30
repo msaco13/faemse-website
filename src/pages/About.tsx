@@ -30,8 +30,11 @@ export default function About() {
             </p>
           </div>
           <div className="space-y-5">
-            <div className="card p-7">
-              <h3 className="font-disp font-bold uppercase text-xl mb-1.5">Educator of the Year</h3>
+            <div className="relative rounded-2xl p-7 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516)_border-box] shadow-[0_20px_50px_rgba(177,133,22,.14)]">
+              <h3 className="font-disp font-bold uppercase text-xl mb-1.5 flex items-center gap-2.5">
+                <span className="text-brand-gold" aria-hidden>★</span>
+                Educator of the Year
+              </h3>
               <p className="text-muted text-[15px]">
                 Every year FAEMSE honors outstanding EMS educators across seven categories —
                 recognizing the people whose students are measurably better for having been in

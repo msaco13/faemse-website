@@ -48,7 +48,11 @@ export default function Header() {
                 <NavLink
                   to={n.to}
                   className={({ isActive }) =>
-                    `transition-colors ${isActive ? 'text-white' : 'text-[#D6E1F5]/90 hover:text-white'}`
+                    `relative pb-1 transition-colors ${
+                      isActive
+                        ? 'text-white after:absolute after:left-0 after:right-0 after:-bottom-0.5 after:h-[2px] after:rounded-full after:bg-gradient-to-r after:from-brand-goldsoft after:to-brand-golddeep'
+                        : 'text-[#D6E1F5]/90 hover:text-white'
+                    }`
                   }
                 >
                   {n.label}
@@ -81,6 +85,8 @@ export default function Header() {
           </button>
         </div>
       </div>
+
+      <div className="gold-braid opacity-60" aria-hidden />
 
       {open && (
         <div className="lg:hidden border-t border-white/10 bg-ink2">

@@ -17,8 +17,12 @@ export default function PageHead({
           backgroundSize: '26px 26px',
         }}
       />
+      <div
+        className="absolute -right-40 -top-44 w-[560px] h-[560px] rounded-full opacity-[.13] blur-[85px] pointer-events-none bg-[radial-gradient(circle,rgba(245,206,90,.95),transparent_62%)]"
+        aria-hidden
+      />
       <div className="wrap relative py-16 md:py-20">
-        <p className="eyebrow !text-brand-bluesoft">{eyebrow}</p>
+        <p className="eyebrow !text-brand-goldsoft">{eyebrow}</p>
         <h1 className="font-disp font-bold uppercase leading-[0.95] text-[clamp(40px,6vw,72px)] mt-3">
           {title}
         </h1>

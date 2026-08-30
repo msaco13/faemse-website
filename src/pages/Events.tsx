@@ -5,6 +5,7 @@ const tagStyles: Record<string, string> = {
   blue: 'text-[#1A47B8] bg-[#E7EEFF]',
   red: 'text-[#B8232D] bg-[#FDEAEB]',
   green: 'text-[#0E7A4A] bg-[#E2F7EC]',
+  gold: 'text-brand-goldink bg-[#FBF3D9]',
 };
 
 export default function Events() {

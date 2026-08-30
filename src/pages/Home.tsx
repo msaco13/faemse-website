@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Mark from '../components/Mark';
-import { events, news, sponsors, tiers } from '../content/data';
+import PulseDivider from '../components/PulseDivider';
+import Reveal from '../components/Reveal';
+import { events, honors, news, presidentMessage, sponsors, tiers } from '../content/data';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -52,11 +54,12 @@ export default function Home() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
           <div className="absolute -left-56 -top-40 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(229,64,74,.85),transparent_62%)]" />
           <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)]" />
+          <div className="absolute left-1/3 -bottom-64 w-[720px] h-[720px] rounded-full opacity-[.16] blur-[100px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)]" />
         </div>
         <div className="wrap relative grid lg:grid-cols-[1.12fr_.88fr] gap-14 items-center pt-16 lg:pt-24 pb-24 lg:pb-28">
           <div>
-            <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-bluesoft flex items-center gap-3 mb-6">
-              <span className="w-[26px] h-[3px] bg-brand-red rounded-sm" />
+            <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
+              <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
               Florida Association of EMS Educators
             </p>
             <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(52px,7.2vw,100px)]">
@@ -64,7 +67,7 @@ export default function Home() {
               <br />
               who train Florida&apos;s
               <br />
-              <span className="bg-gradient-to-r from-[#FF6B71] via-brand-redhot to-[#FF8A5B] bg-clip-text text-transparent">
+              <span className="gold-text drop-shadow-[0_2px_24px_rgba(235,188,66,.35)]">
                 first responders.
               </span>
             </h1>
@@ -127,8 +130,12 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="bg-ink2 pt-px">
+        <div className="gold-braid" aria-hidden />
+      </div>
+
       {/* Sponsor marquee */}
-      <div className="bg-ink2 border-t border-white/5 py-8 overflow-hidden" aria-label="Sponsors">
+      <div className="bg-ink2 py-8 overflow-hidden" aria-label="Sponsors">
         <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-5">
           Backed by the companies behind Florida EMS education
         </p>
@@ -138,7 +145,7 @@ export default function Home() {
               key={i}
               className="font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap hover:text-white transition-colors"
             >
-              <i className="not-italic text-[#425982] mr-2.5">◆</i>
+              <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
               {s}
             </span>
           ))}
@@ -208,21 +215,96 @@ export default function Home() {
                 to: '/membership',
                 cta: 'Get a vote',
               },
-            ].map((c) => (
-              <div
-                key={c.title}
-                className="card p-8 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]"
-              >
-                <h3 className="font-disp font-bold uppercase text-2xl mb-2.5">{c.title}</h3>
-                <p className="text-muted text-[15px] mb-5">{c.text}</p>
-                <Link to={c.to} className="font-bold text-brand-blue hover:underline">
-                  {c.cta} →
-                </Link>
-              </div>
+            ].map((c, i) => (
+              <Reveal key={c.title} delay={i * 110}>
+                <div className="card h-full p-8 border-t-[3px] border-t-brand-gold/70 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]">
+                  <h3 className="font-disp font-bold uppercase text-2xl mb-2.5">{c.title}</h3>
+                  <p className="text-muted text-[15px] mb-5">{c.text}</p>
+                  <Link to={c.to} className="font-bold text-brand-blue hover:underline">
+                    {c.cta} →
+                  </Link>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Honors — the Gold Standard band */}
+      <section className="relative overflow-hidden text-white bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)]">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div className="absolute left-1/2 -translate-x-1/2 -top-52 w-[880px] h-[560px] rounded-full opacity-[.14] blur-[90px] bg-[radial-gradient(circle,rgba(245,206,90,.95),transparent_62%)]" />
+        </div>
+        <div className="wrap relative py-24 text-center">
+          <Reveal>
+            <Mark
+              className="w-[76px] h-[76px] mx-auto mb-7 drop-shadow-[0_8px_30px_rgba(223,175,55,.45)]"
+              blue="#DFAF37"
+              red="#FF5A62"
+            />
+            <p className="font-disp font-semibold text-[15px] tracking-[0.3em] uppercase text-brand-goldsoft mb-4">
+              {honors.title}
+            </p>
+            <h2 className="font-disp font-bold uppercase leading-[0.95] text-[clamp(40px,5.6vw,72px)]">
+              The <span className="gold-text">gold standard</span>,
+              <br />
+              held by real people
+            </h2>
+            <p className="text-[#BCCBE7] text-[17px] max-w-[58ch] mx-auto mt-6 mb-9">
+              {honors.blurb}
+            </p>
+            <div className="flex flex-wrap justify-center gap-2.5 mb-10">
+              {Array.from({ length: honors.categories }, (_, i) => (
+                <span
+                  key={i}
+                  className="w-9 h-9 grid place-items-center rounded-full border border-brand-gold/40 bg-brand-gold/10 font-disp font-bold text-brand-goldsoft"
+                  aria-hidden
+                >
+                  ★
+                </span>
+              ))}
+              <span className="self-center ml-2 text-[13px] font-semibold tracking-[0.14em] uppercase text-brand-goldsoft/80">
+                Seven categories, honored annually
+              </span>
+            </div>
+            <Link to="/about" className="btn-gold">
+              About the award
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* President's welcome */}
+      <section className="bg-white py-24">
+        <div className="wrap max-w-[880px]">
+          <Reveal>
+            <p className="eyebrow">From the president</p>
+            <blockquote className="mt-7">
+              <p className="font-disp font-semibold text-[clamp(26px,3.2vw,38px)] leading-[1.22] text-ink [text-wrap:balance]">
+                &ldquo;{presidentMessage.quote}&rdquo;
+              </p>
+              <footer className="flex items-center gap-4 mt-8">
+                <span className="flex-none w-14 h-14 rounded-full grid place-items-center font-disp font-bold text-xl text-ink2 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep ring-2 ring-brand-gold/30 ring-offset-2">
+                  {presidentMessage.name
+                    .split(' ')
+                    .map((w) => w[0])
+                    .join('')}
+                </span>
+                <span>
+                  <b className="block text-[17px]">{presidentMessage.name}</b>
+                  <span className="text-[14px] text-muted tracking-[0.06em] uppercase font-semibold">
+                    {presidentMessage.role}
+                  </span>
+                </span>
+              </footer>
+            </blockquote>
+          </Reveal>
+        </div>
+      </section>
+
+      <div className="bg-white">
+        <PulseDivider />
+      </div>
 
       {/* News preview */}
       <section className="bg-white py-24">
@@ -237,9 +319,9 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {news.map((n) => (
+            {news.map((n, i) => (
+              <Reveal key={n.title} delay={i * 110} className="flex">
               <article
-                key={n.title}
                 className="card overflow-hidden flex flex-col transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_80px_rgba(10,27,51,.16)]"
               >
                 <div className="p-6 flex flex-col flex-1">
@@ -253,6 +335,7 @@ export default function Home() {
                   </Link>
                 </div>
               </article>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -275,12 +358,12 @@ export default function Home() {
                 key={t.name}
                 className={
                   t.featured
-                    ? 'relative rounded-[20px] p-8 text-body bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#FF5A62,#2F6BFF)_border-box] shadow-[0_40px_90px_rgba(4,10,22,.5)]'
+                    ? 'relative rounded-[20px] p-8 text-body bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2F6BFF)_border-box] shadow-[0_40px_90px_rgba(4,10,22,.5)]'
                     : 'rounded-[20px] p-8 bg-white/5 border border-white/10 backdrop-blur'
                 }
               >
                 {t.featured && (
-                  <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-redhot to-[#D22530] text-white font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-lg">
+                  <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2 font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-[0_8px_24px_rgba(223,175,55,.4)]">
                     MOST POPULAR
                   </span>
                 )}
@@ -317,16 +400,14 @@ export default function Home() {
           <h2 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,7vw,96px)]">
             Raise the
             <br />
-            <span className="bg-gradient-to-r from-[#FF6B71] via-brand-redhot to-[#FF8A5B] bg-clip-text text-transparent">
-              standard.
-            </span>
+            <span className="gold-text drop-shadow-[0_2px_28px_rgba(235,188,66,.4)]">standard.</span>
           </h2>
           <p className="text-[#BCCBE7] text-[17px] max-w-[52ch] mx-auto my-7">
             Join the educators building the future of EMS in Florida — and get the network,
             resources, and voice that come with them.
           </p>
           <div className="flex flex-wrap gap-3.5 justify-center">
-            <Link to="/membership" className="btn-red">
+            <Link to="/membership" className="btn-gold">
               Become a member
             </Link>
             <Link to="/contact" className="btn-glass">

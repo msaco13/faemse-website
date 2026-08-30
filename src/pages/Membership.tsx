@@ -17,12 +17,12 @@ export default function Membership() {
                 key={t.name}
                 className={
                   t.featured
-                    ? 'relative rounded-[20px] p-8 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#FF5A62,#2F6BFF)_border-box] shadow-[0_30px_70px_rgba(10,27,51,.18)]'
+                    ? 'relative rounded-[20px] p-8 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2F6BFF)_border-box] shadow-[0_30px_70px_rgba(10,27,51,.18)]'
                     : 'card p-8'
                 }
               >
                 {t.featured && (
-                  <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-redhot to-[#D22530] text-white font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-lg">
+                  <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2 font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-[0_8px_24px_rgba(223,175,55,.4)]">
                     MOST POPULAR
                   </span>
                 )}
