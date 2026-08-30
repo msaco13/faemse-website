@@ -32,16 +32,31 @@ association's Supabase organization.
 - `contact_messages` — contact-form submissions. RLS: anon may INSERT only;
   reading requires the service role (dashboard → Table Editor).
 
-## Deploying / migrating
+## Deploying
 
-This folder is fully self-contained. To move it to its own repository
-(github.com/msaco13/faemse-website):
+`npm run build` outputs a static site to `dist/`; deploy it to any static host
+(Netlify/Vercel/Pages). SPA fallback: route all paths to `index.html`. The Vite
+base path and router basename honor a `BASE_PATH` env var at build time for
+hosts that serve from a subpath.
 
-```bash
-git clone https://github.com/msaco13/faemse-website.git
-cp -r faemse-site/. faemse-website/   # excluding node_modules/dist via .gitignore
-cd faemse-website && git add -A && git commit -m "Import FAEMSE site" && git push
-```
+Two ready-made options in this repo:
 
-Deploy `dist/` to any static host (Netlify/Vercel). SPA fallback: route all paths
-to `index.html`.
+1. **Supabase Edge Function** (interim public URL on the association's own
+   project — no extra accounts needed):
+
+   ```bash
+   SUPABASE_ACCESS_TOKEN=sbp_... node scripts/deploy-supabase.mjs
+   ```
+
+   Builds and deploys a `site` function serving the static build at
+   https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/site/
+
+2. **GitHub Pages** (`.github/workflows/deploy.yml`, currently manual-only):
+   make the repo public (or use a plan with private-repo Pages), enable
+   Settings → Pages → Source "GitHub Actions", run the workflow, then restore
+   its push trigger for deploy-on-push (see the note in the workflow file).
+   Serves at https://msaco13.github.io/faemse-website/
+
+For the real faemse.org cutover, connect this repo to Netlify or Vercel
+(build command `npm run build`, output `dist/`, SPA fallback on) and point DNS
+at it — see PLAN.md §10 phase 5.

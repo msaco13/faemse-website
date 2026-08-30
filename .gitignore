@@ -1,4 +1,5 @@
 node_modules/
 dist/
+supabase/functions/site/index.ts
 .env
 .env.local

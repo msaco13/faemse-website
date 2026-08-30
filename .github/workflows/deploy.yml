@@ -1,8 +1,16 @@
 name: Deploy to GitHub Pages
 
+# NOTE: currently manual-only. GitHub Pages cannot be enabled from this
+# workflow (private repo; the Actions token lacks permission to create the
+# Pages site). To activate: make the repo public (or use a plan with
+# private-repo Pages), enable Settings -> Pages -> Source: "GitHub Actions",
+# run this workflow once, then restore the push trigger:
+#
+#   on:
+#     push:
+#       branches: [main]
+#     workflow_dispatch:
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

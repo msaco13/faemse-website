@@ -1,0 +1,5 @@
+project_id = "faemse-website"
+
+[functions.site]
+# The site function serves the public website build — no JWT required.
+verify_jwt = false
