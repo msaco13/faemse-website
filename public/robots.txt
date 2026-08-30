@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://msaco13.github.io/faemse-website/sitemap.xml

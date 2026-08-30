@@ -42,6 +42,24 @@ function ScrollToTop() {
   return null;
 }
 
+function CanonicalUrl() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    // Origin-relative so the tags stay correct after the faemse.org cutover.
+    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+    const href = `${window.location.origin}${base}${pathname === '/' ? '/' : pathname}`;
+    let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'canonical';
+      document.head.appendChild(link);
+    }
+    link.href = href;
+    document.querySelector('meta[property="og:url"]')?.setAttribute('content', href);
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <>
@@ -52,6 +70,7 @@ export default function App() {
         Skip to content
       </a>
       <ScrollToTop />
+      <CanonicalUrl />
       <Header />
       <main id="main" tabIndex={-1} className="outline-none">
         <Routes>

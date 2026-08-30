@@ -1,7 +1,59 @@
+import { useRef, useState } from 'react';
 import PageHead from '../components/PageHead';
 import { faq, freeTiers, tiers } from '../content/data';
+import { supabase } from '../lib/supabase';
+
+const tierValue: Record<string, string> = {
+  Active: 'active',
+  Institutional: 'institutional',
+  Corporate: 'corporate',
+};
 
 export default function Membership() {
+  const formRef = useRef<HTMLDivElement>(null);
+  const [tier, setTier] = useState('active');
+  const [kind, setKind] = useState<'join' | 'renew'>('join');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  function pickTier(name: string) {
+    setTier(tierValue[name] ?? 'active');
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    // Honeypot: bots fill it, people never see it. Pretend success, write nothing.
+    if (String(data.website ?? '') !== '') {
+      setStatus('sent');
+      form.reset();
+      return;
+    }
+    setStatus('sending');
+    const { error } = await supabase.from('membership_applications').insert({
+      kind,
+      tier,
+      full_name: String(data.full_name),
+      email: String(data.email),
+      phone: String(data.phone ?? '') || null,
+      organization: String(data.organization ?? '') || null,
+      county: String(data.county ?? '') || null,
+      cert_level: String(data.cert_level ?? '') || null,
+      note: String(data.note ?? '') || null,
+    });
+    if (error) {
+      setStatus('error');
+    } else {
+      setStatus('sent');
+      form.reset();
+    }
+  }
+
+  const input =
+    'mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none';
+  const label = 'text-[13px] font-bold uppercase tracking-wide text-muted';
+
   return (
     <>
       <PageHead
@@ -40,9 +92,9 @@ export default function Membership() {
                     </li>
                   ))}
                 </ul>
-                <a href="mailto:info@faemse.org?subject=FAEMSE%20membership" className={t.featured ? 'btn-red w-full' : 'btn-outline w-full'}>
-                  Join as {t.name}
-                </a>
+                <button onClick={() => pickTier(t.name)} className={t.featured ? 'btn-red w-full' : 'btn-outline w-full'}>
+                  Apply as {t.name}
+                </button>
               </div>
             ))}
           </div>
@@ -63,7 +115,104 @@ export default function Membership() {
         </div>
       </section>
 
-      <section className="py-20 bg-white">
+      {/* Application form */}
+      <section className="py-20 bg-white" ref={formRef} id="apply">
+        <div className="wrap max-w-[840px]">
+          <p className="eyebrow">Apply</p>
+          <h2 className="h-sec">Join or renew</h2>
+          <p className="text-muted text-[16px] max-w-[62ch] mb-8">
+            Submit your application and the board follows up with dues payment and your portal
+            account. No payment is collected on this form.
+          </p>
+
+          <form onSubmit={onSubmit} className="card p-8">
+            <div className="absolute w-px h-px overflow-hidden [clip:rect(0,0,0,0)]" aria-hidden>
+              <label>
+                Leave this field empty
+                <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-3 mb-6" role="radiogroup" aria-label="Application type">
+              {(['join', 'renew'] as const).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  role="radio"
+                  aria-checked={kind === k}
+                  onClick={() => setKind(k)}
+                  className={`px-5 py-2.5 rounded-full font-bold text-[14px] border transition-colors ${
+                    kind === k
+                      ? 'bg-ink text-white border-ink'
+                      : 'bg-white text-muted border-line hover:border-ink'
+                  }`}
+                >
+                  {k === 'join' ? "I'm joining" : "I'm renewing"}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+              <label className="block">
+                <span className={label}>Membership tier</span>
+                <select name="tier" value={tier} onChange={(e) => setTier(e.target.value)} className={input}>
+                  <option value="active">Active — $50/yr</option>
+                  <option value="institutional">Institutional — $250/yr</option>
+                  <option value="corporate">Corporate — $200/yr</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className={label}>Full name</span>
+                <input name="full_name" required maxLength={200} className={input} />
+              </label>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+              <label className="block">
+                <span className={label}>Email</span>
+                <input name="email" type="email" required maxLength={254} className={input} />
+              </label>
+              <label className="block">
+                <span className={label}>Phone (optional)</span>
+                <input name="phone" maxLength={40} className={input} />
+              </label>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-4 mb-4">
+              <label className="block sm:col-span-1">
+                <span className={label}>Organization / program</span>
+                <input name="organization" maxLength={300} className={input} />
+              </label>
+              <label className="block">
+                <span className={label}>County</span>
+                <input name="county" maxLength={100} className={input} />
+              </label>
+              <label className="block">
+                <span className={label}>Certification level</span>
+                <input name="cert_level" maxLength={100} placeholder="e.g. Paramedic, EMT, RN" className={input} />
+              </label>
+            </div>
+            <label className="block mb-6">
+              <span className={label}>Anything else? (optional)</span>
+              <textarea name="note" maxLength={2000} rows={3} className={input} />
+            </label>
+            <button type="submit" disabled={status === 'sending'} className="btn-red w-full sm:w-auto disabled:opacity-60">
+              {status === 'sending' ? 'Submitting…' : kind === 'join' ? 'Submit application' : 'Submit renewal'}
+            </button>
+            {status === 'sent' && (
+              <p className="mt-4 text-[#0E7A4A] font-semibold" role="status">
+                Application received — the board will follow up at the email you provided with dues
+                and account details.
+              </p>
+            )}
+            {status === 'error' && (
+              <p className="mt-4 text-brand-red font-semibold" role="alert">
+                Something went wrong submitting the application. Email us directly at info@faemse.org.
+              </p>
+            )}
+          </form>
+        </div>
+      </section>
+
+      <section className="py-20 bg-paper">
         <div className="wrap max-w-[840px]">
           <p className="eyebrow">Questions</p>
           <h2 className="h-sec">Before you join</h2>
