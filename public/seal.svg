@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Metallic gold: a directed sweep, light behaving like light -->
+    <linearGradient id="goldRim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8C6410"/>
+      <stop offset="22%" stop-color="#F7DE8B"/>
+      <stop offset="45%" stop-color="#D4AF37"/>
+      <stop offset="68%" stop-color="#7A5A0E"/>
+      <stop offset="88%" stop-color="#EFC64F"/>
+      <stop offset="100%" stop-color="#9C7414"/>
+    </linearGradient>
+    <linearGradient id="goldRimSoft" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A87E1C"/>
+      <stop offset="35%" stop-color="#F3D87E"/>
+      <stop offset="65%" stop-color="#C49A2C"/>
+      <stop offset="100%" stop-color="#8C6410"/>
+    </linearGradient>
+    <linearGradient id="goldLamp" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F9E49B"/>
+      <stop offset="45%" stop-color="#E9BE4B"/>
+      <stop offset="100%" stop-color="#A87E1C"/>
+    </linearGradient>
+    <!-- The institutional blue band: deep, procedural, trustworthy -->
+    <radialGradient id="band" cx="50%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#2C55D0"/>
+      <stop offset="55%" stop-color="#1D3CA6"/>
+      <stop offset="100%" stop-color="#101F63"/>
+    </radialGradient>
+    <!-- Inner sky: dawn over the peninsula -->
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#93E9E4"/>
+      <stop offset="40%" stop-color="#4FB6DE"/>
+      <stop offset="100%" stop-color="#1D5FC4"/>
+    </linearGradient>
+    <!-- The beam: light with a source, rising from the lamp -->
+    <linearGradient id="beam" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#C89422" stop-opacity=".98"/>
+      <stop offset="55%" stop-color="#E9BE4B" stop-opacity=".9"/>
+      <stop offset="100%" stop-color="#F7DE8B" stop-opacity=".78"/>
+    </linearGradient>
+    <linearGradient id="florida" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#2F9450"/>
+      <stop offset="100%" stop-color="#136031"/>
+    </linearGradient>
+    <linearGradient id="starBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3570FF"/>
+      <stop offset="100%" stop-color="#16309E"/>
+    </linearGradient>
+    <radialGradient id="dropGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="78%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="92%" stop-color="#000000" stop-opacity=".25"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <!-- top-left sheen, clipped to the medal -->
+    <radialGradient id="sheen" cx="32%" cy="22%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".16"/>
+      <stop offset="45%" stop-color="#FFFFFF" stop-opacity=".05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- text arcs, band centerline -->
+    <path id="arcTop" d="M 78 512 A 434 434 0 1 1 946 512" fill="none"/>
+    <path id="arcBottom" d="M 116 512 A 396 396 0 1 0 908 512" fill="none"/>
+  </defs>
+
+  <!-- ambient seat shadow -->
+  <circle cx="512" cy="512" r="510" fill="url(#dropGlow)"/>
+
+  <!-- gold rim: outer, with inner echo -->
+  <circle cx="512" cy="512" r="496" fill="url(#goldRim)"/>
+  <circle cx="512" cy="512" r="482" fill="url(#goldRimSoft)"/>
+  <circle cx="512" cy="512" r="476" fill="url(#band)"/>
+
+  <!-- inner gold ring separating band from field -->
+  <circle cx="512" cy="512" r="372" fill="url(#goldRimSoft)"/>
+  <circle cx="512" cy="512" r="362" fill="url(#goldRim)"/>
+  <circle cx="512" cy="512" r="356" fill="url(#sky)"/>
+
+  <!-- ring lettering -->
+  <g fill="#FFFFFF" font-family="'Liberation Serif', Georgia, 'Times New Roman', serif"
+     font-weight="700" font-size="64" letter-spacing="10">
+    <text><textPath href="#arcTop" startOffset="25%" text-anchor="middle">FLORIDA</textPath></text>
+    <text><textPath href="#arcTop" startOffset="75%" text-anchor="middle">ASSOCIATION</textPath></text>
+    <text><textPath href="#arcBottom" startOffset="50%" text-anchor="middle">EMS EDUCATORS</textPath></text>
+  </g>
+
+  <!-- clip everything inside the field -->
+  <clipPath id="field"><circle cx="512" cy="512" r="356"/></clipPath>
+  <g clip-path="url(#field)">
+
+    <!-- the beam of knowledge: a single shaft of light rising from the lamp -->
+    <path d="M 368 204 L 516 668 L 668 204 Z" fill="url(#beam)"/>
+
+    <!-- Florida: true geography (MIT-licensed @svg-maps/usa outline), tilted as the seal has always carried her -->
+    <g transform="translate(478,282) rotate(12) scale(2.06) translate(-927.54,-454.6)">
+      <path fill="url(#florida)" stroke="#0B3A1D" stroke-width="2.4" stroke-linejoin="round" d="M1045.28,455.26l1.22,1.86l2.7,7.99l1.4,2.7l2.95,7.43l4.04,7.01l5.48,8.37l8.43,9.85l1.06,1.43l-0.63,1.47l-0.03,1.42l0.28,2.08l0.59,1.98l1.21,2.33l2.16,3.51l-0.97,-0.61l-3.11,-5.04l-0.8,-3.13l-0.46,-4.56l-0.49,0.2l-0.16,1.53l0.07,1.76l-0.44,0.76l-1.2,-2.5l-0.15,-1.19l0.56,-1.52l-0.32,-0.46l-1.41,-0.49l-0.46,-1.07l-0.01,-1.13l-0.84,-0.46l-0.57,0.13l0.84,2.65l0.89,1.56l1.43,3.87l1.64,2.21l1.06,1.91l12.16,20.24l2.49,2.41l1.09,1.86l1.51,4.02l1.12,5.31l0.33,10.02l0.86,6.73l-0.24,-0.17l-0.26,-0.68l-0.34,-0.04l-0.68,3.27l-1.18,3.05l0.2,4.39l-0.42,2.29l-2.01,2.69l-1.5,0.2l-3.37,2.33l-2.65,-0.01l-2.9,1.48l-2.04,0.23l-1.5,-1.84l0.03,-0.94l0.31,-0.99l0.75,-0.34l3.06,1.68l0.36,-0.98l-1,-0.93l-1.66,-0.33l-1.26,-0.46l-3.12,-4.48l-2.95,-2.94l-0.76,-2.16l-4.35,-0.69l-3.32,-1.58l-2.52,-3.35l-2.13,-6.31l-1.42,-0.52l-0.63,-0.42l0.9,-2.6l1.03,-2.22l-0.99,0.67l-0.67,0.87l-0.72,1.94l-0.69,0.39l-0.71,-0.17l-1.3,-3.29l-0.43,-4.23l0.83,-1.73l-1.66,0.21l-1.62,0.86l0.47,1.36l-0.12,0.81l-1.28,-0.01l-1.02,-0.35l-1.51,-1.26l-2.17,-2.51l-4.72,-7.11l-0.86,-0.98l-1.35,-0.95l0.51,-0.43l0.98,-0.36l1.78,-3.78l1.48,-2.35l0.38,-1.52l-0.2,-0.6l-0.93,-0.77l-0.92,0.94l-0.48,-0.16l-1.44,-1.63l-1.19,-0.34l-0.72,0.5l1.04,1.35l0.82,0.44l0.03,2.19l-0.2,0.74l-0.6,0.72l-1.13,-0.17l-0.47,0.61l-0.73,-0.47l-0.78,-0.85l-0.94,-1.45l0.6,-9.01l0.92,-5.81l-0.74,-6.36l-0.01,-0.96l-0.4,-1.66l-2.85,-3.32l-11.46,-7.45l-9.32,-9.47l-7.31,-3.05l-5.03,1.54l-0.79,0.91l-0.25,1.09l0.48,1.14l-0.41,0.55l-1.39,0.12l-1.83,0.51l-4.52,3.39l-1.73,0.11l-1.47,0.91l-1.11,0.68l-3.02,0.66l-2.52,0.93l-1.16,-0.2l-0.92,-1.53l-0.2,-1.67l0.74,1.21l1.03,0.89l0.37,-0.45l0.05,-0.91l-1.11,-1.63l-3.19,-1.89l-3.71,-2.88l1.03,-0.01l0.18,-0.73l-1.14,-0.8l0.31,-1.11l0.6,-1.2l-1.38,0.33l-1.17,0.92l0.07,0.97l-0.16,0.79l-0.69,-0.04l-1.36,-0.8l-6.48,-1.95l-5.56,-0.91l4.07,-1.11l2.3,0.28l-0.36,-0.77l-0.6,-0.45l-1.84,-0.45l-2.23,0.49l-1.46,-0.15l-1.39,0.79l-1.5,1.11l-1.37,0.63l-5.5,1.25l-4.45,1.19l0.65,-0.85l0.72,-0.58l2.59,-1.03l0.24,-1.63l-0.78,-1.46l-0.66,0.44l-0.62,1.27l-0.99,-0.77l-1,0.1l-0.09,1.93l-1.16,1.4l-0.46,1.34l-3.68,1.36l-0.52,-0.29l0.99,-1.32l-0.15,-0.67l-0.76,0.44l0.11,-0.78l0.62,-0.75l0.22,-0.82l-0.23,-1.51l0.29,-2.18l-0.32,-0.65l-3.05,-2.51l-0.81,-1.39l-0.27,-1.52l0.12,-1.62l6.21,-0.59l6.21,-0.61l6.21,-0.63l6.21,-0.66l6.21,-0.68l6.2,-0.7l6.2,-0.72l6.18,-0.75l1,1.66l1.97,3.45l0.16,0.84l1.82,-0.09l3.09,-0.17l3.09,-0.18l3.09,-0.19l3.09,-0.19l3.09,-0.2l3.09,-0.2l3.09,-0.21l3.09,-0.21l3.09,-0.22l3.09,-0.22l3.09,-0.23l3.09,-0.24l3.09,-0.24l3.09,-0.25l3.09,-0.25l3.09,-0.26l0.13,0.73l0.68,1.07l0.33,1.29l0.33,0.59l0.67,0.3l0.98,-0.05l0.86,-0.89l0.36,-1.72l-0.13,-1.84l-0.69,-2.01l-0.21,-1.75l0.32,-1.1l0.53,-0.34l0.41,-0.63l0.39,-0.18l1.1,0.13l4.19,0.84L1045.28,455.26zM982.99,488.77l-1.86,1.04l-2.19,-0.33l1.3,-0.27l0.98,0.12l2.27,-1.44l1.15,-1.02l1.42,-0.51L982.99,488.77zM1083.9,527.61l0.61,1.58l-2.5,-3.49l-3.3,-5.58l-2,-4.4l1.03,1.1l1.25,2.44L1083.9,527.61zM1048.56,550.12l0.17,1.32l-1.36,-2.05l-1.05,-2.33l1.09,0.64L1048.56,550.12zM1049.84,552.19l-0.63,0.7l-1.52,-0.21l-0.91,-0.65l-0.57,-1.45l1.51,1.4l0.51,0.29L1049.84,552.19zM1088.32,576.1l-3.34,4.93l0.27,-1.14l1.2,-2.54l0.33,-1.15l0.95,-0.86l0.79,-1.39l-0.17,-1.43l1.27,-1.25l0.45,-0.23L1088.32,576.1zM1083.99,582.38l-0.53,0.2l0.65,-1.1l0.24,0.03L1083.99,582.38zM1080.44,585.29l-0.39,0.06l0.14,-0.35l0.7,-0.78l0.33,0.2l0.02,0.33L1080.44,585.29zM1076.35,587.99l-0.85,0.69l-1.04,-0.23l0.98,-0.71l3.09,-1.1l-1.08,0.91L1076.35,587.99zM1070.61,590.46l-0.54,0.56l-0.32,-0.09l-0.11,-0.68l-1.12,-1.35l-0.03,-0.4l2.25,1.14l0.12,0.39L1070.61,590.46zM1066.01,592.38l-1.3,0.44l0.94,-1.06l0.13,-1.41l0.8,0.95l0.09,0.64L1066.01,592.38zM1061.73,594.34l-0.52,0.13l-0.1,-0.34l0.84,-0.57l0.6,-0.06l0.05,0.48L1061.73,594.34z"/>
+    </g>
+
+    <!-- Star of Life: one silhouette, then the light -->
+    <g transform="translate(316,438)">
+      <!-- dark keyline star (slightly larger, drawn beneath) -->
+      <g fill="#0E2470">
+        <rect x="-38" y="-146" width="76" height="292" rx="10"/>
+        <rect x="-38" y="-146" width="76" height="292" rx="10" transform="rotate(60)"/>
+        <rect x="-38" y="-146" width="76" height="292" rx="10" transform="rotate(120)"/>
+      </g>
+      <!-- lit star -->
+      <g fill="url(#starBlue)">
+        <rect x="-31" y="-139" width="62" height="278" rx="8"/>
+        <rect x="-31" y="-139" width="62" height="278" rx="8" transform="rotate(60)"/>
+        <rect x="-31" y="-139" width="62" height="278" rx="8" transform="rotate(120)"/>
+      </g>
+      <!-- rod of Asclepius -->
+      <g stroke="#FFFFFF" fill="none" stroke-linecap="round">
+        <line x1="0" y1="-110" x2="0" y2="112" stroke-width="11"/>
+        <circle cx="0" cy="-116" r="9" fill="#FFFFFF" stroke="none"/>
+        <path stroke-width="8.5" d="M -24 -76 C 24 -64 24 -38 0 -34 C -24 -30 -24 -4 0 0 C 24 4 24 30 0 34 C -24 38 -24 62 20 72"/>
+      </g>
+    </g>
+
+    <!-- Lamp of knowledge at the source of the beam -->
+    <g transform="translate(516,712)">
+      <!-- body -->
+      <path fill="url(#goldLamp)" stroke="#7A5A0E" stroke-width="4" stroke-linejoin="round" d="
+        M -96 -22
+        C -120 -24 -146 -32 -162 -46
+        C -168 -51 -166 -58 -158 -56
+        C -140 -50 -118 -46 -98 -46
+        L -64 -46
+        C -50 -60 -26 -68 0 -68
+        C 30 -68 56 -58 68 -44
+        C 96 -42 122 -34 136 -20
+        C 148 -8 146 6 132 10
+        C 140 -2 130 -14 108 -18
+        L 70 -24
+        C 62 2 32 20 -6 20
+        C -50 20 -88 0 -96 -22
+        Z"/>
+      <!-- handle loop -->
+      <path fill="none" stroke="url(#goldLamp)" stroke-width="11" stroke-linecap="round"
+            d="M 118 -16 C 152 -18 160 8 138 16 C 124 21 108 16 102 6"/>
+      <!-- lid + knob -->
+      <ellipse cx="-4" cy="-60" rx="36" ry="10" fill="url(#goldLamp)" stroke="#7A5A0E" stroke-width="3.5"/>
+      <circle cx="-4" cy="-74" r="9" fill="url(#goldLamp)" stroke="#7A5A0E" stroke-width="3.5"/>
+      <!-- foot -->
+      <path d="M -46 20 L 38 20 L 50 38 L -58 38 Z" fill="url(#goldLamp)" stroke="#7A5A0E" stroke-width="4" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- depth: the field recedes behind its gold bezel -->
+  <circle cx="512" cy="512" r="352" fill="none" stroke="#0A2A66" stroke-opacity=".35" stroke-width="10"/>
+
+  <!-- one soft light across the medal, no seams -->
+  <circle cx="512" cy="512" r="496" fill="url(#sheen)"/>
+
+  <!-- a single glint where the light catches the rim -->
+  <g transform="translate(232,150)" fill="#FFF8E1">
+    <path d="M 0 -30 C 3 -10 10 -3 30 0 C 10 3 3 10 0 30 C -3 10 -10 3 -30 0 C -10 -3 -3 -10 0 -30 Z" opacity=".9"/>
+    <circle r="4" fill="#FFFFFF"/>
+  </g>
+</svg>

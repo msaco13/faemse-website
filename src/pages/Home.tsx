@@ -415,7 +415,11 @@ export default function Home() {
       {/* Final CTA */}
       <section className="relative overflow-hidden text-white text-center bg-[radial-gradient(900px_600px_at_50%_120%,#12315E_0%,#0A1B33_55%,#060F20_100%)]">
         <div className="wrap relative py-24 lg:py-28">
-          <Mark className="w-24 h-24 mx-auto mb-6 drop-shadow-[0_10px_34px_rgba(47,107,255,.5)]" />
+          <img
+            src={`${import.meta.env.BASE_URL}seal.svg`}
+            alt="Seal of the Florida Association of EMS Educators"
+            className="w-36 h-36 mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
+          />
           <h2 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,7vw,96px)]">
             Raise the
             <br />
