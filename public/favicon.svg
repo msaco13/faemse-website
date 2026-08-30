@@ -57,9 +57,10 @@
       <stop offset="45%" stop-color="#FFFFFF" stop-opacity=".05"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
-    <!-- text arcs, band centerline -->
-    <path id="arcTop" d="M 78 512 A 434 434 0 1 1 946 512" fill="none"/>
-    <path id="arcBottom" d="M 116 512 A 396 396 0 1 0 908 512" fill="none"/>
+    <!-- text arcs: baselines chosen so 58px capitals sit centered in the
+         band (r 372-476) with clear margin from both gold rings -->
+    <path id="arcTop" d="M 104 512 A 408 408 0 1 1 920 512" fill="none"/>
+    <path id="arcBottom" d="M 60 512 A 452 452 0 1 0 964 512" fill="none"/>
   </defs>
 
   <!-- ambient seat shadow -->
@@ -71,15 +72,14 @@
   <circle cx="512" cy="512" r="476" fill="url(#band)"/>
 
   <!-- inner gold ring separating band from field -->
-  <circle cx="512" cy="512" r="372" fill="url(#goldRimSoft)"/>
-  <circle cx="512" cy="512" r="362" fill="url(#goldRim)"/>
-  <circle cx="512" cy="512" r="356" fill="url(#sky)"/>
-
+  <circle cx="512" cy="512" r="436" fill="url(#goldRimSoft)"/>
+  <circle cx="512" cy="512" r="426" fill="url(#goldRim)"/>
+  <circle cx="512" cy="512" r="418" fill="url(#sky)"/>
 
 
   <!-- clip everything inside the field -->
-  <clipPath id="field"><circle cx="512" cy="512" r="356"/></clipPath>
-  <g clip-path="url(#field)">
+  <clipPath id="field"><circle cx="512" cy="512" r="418"/></clipPath>
+  <g clip-path="url(#field)"><g transform="translate(512,512) scale(1.17) translate(-512,-512)">
 
     <!-- the beam of knowledge: a single shaft of light rising from the lamp -->
     <path d="M 368 204 L 516 668 L 668 204 Z" fill="url(#beam)"/>
@@ -138,17 +138,12 @@
       <!-- foot -->
       <path d="M -46 20 L 38 20 L 50 38 L -58 38 Z" fill="url(#goldLamp)" stroke="#7A5A0E" stroke-width="4" stroke-linejoin="round"/>
     </g>
-  </g>
+  </g></g>
 
   <!-- depth: the field recedes behind its gold bezel -->
-  <circle cx="512" cy="512" r="352" fill="none" stroke="#0A2A66" stroke-opacity=".35" stroke-width="10"/>
+  <circle cx="512" cy="512" r="414" fill="none" stroke="#0A2A66" stroke-opacity=".35" stroke-width="10"/>
 
   <!-- one soft light across the medal, no seams -->
   <circle cx="512" cy="512" r="496" fill="url(#sheen)"/>
 
-  <!-- a single glint where the light catches the rim -->
-  <g transform="translate(232,150)" fill="#FFF8E1">
-    <path d="M 0 -30 C 3 -10 10 -3 30 0 C 10 3 3 10 0 30 C -3 10 -10 3 -30 0 C -10 -3 -3 -10 0 -30 Z" opacity=".9"/>
-    <circle r="4" fill="#FFFFFF"/>
-  </g>
 </svg>
