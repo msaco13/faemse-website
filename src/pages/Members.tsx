@@ -28,15 +28,19 @@ export default function Members() {
         setPwStatus('error');
         return;
       }
-      // Prove the new password immediately: sign out and have the member sign
-      // back in with it. The flag survives the redirect and shows a banner.
       try {
         sessionStorage.setItem('pw-reset-ok', '1');
       } catch {
         /* banner is a nicety; the flow works without it */
       }
-      await supabase.auth.signOut();
-      navigate('/login', { replace: true });
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {
+        /* local sign-out only; the hard redirect below resets state anyway */
+      }
+      // Hard navigation on purpose: a full page load to the login screen,
+      // bypassing the SPA transition entirely.
+      window.location.assign(`${import.meta.env.BASE_URL}login`);
     } catch (err) {
       setPwMsg(`Could not save the password: ${String(err)}`);
       setPwStatus('error');
@@ -44,16 +48,13 @@ export default function Members() {
   }
 
   useEffect(() => {
+    // One session check on mount, nothing reactive — auth events during the
+    // save flow must not trigger re-renders or client-side navigation here.
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setChecked(true);
       if (!data.session) navigate('/login', { replace: true });
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-      if (!s) navigate('/login', { replace: true });
-    });
-    return () => sub.subscription.unsubscribe();
   }, [navigate]);
 
   if (!checked || !session) return null;

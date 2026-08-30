@@ -6,4 +6,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
+  // Sourcemaps in production: if anything ever crashes, the error card and
+  // console point at real file/line names instead of minified identifiers.
+  build: { sourcemap: true },
 });

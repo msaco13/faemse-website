@@ -18,8 +18,10 @@ export default class ErrorBoundary extends Component<PropsWithChildren, { error:
           <p className="text-[#BCCBE7] mb-4">
             Something went wrong on this page. Reloading almost always fixes it — your data is safe.
           </p>
-          <p className="text-[13px] text-[#7C90B6] font-mono mb-7 break-words">
+          <p className="text-[13px] text-[#7C90B6] font-mono mb-7 break-words whitespace-pre-wrap text-left">
             {String(this.state.error)}
+            {'\n'}
+            {(this.state.error as Error | null)?.stack?.split('\n').slice(1, 4).join('\n')}
           </p>
           <button onClick={() => window.location.reload()} className="btn-gold">
             Reload the page
