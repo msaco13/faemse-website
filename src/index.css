@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-body text-body bg-white antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    @apply outline-2 outline-brand-blue outline-offset-2 rounded;
+    outline-style: solid;
+  }
+}
+
+@layer components {
+  .wrap {
+    @apply max-w-wrap mx-auto px-6;
+  }
+  .eyebrow {
+    @apply flex items-center gap-2.5 font-disp font-semibold text-[15px] tracking-[0.22em] uppercase text-brand-blue;
+  }
+  .eyebrow::before {
+    content: '';
+    @apply w-[22px] h-[3px] bg-brand-red rounded-sm flex-none;
+  }
+  .h-sec {
+    @apply font-disp font-bold uppercase leading-[0.98] text-[clamp(34px,4.2vw,52px)] mt-3.5 mb-2.5;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-bold text-[15px] px-7 py-3.5 rounded-xl transition-all whitespace-nowrap;
+  }
+  .btn-red {
+    @apply btn text-white shadow-[0_12px_32px_rgba(229,64,74,.38)] hover:-translate-y-0.5 hover:brightness-105;
+    background: linear-gradient(160deg, #ff5a62, #d22530);
+  }
+  .btn-outline {
+    @apply btn border-[1.5px] border-line text-body bg-white hover:border-brand-blue hover:text-brand-blue hover:-translate-y-0.5;
+  }
+  .btn-glass {
+    @apply btn border border-white/20 text-white bg-white/10 hover:bg-white/15 hover:-translate-y-0.5 backdrop-blur;
+  }
+  .card {
+    @apply bg-white border border-line rounded-2xl;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
