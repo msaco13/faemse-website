@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import Mark from './Mark';
+import Seal from './Seal';
 
 const nav = [
   { to: '/about', label: 'About' },
@@ -39,7 +39,7 @@ export default function Header() {
     >
       <div className="wrap flex items-center justify-between h-20 gap-4">
         <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
-          <Mark className="w-11 h-11 drop-shadow-[0_4px_14px_rgba(47,107,255,.45)]" />
+          <Seal className="w-12 h-12 drop-shadow-[0_4px_14px_rgba(0,0,0,.5)]" />
           <span>
             <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide">
               FA<b className="text-brand-bluesoft">EMSE</b>
