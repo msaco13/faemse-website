@@ -11,7 +11,13 @@ export default function About() {
       />
       {/* Heritage — verified dates from the association's bylaws */}
       <section className="bg-ink2 text-white py-14 border-t border-white/5">
-        <div className="wrap">
+        <div className="wrap lg:grid lg:grid-cols-[240px_1fr] lg:gap-14 items-center">
+          <img
+            src={`${import.meta.env.BASE_URL}seal.svg`}
+            alt="Seal of the Florida Association of EMS Educators"
+            className="hidden lg:block w-[240px] h-[240px] drop-shadow-[0_18px_44px_rgba(0,0,0,.5)]"
+          />
+          <div>
           <p className="font-disp font-semibold text-[13px] tracking-[0.28em] uppercase text-brand-goldsoft mb-8 flex items-center gap-3">
             <span className="w-[22px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
             Serving Florida's EMS educators since 1998
@@ -28,6 +34,7 @@ export default function About() {
                 <p className="text-[14px] text-[#93A6C9]">{m.text}</p>
               </div>
             ))}
+          </div>
           </div>
         </div>
       </section>
