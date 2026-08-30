@@ -8,6 +8,18 @@ export default function Login() {
   const [status, setStatus] = useState<'idle' | 'working' | 'error' | 'reset-sent'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [email, setEmail] = useState('');
+  const [justReset, setJustReset] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('pw-reset-ok')) {
+        sessionStorage.removeItem('pw-reset-ok');
+        setJustReset(true);
+      }
+    } catch {
+      /* no banner without sessionStorage */
+    }
+  }, []);
 
   useEffect(() => {
     document.title = 'Member Login · FAEMSE';
@@ -68,6 +80,14 @@ export default function Login() {
           <h1 className="font-disp font-bold uppercase text-[44px] leading-none mt-2">Sign in</h1>
         </div>
 
+        {justReset && (
+          <p
+            className="mb-5 rounded-xl border border-brand-green/40 bg-brand-green/10 text-brand-green font-semibold text-[14.5px] px-5 py-3.5 text-center"
+            role="status"
+          >
+            Password updated — sign in with your new password.
+          </p>
+        )}
         <form
           onSubmit={onSubmit}
           className="rounded-3xl border border-white/15 bg-white/[.07] backdrop-blur-md p-8 shadow-[0_40px_90px_rgba(4,10,22,.55)]"

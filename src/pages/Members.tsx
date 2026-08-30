@@ -21,13 +21,25 @@ export default function Members() {
       return;
     }
     setPwStatus('working');
-    const { error } = await supabase.auth.updateUser({ password: pw });
-    if (error) {
-      setPwMsg(error.message);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pw });
+      if (error) {
+        setPwMsg(error.message);
+        setPwStatus('error');
+        return;
+      }
+      // Prove the new password immediately: sign out and have the member sign
+      // back in with it. The flag survives the redirect and shows a banner.
+      try {
+        sessionStorage.setItem('pw-reset-ok', '1');
+      } catch {
+        /* banner is a nicety; the flow works without it */
+      }
+      await supabase.auth.signOut();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      setPwMsg(`Could not save the password: ${String(err)}`);
       setPwStatus('error');
-    } else {
-      setPwMsg('Password updated — use it the next time you sign in.');
-      setPwStatus('done');
     }
   }
 
