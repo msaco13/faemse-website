@@ -38,16 +38,13 @@ export default function Header() {
       }`}
     >
       <div className="wrap flex items-center justify-between h-20 gap-4">
-        <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
+        {/* No tagline here: the 1180px wrap leaves the lockup + nav + actions
+            near-zero slack, and OS font-rendering differences push the tagline
+            under the nav. The full name lives in the hero, footer, and titles. */}
+        <Link to="/" className="flex items-center gap-3 shrink-0" aria-label="FAEMSE home">
           <Seal className="w-12 h-12 drop-shadow-[0_4px_14px_rgba(0,0,0,.5)]" />
-          <span>
-            <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide whitespace-nowrap">
-              FA<b className="text-brand-bluesoft">EMS</b>E
-            </span>
-            {/* xl-only: below 1280px the tagline wraps and collides with the nav */}
-            <small className="hidden xl:block text-[9.5px] font-semibold tracking-[0.16em] text-[#7C90B6] uppercase mt-1 whitespace-nowrap">
-              Florida Association of EMS Educators
-            </small>
+          <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide whitespace-nowrap">
+            FA<b className="text-brand-bluesoft">EMS</b>E
           </span>
         </Link>
 
