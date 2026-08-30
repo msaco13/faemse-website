@@ -10,6 +10,13 @@ export default function Contact() {
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
+    // Honeypot: real visitors never see or fill this field. Report success so
+    // bots don't learn they were caught, but write nothing.
+    if (String(data.website ?? '') !== '') {
+      setStatus('sent');
+      form.reset();
+      return;
+    }
     setStatus('sending');
     const { error } = await supabase.from('contact_messages').insert({
       name: String(data.name),
@@ -59,32 +66,40 @@ export default function Contact() {
 
           <form onSubmit={onSubmit} className="card p-8">
             <h2 className="font-disp font-bold uppercase text-2xl mb-5">Send us a message</h2>
+            <div className="absolute w-px h-px overflow-hidden [clip:rect(0,0,0,0)]" aria-hidden>
+              <label>
+                Leave this field empty
+                <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
             <div className="grid sm:grid-cols-2 gap-4 mb-4">
               <label className="block">
                 <span className="text-[13px] font-bold uppercase tracking-wide text-muted">Name</span>
-                <input name="name" required className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+                <input name="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
               </label>
               <label className="block">
                 <span className="text-[13px] font-bold uppercase tracking-wide text-muted">Email</span>
-                <input name="email" type="email" required className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+                <input name="email" type="email" required maxLength={254} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
               </label>
             </div>
             <label className="block mb-4">
               <span className="text-[13px] font-bold uppercase tracking-wide text-muted">Subject</span>
-              <input name="subject" required className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+              <input name="subject" required maxLength={200} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
             </label>
             <label className="block mb-6">
               <span className="text-[13px] font-bold uppercase tracking-wide text-muted">Message</span>
-              <textarea name="message" required rows={5} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+              <textarea name="message" required maxLength={4000} rows={5} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
             </label>
             <button type="submit" disabled={status === 'sending'} className="btn-red w-full disabled:opacity-60">
               {status === 'sending' ? 'Sending…' : 'Send message'}
             </button>
             {status === 'sent' && (
-              <p className="mt-4 text-[#0E7A4A] font-semibold">Message sent — we&apos;ll get back to you soon.</p>
+              <p className="mt-4 text-[#0E7A4A] font-semibold" role="status">
+                Message sent — we&apos;ll get back to you soon.
+              </p>
             )}
             {status === 'error' && (
-              <p className="mt-4 text-brand-red font-semibold">
+              <p className="mt-4 text-brand-red font-semibold" role="alert">
                 Something went wrong sending your message. Email us directly at {contact.email}.
               </p>
             )}

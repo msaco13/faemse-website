@@ -1,5 +1,5 @@
 import PageHead from '../components/PageHead';
-import { news } from '../content/data';
+import { CONTENT_VERIFIED, news } from '../content/data';
 
 const tagChip: Record<string, string> = {
   Awards: 'text-brand-goldink bg-[#FBF3D9]',
@@ -17,6 +17,11 @@ export default function News() {
       />
       <section className="py-20 bg-white">
         <div className="wrap max-w-[860px] space-y-6">
+          {!CONTENT_VERIFIED && (
+            <p className="inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
+              Sample posts — real news coming
+            </p>
+          )}
           {news.map((n) => (
             <article key={n.title} className="card p-8 hover:shadow-[0_18px_50px_rgba(10,27,51,.1)] transition-shadow">
               <p className="flex items-center gap-2.5 text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-3">
@@ -29,9 +34,11 @@ export default function News() {
               <p className="text-muted">{n.excerpt}</p>
             </article>
           ))}
-          <p className="text-muted text-[14px]">
-            Sample posts shown for the concept — real association news will populate this page.
-          </p>
+          {!CONTENT_VERIFIED && (
+            <p className="text-muted text-[14px]">
+              Sample posts shown for the concept — real association news will populate this page.
+            </p>
+          )}
         </div>
       </section>
     </>

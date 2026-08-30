@@ -12,6 +12,18 @@ export default function Members() {
   const [pwStatus, setPwStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
   const [pwMsg, setPwMsg] = useState('');
 
+  async function onSignOut() {
+    try {
+      // Local scope: sign out this browser only, not the member's other devices.
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      /* the hard redirect below resets state regardless */
+    }
+    // Same hard-navigation pattern as the password flow: a full page load so
+    // the portal can never linger on screen after signing out.
+    window.location.assign(`${import.meta.env.BASE_URL}login`);
+  }
+
   async function onSetPassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const pw = String(new FormData(e.currentTarget).get('password') ?? '');
@@ -81,7 +93,7 @@ export default function Members() {
               </span>
             </p>
             <button
-              onClick={() => supabase.auth.signOut()}
+              onClick={onSignOut}
               className="btn-outline !py-2.5 !px-5 text-[14px]"
             >
               Sign out

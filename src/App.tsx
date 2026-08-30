@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -14,16 +14,30 @@ import Sponsors from './pages/Sponsors';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Members from './pages/Members';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import NotFound from './pages/NotFound';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const firstRender = useRef(true);
   useEffect(() => {
     // Braced body on purpose: a concise arrow would return scrollTo's result,
     // and browser extensions that wrap window.scrollTo can make that a truthy
     // non-function — which React would then invoke as an effect cleanup on the
     // next navigation and crash ("TypeError: r is not a function").
     window.scrollTo(0, 0);
+    // Move keyboard focus to the new page's content (skip the initial load so
+    // the browser's default focus behavior is preserved).
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    try {
+      document.getElementById('main')?.focus({ preventScroll: true });
+    } catch {
+      /* focus is an enhancement; never let it break navigation */
+    }
   }, [pathname]);
   return null;
 }
@@ -39,7 +53,7 @@ export default function App() {
       </a>
       <ScrollToTop />
       <Header />
-      <main id="main">
+      <main id="main" tabIndex={-1} className="outline-none">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -53,6 +67,8 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/members" element={<Members />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
