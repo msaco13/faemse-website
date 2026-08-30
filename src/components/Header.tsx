@@ -41,16 +41,17 @@ export default function Header() {
         <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
           <Seal className="w-12 h-12 drop-shadow-[0_4px_14px_rgba(0,0,0,.5)]" />
           <span>
-            <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide">
-              FA<b className="text-brand-bluesoft">EMSE</b>
+            <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide whitespace-nowrap">
+              FA<b className="text-brand-bluesoft">EMS</b>E
             </span>
-            <small className="hidden sm:block text-[9.5px] font-semibold tracking-[0.16em] text-[#7C90B6] uppercase mt-1">
+            {/* xl-only: below 1280px the tagline wraps and collides with the nav */}
+            <small className="hidden xl:block text-[9.5px] font-semibold tracking-[0.16em] text-[#7C90B6] uppercase mt-1 whitespace-nowrap">
               Florida Association of EMS Educators
             </small>
           </span>
         </Link>
 
-        <nav className="hidden lg:block" aria-label="Primary">
+        <nav className="hidden xl:block" aria-label="Primary">
           <ul className="flex gap-6 font-semibold text-[15px]">
             {nav.map((n) => (
               <li key={n.to}>
@@ -72,12 +73,12 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link to="/contact" className="hidden lg:block font-semibold text-[15px] text-[#93A6C9] hover:text-white">
+          <Link to="/contact" className="hidden xl:block font-semibold text-[15px] text-[#D6E1F5]/90 hover:text-white">
             Contact
           </Link>
           <Link
             to="/login"
-            className="hidden lg:flex items-center gap-1.5 font-semibold text-[15px] text-brand-goldsoft hover:text-white"
+            className="hidden xl:flex items-center gap-1.5 font-semibold text-[15px] text-brand-goldsoft hover:text-white"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path
@@ -92,7 +93,7 @@ export default function Header() {
             <span className="sm:hidden">Join</span>
           </Link>
           <button
-            className="lg:hidden w-11 h-11 grid place-items-center rounded-lg hover:bg-white/10"
+            className="xl:hidden w-11 h-11 grid place-items-center rounded-lg hover:bg-white/10"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
@@ -111,7 +112,7 @@ export default function Header() {
       <div className="gold-braid opacity-60" aria-hidden />
 
       {open && (
-        <div className="lg:hidden border-t border-white/10 bg-ink2">
+        <div className="xl:hidden border-t border-white/10 bg-ink2">
           <ul className="px-6 py-3">
             {[...nav, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
               <li key={n.to}>

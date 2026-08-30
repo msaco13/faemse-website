@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Seal from '../components/Seal';
 
 export default function NotFound() {
+  useEffect(() => {
+    document.title = 'Page not found · FAEMSE';
+  }, []);
   return (
     <section className="bg-ink text-white min-h-[60vh] grid place-items-center text-center py-24">
       <div>

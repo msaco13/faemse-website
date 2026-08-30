@@ -5,6 +5,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Keep anchored/scrolled-to content clear of the sticky 80px header. */
+    scroll-padding-top: 96px;
   }
   body {
     @apply font-body text-body bg-white antialiased;
