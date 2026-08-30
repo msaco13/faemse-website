@@ -1,5 +1,5 @@
 import PageHead from '../components/PageHead';
-import { CONTENT_VERIFIED, pastEvents, upcomingEvents } from '../content/data';
+import { EventItem, splitEvents, useSiteEvents } from '../lib/content';
 
 const tagStyles: Record<string, string> = {
   blue: 'text-[#1A47B8] bg-[#E7EEFF]',
@@ -7,8 +7,6 @@ const tagStyles: Record<string, string> = {
   green: 'text-[#0E7A4A] bg-[#E2F7EC]',
   gold: 'text-brand-goldink bg-[#FBF3D9]',
 };
-
-type EventItem = ReturnType<typeof upcomingEvents>[number];
 
 function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
   return (
@@ -40,8 +38,8 @@ function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
 }
 
 export default function Events() {
-  const upcoming = upcomingEvents();
-  const past = pastEvents();
+  const { items, live, loaded } = useSiteEvents();
+  const { upcoming, past } = splitEvents(items);
 
   return (
     <>
@@ -49,22 +47,26 @@ export default function Events() {
         eyebrow="Calendar"
         title="Upcoming across Florida"
         sub={
-          CONTENT_VERIFIED
+          live || !loaded
             ? 'Workshops, competitions, and quarterly meetings.'
             : 'Sample listings shown while the association finalizes the 2026–27 calendar.'
         }
       />
       <section className="py-20 bg-paper">
         <div className="wrap">
-          {!CONTENT_VERIFIED && (
+          {loaded && !live && (
             <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
               Sample calendar — dates being confirmed
             </p>
           )}
-          {upcoming.length > 0 ? (
+          {!loaded ? (
+            <div className="card p-8 text-muted" aria-busy="true">
+              Loading the calendar…
+            </div>
+          ) : upcoming.length > 0 ? (
             <div className="card overflow-hidden shadow-[0_18px_50px_rgba(10,27,51,.08)]">
               {upcoming.map((e) => (
-                <EventRow key={e.title} e={e} />
+                <EventRow key={e.id ?? e.title} e={e} />
               ))}
             </div>
           ) : (
@@ -81,7 +83,7 @@ export default function Events() {
               </h2>
               <div className="card overflow-hidden">
                 {past.map((e) => (
-                  <EventRow key={e.title} e={e} past />
+                  <EventRow key={e.id ?? e.title} e={e} past />
                 ))}
               </div>
             </>

@@ -31,6 +31,36 @@ association's Supabase organization.
 
 - `contact_messages` — contact-form submissions. RLS: anon may INSERT only;
   reading requires the service role (dashboard → Table Editor).
+- `membership_applications` — join/renew form submissions. Admins review them
+  from the portal's Board admin panel.
+- `profiles` — member portal profiles (tier, expiration, directory listing,
+  role). `role = 'admin'` unlocks the admin panels on the Members page.
+- `events`, `news_posts` — the public calendar and news, editable from the
+  portal's **Site content** panel (admins only). Schema:
+  `supabase/migrations/20260830_editable_content.sql` — paste it once into the
+  dashboard SQL Editor to install. Until the tables exist (or while they are
+  empty), the public site falls back to the bundled sample listings with a
+  visible "sample" label.
+
+## Updating the site (board admins — no GitHub needed)
+
+Day-to-day content changes happen inside the website itself:
+
+1. Sign in at `/login` with an account whose profile role is `admin`.
+2. The Members page shows two admin panels:
+   - **Board admin** — review membership applications, set tiers,
+     paid-through dates, and grant the admin role to other members.
+   - **Site content** — add, edit, and delete calendar events and news
+     posts. Saves publish to the public site immediately.
+
+Bootstrapping the first admin (one time, in the Supabase dashboard):
+Authentication → Users → Add user (email + password, auto-confirm), sign in
+once at `/login` so the profile row is created, then run in SQL Editor:
+`update public.profiles set role = 'admin' where email = 'their@email';`
+After that, further admins are granted from the Board admin panel.
+
+Everything else (page copy, board roster, dues amounts, design) lives in
+`src/content/data.ts` and the codebase — edit via GitHub or a Claude session.
 
 ## Deploying
 

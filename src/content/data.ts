@@ -165,7 +165,7 @@ export const events = [
   },
 ];
 
-const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+export const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 export function eventDate(e: { day: string; month: string; year: string }): Date {
   return new Date(Number(e.year), MONTHS.indexOf(e.month.toUpperCase()), Number(e.day));

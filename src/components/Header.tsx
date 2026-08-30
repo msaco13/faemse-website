@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import Seal from './Seal';
+import Mark from './Mark';
 
 const nav = [
   { to: '/about', label: 'About' },
@@ -42,7 +42,10 @@ export default function Header() {
             near-zero slack, and OS font-rendering differences push the tagline
             under the nav. The full name lives in the hero, footer, and titles. */}
         <Link to="/" className="flex items-center gap-3 shrink-0" aria-label="FAEMSE home">
-          <Seal className="w-12 h-12 drop-shadow-[0_4px_14px_rgba(0,0,0,.5)]" />
+          {/* Small-size mark: the full seal turns to mush below ~64px, so the
+              chrome carries the gold Pulse Star and the seal stays for large,
+              formal placements (About, login, honors, final CTA). */}
+          <Mark variant="gold" className="w-10 h-10 drop-shadow-[0_3px_10px_rgba(0,0,0,.45)]" />
           <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide whitespace-nowrap">
             FA<b className="text-brand-bluesoft">EMS</b>E
           </span>

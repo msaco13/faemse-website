@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import Seal from './Seal';
+import Mark from './Mark';
 import { contact } from '../content/data';
 
 export default function Footer() {
@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid gap-9 pb-11 border-b border-white/10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.4fr]">
           <div>
             <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
-              <Seal className="w-12 h-12" />
+              <Mark variant="gold" className="w-10 h-10" />
               <span className="font-disp font-bold text-[26px] text-white tracking-wide">
                 FA<b className="text-brand-bluesoft">EMS</b>E
               </span>
