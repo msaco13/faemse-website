@@ -43,7 +43,9 @@ export default function Login() {
       return;
     }
     setStatus('working');
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+    });
     if (error) {
       setErrorMsg(error.message);
       setStatus('error');

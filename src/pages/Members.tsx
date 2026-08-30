@@ -9,6 +9,27 @@ export default function Members() {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [checked, setChecked] = useState(false);
+  const [pwStatus, setPwStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
+  const [pwMsg, setPwMsg] = useState('');
+
+  async function onSetPassword(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const pw = String(new FormData(e.currentTarget).get('password') ?? '');
+    if (pw.length < 8) {
+      setPwMsg('Use at least 8 characters.');
+      setPwStatus('error');
+      return;
+    }
+    setPwStatus('working');
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    if (error) {
+      setPwMsg(error.message);
+      setPwStatus('error');
+    } else {
+      setPwMsg('Password updated — use it the next time you sign in.');
+      setPwStatus('done');
+    }
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -80,6 +101,33 @@ export default function Members() {
                 </Link>
               </div>
             ))}
+          </div>
+
+          <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70 max-w-[560px]">
+            <h2 className="font-disp font-bold uppercase text-xl mb-2">Set a new password</h2>
+            <p className="text-muted text-[14px] mb-4">
+              Choose the password you'll use to sign in from now on.
+            </p>
+            <form onSubmit={onSetPassword} className="flex flex-wrap gap-3">
+              <input
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                placeholder="New password (8+ characters)"
+                className="flex-1 min-w-[220px] rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-gold"
+              />
+              <button type="submit" disabled={pwStatus === 'working'} className="btn-gold disabled:opacity-60">
+                {pwStatus === 'working' ? 'Saving…' : 'Save password'}
+              </button>
+            </form>
+            {pwStatus === 'done' && (
+              <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{pwMsg}</p>
+            )}
+            {pwStatus === 'error' && (
+              <p className="mt-3 text-[#B8232D] font-semibold text-[14px]" role="alert">{pwMsg}</p>
+            )}
           </div>
 
           <div className="card p-8">
