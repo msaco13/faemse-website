@@ -12,7 +12,7 @@ export default function Footer() {
             <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
               <Seal className="w-12 h-12" />
               <span className="font-disp font-bold text-[26px] text-white tracking-wide">
-                FA<b className="text-brand-bluesoft">EMSE</b>
+                FA<b className="text-brand-bluesoft">EMS</b>E
               </span>
             </Link>
             <p className="mt-4 max-w-[300px] text-[#7C90B6]">

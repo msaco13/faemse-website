@@ -40,13 +40,17 @@ function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   );
 }
 
-const tagStyles: Record<string, string> = {
-  blue: 'text-[#1A47B8] bg-[#E7EEFF]',
-  red: 'text-[#B8232D] bg-[#FDEAEB]',
-  green: 'text-[#0E7A4A] bg-[#E2F7EC]',
-};
-
 export default function Home() {
+  useEffect(() => {
+    // Inner pages set their own titles; restore the defaults when landing back home.
+    document.title = 'FAEMSE — Florida Association of EMS Educators';
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute(
+        'content',
+        'The Florida Association of EMS Educators — the statewide professional home for EMS instructors, program directors, and training officers.',
+      );
+  }, []);
   return (
     <>
       {/* Hero */}
@@ -56,13 +60,16 @@ export default function Home() {
           <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)]" />
           <div className="absolute left-1/3 -bottom-64 w-[720px] h-[720px] rounded-full opacity-[.16] blur-[100px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)]" />
         </div>
-        <div className="wrap relative grid lg:grid-cols-[1.12fr_.88fr] gap-14 items-center pt-16 lg:pt-24 pb-24 lg:pb-28">
+        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-24 pb-24 lg:pb-28">
           <div>
             <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
               <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
               Florida Association of EMS Educators
             </p>
-            <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(52px,7.2vw,100px)]">
+            {/* 80px cap: the widest line ("We train the people") measures 7.99px
+                per 1px of font size, and the column is ~645px — above 80px the
+                three-line lockup rewraps onto five lines and buries the CTAs. */}
+            <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5.8vw,80px)]">
               We train the people
               <br />
               who train Florida&apos;s
@@ -141,7 +148,7 @@ export default function Home() {
       </div>
 
       {/* Sponsor marquee */}
-      <div className="bg-ink2 py-8 overflow-hidden" aria-label="Sponsors">
+      <section className="bg-ink2 py-8 overflow-hidden" aria-label="Sponsors">
         <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-5">
           Backed by the companies behind Florida EMS education
         </p>
@@ -152,7 +159,7 @@ export default function Home() {
               // The second copy exists only to make the marquee loop seamless;
               // hide it from screen readers so sponsors aren't announced twice.
               aria-hidden={i >= sponsors.length || undefined}
-              className="font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap hover:text-white transition-colors"
+              className="font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap"
             >
               <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
               {s}
@@ -160,7 +167,7 @@ export default function Home() {
           ))}
         </div>
         <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
-      </div>
+      </section>
 
       {/* Vitals — hidden until the association confirms the real numbers. */}
       {CONTENT_VERIFIED && (
