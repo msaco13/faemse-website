@@ -18,7 +18,13 @@ import NotFound from './pages/NotFound';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  useEffect(() => {
+    // Braced body on purpose: a concise arrow would return scrollTo's result,
+    // and browser extensions that wrap window.scrollTo can make that a truthy
+    // non-function — which React would then invoke as an effect cleanup on the
+    // next navigation and crash ("TypeError: r is not a function").
+    window.scrollTo(0, 0);
+  }, [pathname]);
   return null;
 }
 
