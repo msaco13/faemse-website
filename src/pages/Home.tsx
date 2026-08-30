@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Mark from '../components/Mark';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
-import { events, honors, news, presidentMessage, sponsors, tiers } from '../content/data';
+import { CONTENT_VERIFIED, honors, news, presidentMessage, sponsors, tiers, upcomingEvents } from '../content/data';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -104,12 +104,18 @@ export default function Home() {
               <h2 className="font-disp font-semibold tracking-[0.22em] uppercase text-brand-bluesoft">
                 On the board
               </h2>
-              <span className="flex items-center gap-2 text-[11px] font-bold tracking-widest text-brand-green">
-                <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_12px_rgba(58,219,143,1)] animate-pulse" />
-                UPDATED WEEKLY
-              </span>
+              {!CONTENT_VERIFIED && (
+                <span className="text-[11px] font-bold tracking-widest text-brand-goldsoft">
+                  SAMPLE CALENDAR
+                </span>
+              )}
             </div>
-            {events.slice(0, 3).map((e) => (
+            {upcomingEvents().length === 0 && (
+              <p className="px-6 py-5 text-[14px] text-[#93A6C9]">
+                The 2026–27 calendar is being finalized — check back soon.
+              </p>
+            )}
+            {upcomingEvents().slice(0, 3).map((e) => (
               <div key={e.title} className="flex gap-4 items-center px-6 py-4 border-b border-white/5 hover:bg-white/5">
                 <div className="flex-none w-14 text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
                   <b className="block text-2xl text-white">{e.day}</b>
@@ -143,6 +149,9 @@ export default function Home() {
           {[...sponsors, ...sponsors].map((s, i) => (
             <span
               key={i}
+              // The second copy exists only to make the marquee loop seamless;
+              // hide it from screen readers so sponsors aren't announced twice.
+              aria-hidden={i >= sponsors.length || undefined}
               className="font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap hover:text-white transition-colors"
             >
               <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
@@ -153,7 +162,8 @@ export default function Home() {
         <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
       </div>
 
-      {/* Vitals */}
+      {/* Vitals — hidden until the association confirms the real numbers. */}
+      {CONTENT_VERIFIED && (
       <section className="bg-ink2 text-white py-11 border-t border-white/5" aria-label="Association statistics">
         <div className="wrap">
           <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#5E739C] mb-5 flex items-center gap-2.5">
@@ -179,6 +189,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Why join */}
       <section className="bg-paper py-24">
@@ -274,7 +285,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* President's welcome */}
+      {/* President's welcome — hidden until President Anzardo approves the
+          message; a draft quote must never appear under his name. */}
+      {CONTENT_VERIFIED && (
       <section className="bg-white py-24">
         <div className="wrap max-w-[880px]">
           <Reveal>
@@ -301,6 +314,7 @@ export default function Home() {
           </Reveal>
         </div>
       </section>
+      )}
 
       <div className="bg-white">
         <PulseDivider />
@@ -326,6 +340,11 @@ export default function Home() {
               >
                 <div className="p-6 flex flex-col flex-1">
                   <p className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-2">
+                    {!CONTENT_VERIFIED && (
+                      <span className="mr-2 px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]">
+                        Sample
+                      </span>
+                    )}
                     {n.date} · {n.tag}
                   </p>
                   <h3 className="text-[18.5px] font-bold leading-snug mb-2">{n.title}</h3>

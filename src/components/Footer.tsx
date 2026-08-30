@@ -23,7 +23,7 @@ export default function Footer() {
               <a
                 href={contact.facebook}
                 aria-label="Facebook"
-                className="w-10 h-10 rounded-xl bg-white/5 grid place-items-center hover:bg-brand-golddeep transition-colors"
+                className="w-11 h-11 rounded-xl bg-white/5 grid place-items-center hover:bg-brand-golddeep transition-colors"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff">
                   <path d="M22 12a10 10 0 1 0-11.5 9.9v-7H8v-2.9h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6v1.9h2.8L16 14.9h-2.4v7A10 10 0 0 0 22 12z" />
@@ -32,7 +32,7 @@ export default function Footer() {
               <a
                 href={contact.linkedin}
                 aria-label="LinkedIn"
-                className="w-10 h-10 rounded-xl bg-white/5 grid place-items-center hover:bg-brand-golddeep transition-colors"
+                className="w-11 h-11 rounded-xl bg-white/5 grid place-items-center hover:bg-brand-golddeep transition-colors"
               >
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="#fff">
                   <path d="M4.98 3.5A2.5 2.5 0 1 1 0 3.5a2.5 2.5 0 0 1 4.98 0zM0 8h5v16H0V8zm7.5 0H12v2.2h.1c.6-1.1 2.1-2.3 4.3-2.3 4.6 0 5.5 3 5.5 6.9V24h-5v-7.3c0-1.7 0-4-2.4-4s-2.8 1.9-2.8 3.8V24H7.5V8z" />
@@ -80,7 +80,11 @@ export default function Footer() {
           <span>
             © {new Date().getFullYear()} {contact.legalName} · St. Petersburg, FL
           </span>
-          <span>Privacy · Terms</span>
+          <span>
+            <Link className="hover:text-white" to="/privacy">Privacy</Link>
+            {' · '}
+            <Link className="hover:text-white" to="/terms">Terms</Link>
+          </span>
         </div>
       </div>
     </footer>

@@ -22,6 +22,15 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
   return (
     <header
       className={`sticky top-0 z-50 bg-[rgba(8,20,42,.85)] backdrop-blur-xl border-b border-white/10 transition-shadow ${
@@ -78,8 +87,9 @@ export default function Header() {
             </svg>
             Members
           </Link>
-          <Link to="/membership" className="btn-red !px-5 !py-3">
-            Join / Renew
+          <Link to="/membership" className="btn-red !px-4 sm:!px-5 !py-3">
+            <span className="hidden sm:inline">Join / Renew</span>
+            <span className="sm:hidden">Join</span>
           </Link>
           <button
             className="lg:hidden w-11 h-11 grid place-items-center rounded-lg hover:bg-white/10"

@@ -1,5 +1,10 @@
 // Verified content from the live faemse.org crawl (Aug 2026) unless marked SAMPLE.
 
+// Flip to true only after President Anzardo signs off on the events calendar,
+// news posts, association statistics, and his welcome message. While false,
+// sample sections are hidden or visibly labeled as previews on the public site.
+export const CONTENT_VERIFIED = false;
+
 export const board = [
   { role: 'President', name: 'Jorge Anzardo' },
   { role: 'President-Elect', name: 'Bryan Spangler' },
@@ -88,9 +93,12 @@ export const resourceCategories = [
   {
     category: 'Curriculum & Education',
     links: [
-      { name: 'National EMS Education Standards (EMS.gov)', url: 'https://www.ems.gov/education.html' },
+      // Deep links to ems.gov/education.html and naemse.org/resources broke after
+      // both sites reorganized (Aug 2026); pointing at the working top-level pages
+      // until the association confirms the new permanent URLs.
+      { name: 'National EMS Education Standards (EMS.gov)', url: 'https://www.ems.gov' },
       { name: 'CAPCE (formerly CECBEMS)', url: 'https://capce.org' },
-      { name: 'NAEMSE Educator Resources', url: 'https://naemse.org/resources' },
+      { name: 'NAEMSE Educator Resources', url: 'https://naemse.org' },
     ],
   },
 ];
@@ -156,6 +164,28 @@ export const events = [
     tagColor: 'gold',
   },
 ];
+
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+export function eventDate(e: { day: string; month: string; year: string }): Date {
+  return new Date(Number(e.year), MONTHS.indexOf(e.month.toUpperCase()), Number(e.day));
+}
+
+export function upcomingEvents(): typeof events {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return [...events]
+    .filter((e) => eventDate(e) >= today)
+    .sort((a, b) => eventDate(a).getTime() - eventDate(b).getTime());
+}
+
+export function pastEvents(): typeof events {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return [...events]
+    .filter((e) => eventDate(e) < today)
+    .sort((a, b) => eventDate(b).getTime() - eventDate(a).getTime());
+}
 
 // SAMPLE posts — replace with real association news.
 export const news = [
