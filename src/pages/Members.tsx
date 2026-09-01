@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import AdminPanel from '../components/AdminPanel';
 import ContentManager from '../components/ContentManager';
+import PostingsManager from '../components/PostingsManager';
 import PageHead from '../components/PageHead';
 import { resourceCategories } from '../content/data';
 import type { DirectoryEntry, Profile } from '../lib/portal';
 import { formatDate, membershipState } from '../lib/portal';
+import { useLibrary } from '../lib/postings';
 import { supabase } from '../lib/supabase';
 
 const stateBadge = {
@@ -25,6 +27,7 @@ export default function Members() {
   const [profileMsg, setProfileMsg] = useState('');
   const [pwStatus, setPwStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
   const [pwMsg, setPwMsg] = useState('');
+  const library = useLibrary(!!session);
 
   async function onSignOut() {
     try {
@@ -177,25 +180,26 @@ export default function Members() {
             <>
               <AdminPanel />
               <ContentManager />
+              <PostingsManager />
             </>
           )}
 
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             {[
               {
+                title: 'Q&A archive',
+                text: 'Distilled answers to the questions Florida educators actually ask — searchable, by topic.',
+                cta: { label: 'Search the archive →', to: '/qa' },
+              },
+              {
+                title: 'Teaching videos',
+                text: 'Short segments on the craft of teaching EMS, from the state’s strongest instructors.',
+                cta: { label: 'Watch the library →', to: '/videos' },
+              },
+              {
                 title: 'Quarterly meetings',
-                text: 'Agendas, minutes, and Zoom links for statewide membership meetings will post here.',
+                text: 'Agendas, minutes, and Zoom links for statewide membership meetings post to the calendar.',
                 cta: { label: 'See the calendar →', to: '/events' },
-              },
-              {
-                title: 'Member documents',
-                text: 'Bylaws, committee rosters, and association business — the file library is being stocked now.',
-                cta: { label: 'Read the bylaws →', to: '/bylaws' },
-              },
-              {
-                title: 'Educator of the Year',
-                text: 'Nominations for the seven award categories open to Active members each cycle.',
-                cta: { label: 'About the award →', to: '/about' },
               },
             ].map((c) => (
               <div key={c.title} className="card p-7 border-t-[3px] border-t-brand-gold/70">
@@ -307,6 +311,47 @@ export default function Members() {
             )}
             {pwStatus === 'error' && (
               <p className="mt-3 text-[#B8232D] font-semibold text-[14px]" role="alert">{pwMsg}</p>
+            )}
+          </div>
+
+          <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
+            <h2 className="font-disp font-bold uppercase text-2xl mb-2">Member library</h2>
+            <p className="text-muted text-[14px] mb-5">
+              Documents and references shelved by the board — one library, organized by tag.
+            </p>
+            {library.items.length === 0 ? (
+              <p className="text-muted text-[14.5px]">
+                The shelves are being stocked — program director guidance, teaching craft, and
+                clinical references land here first.
+              </p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {library.items.map((r) => (
+                  <li key={r.id} className="py-3.5">
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-brand-blue hover:underline text-[15px]"
+                    >
+                      {r.title} ↗
+                    </a>
+                    {r.description && <p className="text-[13.5px] text-muted mt-0.5">{r.description}</p>}
+                    {r.tags.length > 0 && (
+                      <span className="mt-1.5 flex flex-wrap gap-1.5">
+                        {r.tags.map((t) => (
+                          <i
+                            key={t}
+                            className="not-italic text-[11px] font-bold tracking-[0.08em] uppercase text-muted bg-paper px-2 py-0.5 rounded-full"
+                          >
+                            {t}
+                          </i>
+                        ))}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
 

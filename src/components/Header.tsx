@@ -2,13 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Mark from './Mark';
 
+// Seven slots is all the 1180px wrap can fit (see the layout note below), so
+// the header carries the pages people return to; Board, Sponsors, Classes,
+// Videos, and the director guide stay one click away via the footer, About,
+// and the pages that reference them.
 const nav = [
   { to: '/about', label: 'About' },
-  { to: '/board', label: 'Board' },
   { to: '/membership', label: 'Membership' },
   { to: '/events', label: 'Events' },
   { to: '/news', label: 'News' },
+  { to: '/qa', label: 'Q&A' },
+  { to: '/jobs', label: 'Jobs' },
   { to: '/resources', label: 'Resources' },
+];
+
+// The mobile menu has room for everything.
+const mobileExtra = [
+  { to: '/videos', label: 'Teaching Videos' },
+  { to: '/classes', label: 'Class Board' },
+  { to: '/program-directors', label: 'Director Guide' },
+  { to: '/board', label: 'Board' },
   { to: '/sponsors', label: 'Sponsors' },
 ];
 
@@ -114,7 +127,7 @@ export default function Header() {
       {open && (
         <div className="xl:hidden border-t border-white/10 bg-ink2">
           <ul className="px-6 py-3">
-            {[...nav, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
+            {[...nav, ...mobileExtra, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
               <li key={n.to}>
                 <NavLink
                   to={n.to}

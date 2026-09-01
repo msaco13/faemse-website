@@ -48,6 +48,7 @@ export default function Footer() {
               <li><Link className="hover:text-white" to="/about">About FAEMSE</Link></li>
               <li><Link className="hover:text-white" to="/board">Board of Directors</Link></li>
               <li><Link className="hover:text-white" to="/bylaws">Bylaws &amp; elections</Link></li>
+              <li><Link className="hover:text-white" to="/sponsors">Sponsors</Link></li>
               <li>
                 <a className="hover:text-white" href="https://www.faemsefoundation.org" target="_blank" rel="noreferrer">
                   Foundation ↗
@@ -57,13 +58,14 @@ export default function Footer() {
           </div>
           <div>
             <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
-              For members
+              For educators
             </h5>
             <ul className="space-y-2.5">
-              <li><Link className="hover:text-white" to="/membership">Join or renew</Link></li>
-              <li><Link className="hover:text-white" to="/resources">Resource library</Link></li>
-              <li><Link className="hover:text-white" to="/events">Event calendar</Link></li>
-              <li><Link className="hover:text-white" to="/sponsors">Sponsors</Link></li>
+              <li><Link className="hover:text-white" to="/qa">Q&amp;A archive</Link></li>
+              <li><Link className="hover:text-white" to="/videos">Teaching videos</Link></li>
+              <li><Link className="hover:text-white" to="/jobs">Job board</Link></li>
+              <li><Link className="hover:text-white" to="/classes">Class board</Link></li>
+              <li><Link className="hover:text-white" to="/program-directors">Director guide</Link></li>
             </ul>
           </div>
           <div>
