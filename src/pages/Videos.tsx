@@ -83,7 +83,7 @@ export default function Videos() {
                             Watch ↗
                           </a>
                         ) : (
-                          <span className="w-14 h-14 grid place-items-center rounded-full border border-brand-gold/50 bg-brand-gold/10 text-brand-goldsoft text-xl" aria-label="Members only">
+                          <span role="img" className="w-14 h-14 grid place-items-center rounded-full border border-brand-gold/50 bg-brand-gold/10 text-brand-goldsoft text-xl" aria-label="Members only">
                             🔒
                           </span>
                         )}

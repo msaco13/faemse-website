@@ -131,7 +131,9 @@ export default function Members() {
     session.user.email?.split('@')[0] ??
     'member';
 
-  const mState = membershipState(profile);
+  // Board admins are members by definition (the database's is_current_member
+  // says the same); never show them a "pending verification" badge.
+  const mState = profile?.role === 'admin' ? 'current' : membershipState(profile);
   const badge = stateBadge[mState];
   const input =
     'mt-1.5 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-blue';

@@ -58,7 +58,10 @@ association's Supabase organization.
   whose `expires_at` is today or later. One flag; tier stays a billing label.
 - Schema for all of the above:
   `supabase/migrations/20260901_brief_features.sql` (already applied to the
-  live project on 2026-09-01).
+  live project on 2026-09-01), then
+  `supabase/migrations/20260901_policy_tuning.sql` (also applied) which
+  collapses overlapping RLS policies and evaluates the auth checks once per
+  query instead of once per row — same access rules, faster queries.
 
 ### Renewal reminder emails (90/60/30 days)
 
@@ -113,6 +116,7 @@ Two ready-made options in this repo:
    there — assets serve fine. Only useful behind a Supabase custom domain
    (paid add-on), where the rewrite doesn't apply.
 
-For the real faemse.org cutover, connect this repo to Netlify or Vercel
-(build command `npm run build`, output `dist/`, SPA fallback on) and point DNS
-at it — see PLAN.md §10 phase 5.
+For the real faemse.org cutover, connect this repo to Netlify — `netlify.toml`
+already carries the build command, SPA fallback, cache headers, and security
+headers, so the only dashboard step is adding the custom domain — then point
+DNS at it. See PLAN.md §10 phase 5.

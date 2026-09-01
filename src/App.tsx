@@ -1,28 +1,39 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import About from './pages/About';
-import Board from './pages/Board';
-import Bylaws from './pages/Bylaws';
-import Membership from './pages/Membership';
-import Events from './pages/Events';
-import News from './pages/News';
-import Resources from './pages/Resources';
-import Sponsors from './pages/Sponsors';
-import Jobs from './pages/Jobs';
-import Classes from './pages/Classes';
-import QandA from './pages/QandA';
-import Videos from './pages/Videos';
-import DirectorGuide from './pages/DirectorGuide';
-import Contact from './pages/Contact';
-import Login from './pages/Login';
-import Members from './pages/Members';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
-import NotFound from './pages/NotFound';
+
+// Home ships in the main bundle (it's the landing page and its LCP matters);
+// every other route loads on demand so first paint isn't paying for the
+// admin panels, portal, or pages the visitor never opens.
+const About = lazy(() => import('./pages/About'));
+const Board = lazy(() => import('./pages/Board'));
+const Bylaws = lazy(() => import('./pages/Bylaws'));
+const Membership = lazy(() => import('./pages/Membership'));
+const Events = lazy(() => import('./pages/Events'));
+const News = lazy(() => import('./pages/News'));
+const Resources = lazy(() => import('./pages/Resources'));
+const Sponsors = lazy(() => import('./pages/Sponsors'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Login = lazy(() => import('./pages/Login'));
+const Members = lazy(() => import('./pages/Members'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Jobs = lazy(() => import('./pages/Jobs'));
+const Classes = lazy(() => import('./pages/Classes'));
+const QandA = lazy(() => import('./pages/QandA'));
+const Videos = lazy(() => import('./pages/Videos'));
+const DirectorGuide = lazy(() => import('./pages/DirectorGuide'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Dark placeholder the height of a page banner, so the header doesn't sit on
+// a white flash while a route chunk downloads (typically <100ms on repeat
+// visits, since chunks are cached).
+function RouteFallback() {
+  return <div className="bg-ink min-h-[60vh]" aria-busy="true" aria-label="Loading page" />;
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -94,28 +105,30 @@ export default function App() {
       <RecoveryRedirect />
       <Header />
       <main id="main" tabIndex={-1} className="outline-none">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/board" element={<Board />} />
-          <Route path="/bylaws" element={<Bylaws />} />
-          <Route path="/membership" element={<Membership />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/sponsors" element={<Sponsors />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/classes" element={<Classes />} />
-          <Route path="/qa" element={<QandA />} />
-          <Route path="/videos" element={<Videos />} />
-          <Route path="/program-directors" element={<DirectorGuide />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/members" element={<Members />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/board" element={<Board />} />
+            <Route path="/bylaws" element={<Bylaws />} />
+            <Route path="/membership" element={<Membership />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/sponsors" element={<Sponsors />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/classes" element={<Classes />} />
+            <Route path="/qa" element={<QandA />} />
+            <Route path="/videos" element={<Videos />} />
+            <Route path="/program-directors" element={<DirectorGuide />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/members" element={<Members />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
       <Footer />
     </>
