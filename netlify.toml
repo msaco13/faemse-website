@@ -1,0 +1,29 @@
+# Netlify configuration for the faemse.org cutover (PLAN.md §10, phase 5).
+# Connect the repo in Netlify and this file handles the rest — no dashboard
+# settings needed beyond the custom domain.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Single-page app: every path serves index.html and the router takes over.
+# (GitHub Pages fakes this with a 404.html copy; Netlify does it properly
+# with a real 200, which is what search engines need for deep links.)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Hashed build assets never change — cache them for a year.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

@@ -13,7 +13,14 @@ export default function PageHead({
 }) {
   useEffect(() => {
     document.title = `${title} · FAEMSE`;
-    if (sub) document.querySelector('meta[name="description"]')?.setAttribute('content', sub);
+    // Keep the share-card tags in step with the page, not stuck on the
+    // homepage values from index.html.
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${title} · FAEMSE`);
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', `${title} · FAEMSE`);
+    if (sub) {
+      document.querySelector('meta[name="description"]')?.setAttribute('content', sub);
+      document.querySelector('meta[property="og:description"]')?.setAttribute('content', sub);
+    }
   }, [title, sub]);
 
   return (
