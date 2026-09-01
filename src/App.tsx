@@ -12,6 +12,11 @@ import Events from './pages/Events';
 import News from './pages/News';
 import Resources from './pages/Resources';
 import Sponsors from './pages/Sponsors';
+import Jobs from './pages/Jobs';
+import Classes from './pages/Classes';
+import QandA from './pages/QandA';
+import Videos from './pages/Videos';
+import DirectorGuide from './pages/DirectorGuide';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Members from './pages/Members';
@@ -99,6 +104,11 @@ export default function App() {
           <Route path="/news" element={<News />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/sponsors" element={<Sponsors />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/classes" element={<Classes />} />
+          <Route path="/qa" element={<QandA />} />
+          <Route path="/videos" element={<Videos />} />
+          <Route path="/program-directors" element={<DirectorGuide />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/members" element={<Members />} />

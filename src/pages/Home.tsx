@@ -45,6 +45,10 @@ export default function Home() {
   const eventsState = useSiteEvents();
   const newsState = useSiteNews();
   const upcoming = splitEvents(eventsState.items).upcoming;
+  // The live wire only shows genuinely live data — a sample or stale "latest"
+  // would announce the site is dead, which is worse than no strip at all.
+  const latestPost = newsState.live ? newsState.items[0] : undefined;
+  const nextMeeting = eventsState.live ? upcoming[0] : undefined;
   useEffect(() => {
     // Inner pages set their own titles; restore the defaults when landing back home.
     document.title = 'FAEMSE — Florida Association of EMS Educators';
@@ -147,6 +151,35 @@ export default function Home() {
         </div>
       </section>
 
+      {/* The live wire — latest update + next meeting, straight from the
+          content tables the board edits. Hidden entirely until live data
+          exists; it must never fake freshness. */}
+      {(latestPost || nextMeeting) && (
+        <section className="bg-[#08142A] border-t border-white/10" aria-label="Latest from the association">
+          <div className="wrap flex flex-wrap items-center gap-x-8 gap-y-2 py-3.5 text-[14px]">
+            <span className="flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.24em] uppercase text-brand-goldsoft">
+              <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse" />
+              Live wire
+            </span>
+            {latestPost && (
+              <Link to="/news" className="text-[#BCCBE7] hover:text-white min-w-0">
+                <b className="text-white">Latest:</b> {latestPost.title}
+                <span className="text-[#7C90B6]"> · {latestPost.date}</span>
+              </Link>
+            )}
+            {nextMeeting && (
+              <Link to="/events" className="text-[#BCCBE7] hover:text-white">
+                <b className="text-white">Next up:</b> {nextMeeting.title}
+                <span className="text-[#7C90B6]">
+                  {' '}
+                  · {nextMeeting.month} {nextMeeting.day}
+                </span>
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
+
       <div className="bg-ink2 pt-px">
         <div className="gold-braid" aria-hidden />
       </div>
@@ -246,6 +279,70 @@ export default function Home() {
                     {c.cta} →
                   </Link>
                 </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* The working library — the sections that make the site useful between
+          meetings: the archive, the videos, the guide, and the boards. */}
+      <section className="bg-white py-24">
+        <div className="wrap">
+          <div className="mb-11">
+            <p className="eyebrow">Between meetings</p>
+            <h2 className="h-sec">
+              The association,
+              <br />
+              open all year
+            </h2>
+            <p className="text-muted text-[17px] max-w-[62ch]">
+              FAEMSE meets in person a few times a year — the rest of the year lives here:
+              answers that stop evaporating, teaching craft on tape, and the boards every
+              program watches.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                tag: 'The archive',
+                title: 'Questions & answers',
+                text: 'Real listserv questions, answered once by the board and kept — searchable by topic.',
+                to: '/qa',
+                cta: 'Search the archive',
+              },
+              {
+                tag: 'Members only',
+                title: 'Teaching videos',
+                text: 'Short segments from strong instructors on the craft of teaching EMS — found nowhere else.',
+                to: '/videos',
+                cta: 'Browse the library',
+              },
+              {
+                tag: 'Free guide',
+                title: 'New program director?',
+                text: 'The compliance clocks already running, and your first 90 days — Florida-specific.',
+                to: '/program-directors',
+                cta: 'Read the guide',
+              },
+              {
+                tag: 'Public boards',
+                title: 'Jobs & classes',
+                text: 'Open positions and upcoming offerings statewide, posted by the board, never stale.',
+                to: '/jobs',
+                cta: 'See the openings',
+              },
+            ].map((c, i) => (
+              <Reveal key={c.title} delay={i * 90} className="flex">
+                <Link
+                  to={c.to}
+                  className="card p-7 flex flex-col border-t-[3px] border-t-brand-blue/60 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]"
+                >
+                  <p className="text-[11.5px] font-bold tracking-[0.14em] uppercase text-brand-blue mb-2">{c.tag}</p>
+                  <h3 className="font-disp font-bold uppercase text-[21px] leading-tight mb-2">{c.title}</h3>
+                  <p className="text-muted text-[14px] flex-1 mb-4">{c.text}</p>
+                  <span className="font-bold text-brand-blue text-[14.5px]">{c.cta} →</span>
+                </Link>
               </Reveal>
             ))}
           </div>

@@ -41,17 +41,47 @@ association's Supabase organization.
   dashboard SQL Editor to install. Until the tables exist (or while they are
   empty), the public site falls back to the bundled sample listings with a
   visible "sample" label.
+- `jobs`, `class_listings` — the public job and class boards. Every row
+  carries `expires_on`; the public site hides expired listings automatically
+  (RLS filter), while admins keep seeing them in the portal so recurring
+  postings can be reposted by editing dates instead of retyped.
+- `qa_entries` — the Q&A archive (distilled listserv threads). Questions are
+  public via the `get_qa_index()` RPC; full rows (answers) are readable only
+  by current members/admins via RLS. Full-text search index included.
+- `teaching_videos` — YouTube/Vimeo links embedded members-only; titles are
+  public via `get_video_index()`.
+- `library_resources` — the members-only resource library (tagged links),
+  shown on the Members page.
+- `reminder_log` — service-role-only record of which renewal reminder
+  (90/60/30 days) went to whom, so the daily job never double-sends.
+- Membership gate: `is_current_member()` — true for admins and for profiles
+  whose `expires_at` is today or later. One flag; tier stays a billing label.
+- Schema for all of the above:
+  `supabase/migrations/20260901_brief_features.sql` (already applied to the
+  live project on 2026-09-01).
+
+### Renewal reminder emails (90/60/30 days)
+
+`supabase/functions/renewal-reminders/` emails members before their
+expiration date. It is idempotent and safe to run daily. **One manual step
+remains:** create a Resend account, verify the faemse.org sending domain, and
+set `RESEND_API_KEY` as a function secret — full instructions are at the top
+of the function file. Until the key is set the function only logs what it
+would send.
 
 ## Updating the site (board admins — no GitHub needed)
 
 Day-to-day content changes happen inside the website itself:
 
 1. Sign in at `/login` with an account whose profile role is `admin`.
-2. The Members page shows two admin panels:
+2. The Members page shows three admin panels:
    - **Board admin** — review membership applications, set tiers,
      paid-through dates, and grant the admin role to other members.
    - **Site content** — add, edit, and delete calendar events and news
      posts. Saves publish to the public site immediately.
+   - **Boards & library** — jobs, classes, Q&A entries, teaching videos,
+     and the member library. Jobs and classes carry an end date and drop
+     off the public site automatically when it passes.
 
 Bootstrapping the first admin (one time, in the Supabase dashboard):
 Authentication → Users → Add user (email + password, auto-confirm), sign in

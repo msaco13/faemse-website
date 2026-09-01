@@ -212,6 +212,106 @@ export const news = [
   },
 ];
 
+// SAMPLE job postings — the board replaces these with real openings as it
+// hears of them. Placement is one of the three CoAEMSP program metrics, so
+// the job board is public on purpose.
+export const sampleJobs = [
+  {
+    posted: 'August 12, 2026',
+    closes: 'November 30, 2026',
+    title: 'Paramedic Program Director',
+    employer: 'State College EMS Academy',
+    location: 'Tampa, FL',
+    description:
+      'CAAHEP-accredited program seeks a director. Bachelor’s required (master’s preferred), CoAEMSP workshop within 15 months, Florida instructor credentials.',
+    applyUrl: '',
+  },
+  {
+    posted: 'August 20, 2026',
+    closes: 'December 15, 2026',
+    title: 'EMT Lead Instructor (nights)',
+    employer: 'Gulf Coast Technical College',
+    location: 'Fort Myers, FL',
+    description:
+      'Evening cohort, three nights a week. Teaching experience preferred; mentorship from the senior faculty provided.',
+    applyUrl: '',
+  },
+  {
+    posted: 'August 25, 2026',
+    closes: 'October 31, 2026',
+    title: 'Clinical Coordinator',
+    employer: 'Broward Fire Academy',
+    location: 'Davie, FL',
+    description:
+      'Owns clinical site agreements, student rotations, and preceptor relationships across three hospital systems.',
+    applyUrl: '',
+  },
+];
+
+// SAMPLE class listings — schools email offerings and the board posts them.
+export const sampleClasses = [
+  {
+    posted: 'August 15, 2026',
+    starts: 'January 11, 2027',
+    closes: 'January 11, 2027',
+    title: 'Spring Paramedic Cohort — applications open',
+    provider: 'Central Florida EMS Institute',
+    location: 'Orlando, FL',
+    description: 'Day program, 12 months, NREMT-P eligible. Application window closes when the cohort fills.',
+    contact: 'admissions@example.edu',
+  },
+  {
+    posted: 'August 22, 2026',
+    starts: 'October 5, 2026',
+    closes: 'October 5, 2026',
+    title: 'EMS Instructor Level A/B Course',
+    provider: 'Suncoast Training Group',
+    location: 'St. Petersburg, FL',
+    description: 'State-recognized instructor qualification course. Two weekends plus online modules.',
+    contact: 'training@example.com',
+  },
+];
+
+// SAMPLE Q&A entries — the archive launches with distilled listserv threads.
+export const sampleQa = [
+  {
+    date: 'August 2026',
+    topic: 'Program Director',
+    question: 'A new program director just took over — what deadlines are already running?',
+    answer:
+      'Two clocks start immediately: CoAEMSP must be notified of the personnel change within 30 calendar days, and the new director must complete the required workshop within 15 months of assuming the role. Verify both against current CoAEMSP standards — the details change. The program director starter guide on this site walks through the first 90 days.',
+  },
+  {
+    date: 'July 2026',
+    topic: 'Clinical',
+    question: 'How are other programs handling clinical site competition in metro areas?',
+    answer:
+      'Consensus from the thread: diversify beyond the big hospital systems (free-standing EDs, interfacility transport services), formalize preceptor recognition so sites see value, and coordinate rotation calendars with neighboring programs instead of competing for the same weeks.',
+  },
+  {
+    date: 'June 2026',
+    topic: 'Teaching',
+    question: 'What actually moves NREMT pass rates for a struggling cohort?',
+    answer:
+      'The recurring answers: item-writing practice for faculty (most program exams under-prepare students for NREMT-style questions), early identification using unit exam data rather than waiting for the final, and structured remediation with a contract — not open-ended “study more.”',
+  },
+  {
+    date: 'May 2026',
+    topic: 'State & Policy',
+    question: 'Where do Florida rule changes actually get announced?',
+    answer:
+      'The state EMS office publishes through the Florida DoH EMS section page and the advisory council meeting cycle — there is no RSS feed, so FAEMSE summarizes anything affecting educators in the news feed on this site, with a line of plain-English context.',
+  },
+];
+
+// SAMPLE teaching videos — the launch set comes from the 3-4 instructors the
+// president has lined up. Hosted on YouTube/Vimeo, embedded here.
+export const sampleVideos = [
+  { topic: 'Skills lab', title: 'Teaching megacode without losing the slow learners', presenter: 'Launch contributor', minutes: 4 },
+  { topic: 'Classroom', title: 'Writing exam items that predict NREMT performance', presenter: 'Launch contributor', minutes: 3 },
+  { topic: 'Clinical', title: 'Coaching preceptors to actually teach', presenter: 'Launch contributor', minutes: 4 },
+];
+
 export const faq = [
   {
     q: 'Who can become a member?',
