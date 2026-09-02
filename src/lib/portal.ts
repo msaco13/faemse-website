@@ -35,6 +35,16 @@ export type Application = {
   status: 'new' | 'approved' | 'declined';
 };
 
+export type ContactMessage = {
+  id: string;
+  created_at: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  handled: boolean;
+};
+
 export function membershipState(p: Profile | null): 'current' | 'lapsed' | 'pending' {
   if (!p?.expires_at) return 'pending';
   const today = new Date();

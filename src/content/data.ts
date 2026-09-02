@@ -5,16 +5,54 @@
 // sample sections are hidden or visibly labeled as previews on the public site.
 export const CONTENT_VERIFIED = false;
 
+// Role descriptions carried over verbatim from the previous faemse.org board
+// page (Sept 2026). Headshots and personal bios still to come from the board.
 export const board = [
-  { role: 'President', name: 'Jorge Anzardo' },
-  { role: 'President-Elect', name: 'Bryan Spangler' },
-  { role: 'Secretary', name: 'Rochelle Goldberg' },
-  { role: 'Past President', name: 'Melissa McNally' },
-  { role: 'Executive Director', name: 'James Dinsch' },
-  { role: 'Director at Large', name: 'Matt Keeler' },
-  { role: 'Director at Large', name: 'Garth Richards' },
-  { role: 'Director at Large', name: 'Carlos Tavarez' },
-  { role: 'EMS Educator Rep, FL EMS Advisory Council', name: 'Melissa McNally' },
+  {
+    role: 'President',
+    name: 'Jorge Anzardo',
+    blurb: 'Leads the association and presides over board meetings and general membership activities.',
+  },
+  {
+    role: 'President-Elect',
+    name: 'Bryan Spangler',
+    blurb: 'Supports the President and prepares to assume the presidency at the end of the current term.',
+  },
+  {
+    role: 'Secretary',
+    name: 'Rochelle Goldberg',
+    blurb: 'Maintains official records, meeting minutes, and correspondence of the association.',
+  },
+  {
+    role: 'Past President',
+    name: 'Melissa McNally',
+    blurb: 'Assists in the leadership of the association and assumes presidential duties when needed.',
+  },
+  {
+    role: 'Executive Director',
+    name: 'James Dinsch',
+    blurb: 'Manages the day-to-day operations of the association and supports the Board of Directors.',
+  },
+  {
+    role: 'Director at Large',
+    name: 'Matt Keeler',
+    blurb: 'Represents the general membership and participates in board decisions and initiatives.',
+  },
+  {
+    role: 'Director at Large',
+    name: 'Garth Richards',
+    blurb: 'Represents the general membership and participates in board decisions and initiatives.',
+  },
+  {
+    role: 'Director at Large',
+    name: 'Carlos Tavarez',
+    blurb: 'Represents the general membership and participates in board decisions and initiatives.',
+  },
+  {
+    role: 'EMS Educator Rep, FL EMS Advisory Council',
+    name: 'Melissa McNally',
+    blurb: 'Provides expert guidance on EMS education matters and advises the board on curriculum and training standards.',
+  },
 ];
 
 export const tiers = [
@@ -26,7 +64,7 @@ export const tiers = [
     featured: true,
     perks: [
       'Vote in elections & hold office',
-      'Every forum, every resource',
+      'Q&A archive, teaching videos & library',
       'Member pricing on workshops',
       'Educator of the Year eligibility',
     ],
@@ -52,7 +90,7 @@ export const tiers = [
     featured: false,
     perks: [
       'Three named representatives',
-      'Forum & resource access',
+      'Archive, video & library access',
       'Committee service (non-voting)',
       'Direct line to Florida educators',
     ],
@@ -103,69 +141,86 @@ export const resourceCategories = [
   },
 ];
 
+// Logos carried over from the previous faemse.org sponsors page (Sept 2026),
+// resized for the web into public/sponsors/. Sponsor website links still to
+// come from the board.
 export const sponsors = [
-  'Henry Schein',
-  'iSimulate',
-  'CAE Healthcare',
-  'Platinum Ed',
-  'AMA',
-  'SEMA',
-  'EEI',
-  'EETI',
-  'CFEEC',
-  'CMES',
-  'CSRIPS',
-  'MCA',
-  'JBLPSG',
-  'The Rescco',
-  'EMETSEEI',
+  { name: 'Henry Schein', logo: 'henry-schein' },
+  { name: 'iSimulate', logo: 'isimulate' },
+  { name: 'CAE Healthcare', logo: 'cae-healthcare' },
+  { name: 'Platinum Ed', logo: 'platinum-ed' },
+  { name: 'AMA', logo: 'ama' },
+  { name: 'SEMA', logo: 'sema' },
+  { name: 'EEI', logo: 'eei' },
+  { name: 'EETI', logo: 'eeti' },
+  { name: 'CFEEC', logo: 'cfeec' },
+  { name: 'CMES', logo: 'cmes' },
+  { name: 'CSRIPS', logo: 'csrips' },
+  { name: 'MCA', logo: 'mca' },
+  { name: 'JBLPSG', logo: 'jblpsg' },
+  { name: 'The Rescco', logo: 'the-rescco' },
+  { name: 'EMETSEEI', logo: 'emetseei' },
 ];
+
+// ---------------------------------------------------------------------------
+// Sample listings carry dates relative to today, so placeholders never look
+// stale — a sample calendar full of "recently held" events is exactly the
+// abandoned look the rebuild exists to avoid.
+export const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+function shift(days: number): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+const longDate = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const monthYear = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+const ymd = (d: Date) => ({
+  day: String(d.getDate()).padStart(2, '0'),
+  month: MONTHS[d.getMonth()],
+  year: String(d.getFullYear()),
+});
 
 // SAMPLE listings — replace with the association's real 2026-27 calendar.
 export const events = [
   {
-    day: '14',
-    month: 'AUG',
-    year: '2026',
-    title: 'Summer Quarterly Membership Meeting',
+    ...ymd(shift(-19)),
+    title: 'Summer Membership Meeting',
     detail: 'Association business, state updates, open floor',
     location: 'Virtual · Zoom',
     tag: 'Meeting',
     tagColor: 'blue',
+    url: '',
   },
   {
-    day: '26',
-    month: 'SEP',
-    year: '2026',
+    ...ymd(shift(24)),
     title: 'Educator & Student Success Workshop',
     detail: 'Full-day, hands-on · CE hours available',
     location: 'Orlando, FL',
     tag: 'Workshop',
     tagColor: 'red',
+    url: '',
   },
   {
-    day: '09',
-    month: 'OCT',
-    year: '2026',
+    ...ymd(shift(37)),
     title: 'NREMT Pass-Rate Strategies',
     detail: 'What high-performing programs do differently',
     location: 'Webinar',
     tag: 'Free · Members',
     tagColor: 'green',
+    url: '',
   },
   {
-    day: '07',
-    month: 'NOV',
-    year: '2026',
+    ...ymd(shift(66)),
     title: 'ALS Student Competition',
     detail: 'Team scenarios, judged by veteran educators',
     location: 'Tampa, FL',
     tag: 'Competition',
     tagColor: 'gold',
+    url: '',
   },
 ];
-
-export const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 export function eventDate(e: { day: string; month: string; year: string }): Date {
   return new Date(Number(e.year), MONTHS.indexOf(e.month.toUpperCase()), Number(e.day));
@@ -190,25 +245,28 @@ export function pastEvents(): typeof events {
 // SAMPLE posts — replace with real association news.
 export const news = [
   {
-    date: 'June 2, 2026',
+    date: longDate(shift(-12)),
     tag: 'Awards',
-    title: '2026 EMS Educator of the Year recipients announced',
+    title: 'EMS Educator of the Year nominations open',
     excerpt:
       'Seven categories, one standard: educators whose students are measurably better for having been in their classroom.',
+    body: '',
   },
   {
-    date: 'May 18, 2026',
+    date: longDate(shift(-27)),
     tag: 'Resources',
-    title: 'New toolkit: aligning your program to the 2026 Education Standards',
+    title: 'New toolkit: aligning your program to the current Education Standards',
     excerpt:
       'A members-only crosswalk for mapping curriculum to the latest National EMS Education Standards.',
+    body: '',
   },
   {
-    date: 'April 30, 2026',
+    date: longDate(shift(-46)),
     tag: 'Board',
-    title: 'Three new directors join the FAEMSE board',
+    title: 'New directors join the FAEMSE board',
     excerpt:
-      'Meet the educators stepping into leadership this term — and the priorities guiding the association through 2028.',
+      'Meet the educators stepping into leadership this term — and the priorities guiding the association.',
+    body: '',
   },
 ];
 
@@ -217,8 +275,8 @@ export const news = [
 // the job board is public on purpose.
 export const sampleJobs = [
   {
-    posted: 'August 12, 2026',
-    closes: 'November 30, 2026',
+    posted: longDate(shift(-21)),
+    closes: longDate(shift(75)),
     title: 'Paramedic Program Director',
     employer: 'State College EMS Academy',
     location: 'Tampa, FL',
@@ -227,8 +285,8 @@ export const sampleJobs = [
     applyUrl: '',
   },
   {
-    posted: 'August 20, 2026',
-    closes: 'December 15, 2026',
+    posted: longDate(shift(-13)),
+    closes: longDate(shift(90)),
     title: 'EMT Lead Instructor (nights)',
     employer: 'Gulf Coast Technical College',
     location: 'Fort Myers, FL',
@@ -237,8 +295,8 @@ export const sampleJobs = [
     applyUrl: '',
   },
   {
-    posted: 'August 25, 2026',
-    closes: 'October 31, 2026',
+    posted: longDate(shift(-8)),
+    closes: longDate(shift(45)),
     title: 'Clinical Coordinator',
     employer: 'Broward Fire Academy',
     location: 'Davie, FL',
@@ -251,9 +309,9 @@ export const sampleJobs = [
 // SAMPLE class listings — schools email offerings and the board posts them.
 export const sampleClasses = [
   {
-    posted: 'August 15, 2026',
-    starts: 'January 11, 2027',
-    closes: 'January 11, 2027',
+    posted: longDate(shift(-18)),
+    starts: longDate(shift(120)),
+    closes: longDate(shift(120)),
     title: 'Spring Paramedic Cohort — applications open',
     provider: 'Central Florida EMS Institute',
     location: 'Orlando, FL',
@@ -261,9 +319,9 @@ export const sampleClasses = [
     contact: 'admissions@example.edu',
   },
   {
-    posted: 'August 22, 2026',
-    starts: 'October 5, 2026',
-    closes: 'October 5, 2026',
+    posted: longDate(shift(-11)),
+    starts: longDate(shift(33)),
+    closes: longDate(shift(33)),
     title: 'EMS Instructor Level A/B Course',
     provider: 'Suncoast Training Group',
     location: 'St. Petersburg, FL',
@@ -275,28 +333,28 @@ export const sampleClasses = [
 // SAMPLE Q&A entries — the archive launches with distilled listserv threads.
 export const sampleQa = [
   {
-    date: 'August 2026',
+    date: monthYear(shift(-10)),
     topic: 'Program Director',
     question: 'A new program director just took over — what deadlines are already running?',
     answer:
       'Two clocks start immediately: CoAEMSP must be notified of the personnel change within 30 calendar days, and the new director must complete the required workshop within 15 months of assuming the role. Verify both against current CoAEMSP standards — the details change. The program director starter guide on this site walks through the first 90 days.',
   },
   {
-    date: 'July 2026',
+    date: monthYear(shift(-40)),
     topic: 'Clinical',
     question: 'How are other programs handling clinical site competition in metro areas?',
     answer:
       'Consensus from the thread: diversify beyond the big hospital systems (free-standing EDs, interfacility transport services), formalize preceptor recognition so sites see value, and coordinate rotation calendars with neighboring programs instead of competing for the same weeks.',
   },
   {
-    date: 'June 2026',
+    date: monthYear(shift(-70)),
     topic: 'Teaching',
     question: 'What actually moves NREMT pass rates for a struggling cohort?',
     answer:
       'The recurring answers: item-writing practice for faculty (most program exams under-prepare students for NREMT-style questions), early identification using unit exam data rather than waiting for the final, and structured remediation with a contract — not open-ended “study more.”',
   },
   {
-    date: 'May 2026',
+    date: monthYear(shift(-100)),
     topic: 'State & Policy',
     question: 'Where do Florida rule changes actually get announced?',
     answer:
@@ -323,11 +381,11 @@ export const faq = [
   },
   {
     q: 'When and where does the association meet?',
-    a: 'Quarterly statewide meetings — a mix of virtual and in-person around Florida — plus workshops, webinars, and the annual student competition.',
+    a: 'Statewide membership meetings held around Florida alongside the major state EMS conferences, with virtual options — plus workshops, webinars, and the annual student competition. Dates post to the calendar as the board confirms them.',
   },
   {
     q: 'How do I get involved beyond attending?',
-    a: 'Run for the board (elections on a two-year cycle), serve on a committee, moderate a forum, judge a student competition, or present at a workshop.',
+    a: 'Run for the board (elections on a two-year cycle), serve on a committee, record a short teaching video, contribute to the program director guide, judge a student competition, or present at a workshop.',
   },
 ];
 
@@ -361,7 +419,17 @@ export const contact = {
   legalName: 'Florida Association of Emergency Medical Services Educators, Inc.',
   taxStatus: '501(c)(6) not-for-profit corporation',
   address: '7901 4th Street #9219, St. Petersburg, FL 33702',
+  // The association's official address (faemse.org mail is hosted on
+  // Microsoft 365). Until the board confirms who monitors it, action emails
+  // from the site also copy the interim board inbox below so nothing is lost.
   email: 'info@faemse.org',
+  boardCc: 'Jlanzardo@gmail.com,Mbsaco13@gmail.com',
   facebook: 'https://www.facebook.com/flemseducators',
   linkedin: 'https://www.linkedin.com/company/florida-association-of-ems-educators/',
 };
+
+// mailto for the site's "send us X" buttons: official address, board copied.
+// `subject` should already be URL-encoded.
+export function mailto(subject: string): string {
+  return `mailto:${contact.email}?cc=${encodeURIComponent(contact.boardCc)}&subject=${subject}`;
+}

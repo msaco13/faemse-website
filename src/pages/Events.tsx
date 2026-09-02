@@ -24,6 +24,16 @@ function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
       <div>
         <b className="block text-[16.5px]">{e.title}</b>
         <span className="text-[13.5px] text-muted">{e.detail}</span>
+        {e.url && !past && (
+          <a
+            href={e.url}
+            target="_blank"
+            rel="noreferrer"
+            className="block mt-1 text-[13.5px] font-bold text-brand-blue hover:underline"
+          >
+            Details &amp; registration ↗
+          </a>
+        )}
       </div>
       <span className="text-[14px] text-muted hidden md:block">{e.location}</span>
       <span
@@ -48,7 +58,7 @@ export default function Events() {
         title="Upcoming across Florida"
         sub={
           live || !loaded
-            ? 'Workshops, competitions, and quarterly meetings.'
+            ? 'Workshops, competitions, and statewide membership meetings.'
             : 'Sample listings shown while the association finalizes the 2026–27 calendar.'
         }
       />

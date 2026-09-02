@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import { mailto } from '../content/data';
 import { useJobs } from '../lib/postings';
 
 // Public on purpose: there is no paid-posting model — the board posts openings
@@ -68,7 +69,7 @@ export default function Jobs() {
                 front of every program. Listings come down automatically on their closing date.
               </p>
             </div>
-            <a href="mailto:info@faemse.org?subject=Job%20posting%20for%20the%20FAEMSE%20board" className="btn-red">
+            <a href={mailto('Job%20posting%20for%20the%20FAEMSE%20board')} className="btn-red">
               Send a posting
             </a>
           </div>

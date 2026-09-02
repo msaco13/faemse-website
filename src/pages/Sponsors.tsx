@@ -1,5 +1,5 @@
 import PageHead from '../components/PageHead';
-import { sponsors } from '../content/data';
+import { mailto, sponsors } from '../content/data';
 
 export default function Sponsors() {
   return (
@@ -11,16 +11,21 @@ export default function Sponsors() {
       />
       <section className="py-20 bg-white">
         <div className="wrap">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 list-none p-0 m-0">
             {sponsors.map((s) => (
-              <div
-                key={s}
-                className="card p-6 grid place-items-center text-center font-disp font-semibold uppercase tracking-[0.08em] text-muted hover:text-body hover:border-brand-gold/60 hover:shadow-[0_18px_50px_rgba(177,133,22,.16)] hover:-translate-y-1 transition-all min-h-[92px]"
+              <li
+                key={s.name}
+                className="card p-5 grid place-items-center min-h-[120px] hover:border-brand-gold/60 hover:shadow-[0_18px_50px_rgba(177,133,22,.16)] hover:-translate-y-1 transition-all"
               >
-                {s}
-              </div>
+                <img
+                  src={`${import.meta.env.BASE_URL}sponsors/${s.logo}.webp`}
+                  alt={s.name}
+                  loading="lazy"
+                  className="max-h-[72px] w-auto max-w-[85%] object-contain"
+                />
+              </li>
             ))}
-          </div>
+          </ul>
           <div className="card p-8 mt-10 flex flex-wrap items-center justify-between gap-4 bg-ink !border-white/10 text-white">
             <div>
               <h2 className="font-disp font-bold uppercase text-2xl mb-1">Become a sponsor</h2>
@@ -29,7 +34,7 @@ export default function Sponsors() {
                 programs buy, teach, and recommend.
               </p>
             </div>
-            <a href="mailto:info@faemse.org?subject=Sponsorship" className="btn-gold">
+            <a href={mailto('Sponsorship')} className="btn-gold">
               Get sponsorship info
             </a>
           </div>
