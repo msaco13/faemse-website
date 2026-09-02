@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import { mailto } from '../content/data';
 
 // The clearest unmet need from the build brief: program director turnover is
 // high, institutional knowledge leaves with each departure, and the required
@@ -165,7 +166,7 @@ export default function DirectorGuide() {
                 who know how the requirements actually play out with the state office. A paragraph
                 of hard-won knowledge here saves a new director a semester.
               </p>
-              <a href="mailto:info@faemse.org?subject=Director%20guide%20contribution" className="btn-outline !py-2.5 !px-5">
+              <a href={mailto('Director%20guide%20contribution')} className="btn-outline !py-2.5 !px-5">
                 Contribute to the guide
               </a>
             </div>

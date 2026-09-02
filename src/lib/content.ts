@@ -16,6 +16,7 @@ export type EventItem = {
   location: string;
   tag: string;
   tagColor: string;
+  url: string;
 };
 
 export type NewsItem = {
@@ -24,6 +25,7 @@ export type NewsItem = {
   tag: string;
   title: string;
   excerpt: string;
+  body: string;
 };
 
 type Loaded<T> = { items: T[]; live: boolean; loaded: boolean };
@@ -36,7 +38,7 @@ function withTimeout<T>(p: PromiseLike<T>, ms = 5000): Promise<T> {
   ]);
 }
 
-function toEventItem(r: { id: string; starts_on: string; title: string; detail: string; location: string; tag: string; tag_color: string }): EventItem {
+function toEventItem(r: { id: string; starts_on: string; title: string; detail: string; location: string; tag: string; tag_color: string; url?: string | null }): EventItem {
   const d = new Date(`${r.starts_on.slice(0, 10)}T00:00:00`);
   return {
     id: r.id,
@@ -48,10 +50,11 @@ function toEventItem(r: { id: string; starts_on: string; title: string; detail: 
     location: r.location,
     tag: r.tag,
     tagColor: r.tag_color,
+    url: r.url ?? '',
   };
 }
 
-function toNewsItem(r: { id: string; published_on: string; tag: string; title: string; excerpt: string }): NewsItem {
+function toNewsItem(r: { id: string; published_on: string; tag: string; title: string; excerpt: string; body?: string | null }): NewsItem {
   const d = new Date(`${r.published_on.slice(0, 10)}T00:00:00`);
   return {
     id: r.id,
@@ -59,6 +62,7 @@ function toNewsItem(r: { id: string; published_on: string; tag: string; title: s
     tag: r.tag,
     title: r.title,
     excerpt: r.excerpt,
+    body: r.body ?? '',
   };
 }
 

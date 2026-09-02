@@ -59,7 +59,7 @@ export default function Membership() {
       <PageHead
         eyebrow="Membership"
         title="Join FAEMSE"
-        sub="Five classifications, one community. Dues fund the workshops, forums, and advocacy that every Florida EMS program benefits from."
+        sub="Five classifications, one community. Dues fund the workshops, the knowledge archive, and the advocacy that every Florida EMS program benefits from."
       />
       <section className="py-20 bg-paper">
         <div className="wrap">

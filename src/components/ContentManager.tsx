@@ -12,6 +12,7 @@ type DbEvent = {
   location: string;
   tag: string;
   tag_color: string;
+  url: string;
 };
 
 type DbNews = {
@@ -20,6 +21,7 @@ type DbNews = {
   tag: string;
   title: string;
   excerpt: string;
+  body: string;
 };
 
 const input =
@@ -64,6 +66,7 @@ function EventForm({
       location: String(data.location ?? '').trim(),
       tag: String(data.tag ?? '').trim() || 'Meeting',
       tag_color: String(data.tag_color),
+      url: String(data.url ?? '').trim(),
     };
     setSaving(true);
     setErr('');
@@ -107,6 +110,17 @@ function EventForm({
           maxLength={40}
           placeholder="Meeting, Workshop, Competition…"
           defaultValue={initial?.tag ?? ''}
+          className={input}
+        />
+      </label>
+      <label className="sm:col-span-2">
+        <span className={label}>Link for details / registration (optional)</span>
+        <input
+          name="url"
+          type="url"
+          maxLength={500}
+          placeholder="https://… (the conference's own registration page, a Zoom link, an agenda)"
+          defaultValue={initial?.url ?? ''}
           className={input}
         />
       </label>
@@ -157,6 +171,7 @@ function NewsForm({
       title: String(data.title).trim(),
       tag: String(data.tag ?? '').trim() || 'News',
       excerpt: String(data.excerpt ?? '').trim(),
+      body: String(data.body ?? '').trim(),
     };
     setSaving(true);
     setErr('');
@@ -184,8 +199,19 @@ function NewsForm({
         <input name="title" required maxLength={200} defaultValue={initial?.title ?? ''} className={input} />
       </label>
       <label className="sm:col-span-2">
-        <span className={label}>Summary (a sentence or two)</span>
+        <span className={label}>Summary (a sentence or two — shows on the homepage)</span>
         <textarea name="excerpt" rows={2} maxLength={500} defaultValue={initial?.excerpt ?? ''} className={input} />
+      </label>
+      <label className="sm:col-span-2">
+        <span className={label}>Full post (optional — plain text, blank lines start new paragraphs)</span>
+        <textarea
+          name="body"
+          rows={6}
+          maxLength={12000}
+          placeholder="For a state rule change: what changed, who it affects, what to do, and where to read the original."
+          defaultValue={initial?.body ?? ''}
+          className={input}
+        />
       </label>
       <div className="sm:col-span-2 flex items-center gap-3">
         <button type="submit" disabled={saving} className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60">

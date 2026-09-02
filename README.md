@@ -29,8 +29,8 @@ npm run build    # type-check + production build to dist/
 Supabase project `FAEMSE WEBSITE` (ref `iybsnqcffrhzhdpyoaqt`), owned by the
 association's Supabase organization.
 
-- `contact_messages` — contact-form submissions. RLS: anon may INSERT only;
-  reading requires the service role (dashboard → Table Editor).
+- `contact_messages` — contact-form submissions. Anyone may INSERT; board
+  admins read them and mark them handled from the portal's Board admin panel.
 - `membership_applications` — join/renew form submissions. Admins review them
   from the portal's Board admin panel.
 - `profiles` — member portal profiles (tier, expiration, directory listing,
@@ -61,7 +61,28 @@ association's Supabase organization.
   live project on 2026-09-01), then
   `supabase/migrations/20260901_policy_tuning.sql` (also applied) which
   collapses overlapping RLS policies and evaluates the auth checks once per
-  query instead of once per row — same access rules, faster queries.
+  query instead of once per row — same access rules, faster queries; then
+  `supabase/migrations/20260902_links_bodies_messages.sql` (also applied):
+  event links, full news bodies, admin-readable contact messages.
+
+### Email routing (interim)
+
+faemse.org mail is hosted on Microsoft 365 by the association, so
+`info@faemse.org` is real — but until the board confirms who monitors it,
+every "send us a posting / class / resource / video" button on the site
+addresses info@faemse.org **and copies the interim board inbox**
+(`contact.boardCc` in `src/content/data.ts`: Jorge Anzardo and Michael
+Saco). Change that one constant when the association mailbox is confirmed.
+
+### Board notifications (contact form + applications)
+
+`supabase/functions/notify-board/` emails the board whenever a contact-form
+message or membership application is inserted, via Supabase Database
+Webhooks. Setup steps (webhooks, `WEBHOOK_SECRET`, `RESEND_API_KEY`,
+`NOTIFY_TO`) are at the top of the function file. It shares the Resend
+account with the renewal reminders, so one setup unlocks both. Until then,
+messages and applications are still visible in the portal's Board admin
+panel — nothing is lost, it just isn't pushed.
 
 ### Renewal reminder emails (90/60/30 days)
 

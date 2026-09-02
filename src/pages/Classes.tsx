@@ -1,4 +1,5 @@
 import PageHead from '../components/PageHead';
+import { mailto } from '../content/data';
 import { useClasses } from '../lib/postings';
 
 // Schools email upcoming offerings; the board posts them. Same pattern as the
@@ -68,7 +69,7 @@ export default function Classes() {
                 the start date, and we can repost recurring offerings each cycle.
               </p>
             </div>
-            <a href="mailto:info@faemse.org?subject=Class%20listing%20for%20the%20FAEMSE%20board" className="btn-red">
+            <a href={mailto('Class%20listing%20for%20the%20FAEMSE%20board')} className="btn-red">
               Submit a class
             </a>
           </div>

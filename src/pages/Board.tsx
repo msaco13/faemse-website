@@ -19,32 +19,36 @@ export default function Board() {
                   key={m.role + m.name}
                   className={
                     isPresident
-                      ? 'relative rounded-2xl p-7 flex items-center gap-4 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516)_border-box] shadow-[0_24px_60px_rgba(177,133,22,.18)]'
-                      : 'card p-7 flex items-center gap-4'
+                      ? 'relative rounded-2xl p-7 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516)_border-box] shadow-[0_24px_60px_rgba(177,133,22,.18)]'
+                      : 'card p-7'
                   }
                 >
-                  <span
-                    className={`flex-none w-14 h-14 rounded-full grid place-items-center font-disp font-bold text-xl ${
-                      isPresident
-                        ? 'bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2'
-                        : 'bg-gradient-to-br from-brand-blue to-brand-bluedeep text-white'
-                    }`}
-                  >
-                    {m.name
-                      .split(' ')
-                      .map((w) => w[0])
-                      .join('')}
-                  </span>
-                  <div>
-                    <b className="block text-[16px]">{m.name}</b>
+                  <div className="flex items-center gap-4">
                     <span
-                      className={`text-[13.5px] ${
-                        isPresident ? 'text-brand-goldink font-bold tracking-[0.08em] uppercase' : 'text-muted'
+                      className={`flex-none w-14 h-14 rounded-full grid place-items-center font-disp font-bold text-xl ${
+                        isPresident
+                          ? 'bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2'
+                          : 'bg-gradient-to-br from-brand-blue to-brand-bluedeep text-white'
                       }`}
+                      aria-hidden
                     >
-                      {m.role}
+                      {m.name
+                        .split(' ')
+                        .map((w) => w[0])
+                        .join('')}
                     </span>
+                    <div>
+                      <b className="block text-[16px]">{m.name}</b>
+                      <span
+                        className={`text-[13.5px] ${
+                          isPresident ? 'text-brand-goldink font-bold tracking-[0.08em] uppercase' : 'text-muted'
+                        }`}
+                      >
+                        {m.role}
+                      </span>
+                    </div>
                   </div>
+                  {m.blurb && <p className="text-[13.5px] text-muted mt-4 leading-relaxed">{m.blurb}</p>}
                 </div>
               );
             })}

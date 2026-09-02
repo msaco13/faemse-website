@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import { mailto } from '../content/data';
 import { embedUrl, useVideoIndex, useVideos } from '../lib/postings';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
@@ -109,7 +110,7 @@ export default function Videos() {
           <p className="text-muted text-[14px] mt-8 max-w-[75ch]">
             Good at a specific piece of teaching — a skill station, a hard lecture topic, a way of
             running scenarios? The library grows one 3–4 minute segment at a time.{' '}
-            <a className="text-brand-blue font-semibold hover:underline" href="mailto:info@faemse.org?subject=Teaching%20video%20contribution">
+            <a className="text-brand-blue font-semibold hover:underline" href={mailto('Teaching%20video%20contribution')}>
               Volunteer a segment →
             </a>
           </p>

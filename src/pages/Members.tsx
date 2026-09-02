@@ -199,7 +199,7 @@ export default function Members() {
                 cta: { label: 'Watch the library →', to: '/videos' },
               },
               {
-                title: 'Quarterly meetings',
+                title: 'Statewide meetings',
                 text: 'Agendas, minutes, and Zoom links for statewide membership meetings post to the calendar.',
                 cta: { label: 'See the calendar →', to: '/events' },
               },

@@ -100,7 +100,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="flex flex-wrap gap-2.5">
-              {['501(c)(6) nonprofit', 'Every program type, statewide', 'Quarterly meetings & workshops'].map(
+              {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map(
                 (c) => (
                   <span
                     key={c}
@@ -199,7 +199,7 @@ export default function Home() {
               className="font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap"
             >
               <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
-              {s}
+              {s.name}
             </span>
           ))}
         </div>
@@ -254,7 +254,7 @@ export default function Home() {
             {[
               {
                 title: 'A statewide bench',
-                text: 'Trade playbooks with educators from every county and program type — through role-based forums, workshops, and four statewide meetings a year.',
+                text: 'Trade playbooks with educators from every county and program type — through the Q&A archive, teaching videos, workshops, and statewide meetings.',
                 to: '/events',
                 cta: 'Meet the network',
               },
