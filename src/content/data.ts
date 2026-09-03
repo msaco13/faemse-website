@@ -362,12 +362,37 @@ export const sampleQa = [
   },
 ];
 
-// SAMPLE teaching videos — the launch set comes from the 3-4 instructors the
-// president has lined up. Hosted on YouTube/Vimeo, embedded here.
-export const sampleVideos = [
-  { topic: 'Skills lab', title: 'Teaching megacode without losing the slow learners', presenter: 'Launch contributor', minutes: 4 },
-  { topic: 'Classroom', title: 'Writing exam items that predict NREMT performance', presenter: 'Launch contributor', minutes: 3 },
-  { topic: 'Clinical', title: 'Coaching preceptors to actually teach', presenter: 'Launch contributor', minutes: 4 },
+// Teaching videos: the president has parked this until instructors are lined
+// up, so there are no sample titles — the page shows its in-development state.
+export const sampleVideos: { topic: string; title: string; presenter: string; minutes: number }[] = [];
+
+// Evergreen homepage spotlights, used only if the spotlights table can't be
+// reached. The live set (board-editable) lives in Supabase.
+export const fallbackSpotlights = [
+  {
+    kicker: 'EMS Educator of the Year',
+    title: 'Seven categories. One standard.',
+    body: 'Every year FAEMSE honors the educators whose students are measurably better for having been in their classroom. Nominations are open to Active members.',
+    imageUrl: '',
+    linkUrl: '/about',
+    linkLabel: 'About the award',
+  },
+  {
+    kicker: 'New program director?',
+    title: 'Your compliance clocks are already running.',
+    body: 'Thirty days to notify CoAEMSP, fifteen months for the required workshop — and a first-90-days checklist built by directors who have done the job.',
+    imageUrl: '',
+    linkUrl: '/program-directors',
+    linkLabel: 'Read the starter guide',
+  },
+  {
+    kicker: 'The archive',
+    title: 'Questions answered once. Kept for good.',
+    body: 'Real questions from Florida educators, distilled by the board and searchable by topic — so knowledge stops evaporating with the listserv.',
+    imageUrl: '',
+    linkUrl: '/qa',
+    linkLabel: 'Search the archive',
+  },
 ];
 
 export const faq = [

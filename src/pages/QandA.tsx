@@ -38,7 +38,7 @@ export default function QandA() {
         <div className="wrap max-w-[900px]">
           {source.loaded && !source.live && (
             <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              Sample entries — the archive is being seeded from real threads
+              Sample entries — the first real entries are with the board for review
             </p>
           )}
 
@@ -98,7 +98,7 @@ export default function QandA() {
           ) : shown.length === 0 ? (
             <div className="card p-8 text-muted">
               {source.items.length === 0
-                ? 'The archive is being seeded from real listserv threads — first entries post soon.'
+                ? 'The first entries are with the board for review — they post here the moment they are approved.'
                 : 'Nothing matches that search — try fewer or different words.'}
             </div>
           ) : (
@@ -110,6 +110,9 @@ export default function QandA() {
                       <span>
                         <span className="block text-[12px] font-bold tracking-[0.09em] uppercase text-muted mb-1">
                           {item.topic} · {item.date}
+                          {item.published === false && (
+                            <span className="ml-2 px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]">Draft · admins only</span>
+                          )}
                         </span>
                         <b className="text-[16.5px] leading-snug">{item.question}</b>
                       </span>
@@ -144,9 +147,9 @@ export default function QandA() {
           )}
 
           <p className="text-muted text-[14px] mt-8 max-w-[75ch]">
-            Have a question the archive doesn&apos;t cover? Ask it on the member listserv — the
-            strongest threads get distilled and added here, so the next educator finds the answer
-            instead of re-asking it.
+            Have a question the archive doesn&apos;t cover? Ask it on the member listserv or send
+            it to the board — the best questions get answered once and added here, so the next
+            educator finds the answer instead of re-asking it.
           </p>
         </div>
       </section>
