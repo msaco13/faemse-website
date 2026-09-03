@@ -15,9 +15,11 @@ type Row = Record<string, unknown> & { id: string };
 type Field = {
   name: string;
   label: string;
-  type: 'date' | 'text' | 'textarea' | 'number' | 'tags' | 'checkbox';
+  type: 'date' | 'text' | 'textarea' | 'number' | 'tags' | 'checkbox' | 'media';
   required?: boolean;
   placeholder?: string;
+  accept?: string; // media fields: which files the upload button offers
+  hint?: string; // media fields: sizing guidance under the input
   span?: boolean; // full-width in the two-column form grid
   nullable?: boolean; // clearing the field on edit stores NULL (column allows it)
 };
@@ -48,7 +50,24 @@ const SECTIONS: Section[] = [
       { name: 'sort_order', label: 'Order (lower shows first)', type: 'number' },
       { name: 'title', label: 'Headline (keep it under ~60 characters)', type: 'text', required: true, span: true },
       { name: 'body', label: 'One or two sentences', type: 'textarea', span: true },
-      { name: 'image_url', label: 'Photo link (optional — becomes the backdrop)', type: 'text', placeholder: 'https://…' },
+      {
+        name: 'image_url',
+        label: 'Photo (optional — becomes the backdrop, and the still frame behind a video)',
+        type: 'media',
+        accept: 'image/jpeg,image/png,image/webp',
+        placeholder: 'https://… or upload',
+        hint: 'Landscape, 1600px wide or more. JPG or WebP under 2 MB.',
+        span: true,
+      },
+      {
+        name: 'video_url',
+        label: 'Video (optional — plays muted on loop behind the slide)',
+        type: 'media',
+        accept: 'video/mp4,video/webm,video/quicktime',
+        placeholder: 'https://… (MP4, YouTube, or Vimeo) or upload',
+        hint: '10–20 seconds, no sound needed, 1080p MP4 under 20 MB. A YouTube or Vimeo link works too.',
+        span: true,
+      },
       { name: 'link_url', label: 'Button link (/events, /about, or https://…)', type: 'text' },
       { name: 'link_label', label: 'Button text', type: 'text', placeholder: 'See the calendar' },
       { name: 'starts_on', label: 'Show from', type: 'date' },
@@ -181,6 +200,79 @@ function SetupNotice() {
   );
 }
 
+// A link box with an Upload button beside it: the file goes to the public
+// `media` bucket (admin-only writes, see the 20260903 migration) and its public
+// URL lands in the box, so the board never has to host photos or clips elsewhere.
+function MediaInput({ field, initial }: { field: Field; initial: string }) {
+  const [value, setValue] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  async function upload(file: File) {
+    setBusy(true);
+    setErr('');
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+    const stem = file.name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase().slice(0, 40) || 'file';
+    const path = `spotlights/${Date.now()}-${stem}.${ext}`;
+    const { error } = await supabase.storage.from('media').upload(path, file, { cacheControl: '31536000', upsert: false });
+    if (error) {
+      setErr(error.message.includes('exceeded') ? 'That file is over the 50 MB limit — trim or compress it and try again.' : error.message);
+    } else {
+      setValue(supabase.storage.from('media').getPublicUrl(path).data.publicUrl);
+    }
+    setBusy(false);
+  }
+
+  const isVideo = field.accept?.startsWith('video');
+  return (
+    <div className={field.span ? 'sm:col-span-2' : undefined}>
+      <label>
+        <span className={labelCls}>{field.label}</span>
+        <span className="flex gap-2">
+          <input
+            name={field.name}
+            type="url"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={field.placeholder}
+            maxLength={1000}
+            className={`${input} flex-1`}
+          />
+          <span className={`btn-outline !py-2 !px-4 text-[13px] whitespace-nowrap cursor-pointer relative ${busy ? 'opacity-60' : ''}`}>
+            {busy ? 'Uploading…' : `Upload ${isVideo ? 'clip' : 'photo'}`}
+            <input
+              type="file"
+              accept={field.accept}
+              disabled={busy}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) upload(f);
+                e.target.value = '';
+              }}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              aria-label={`Upload ${isVideo ? 'video' : 'photo'}`}
+            />
+          </span>
+          {value && (
+            <button type="button" onClick={() => setValue('')} className="text-muted font-semibold text-[13px] hover:text-ink">
+              Clear
+            </button>
+          )}
+        </span>
+      </label>
+      {field.hint && <span className="block text-[12px] text-muted mt-1">{field.hint}</span>}
+      {value && !isVideo && (
+        <img src={value} alt="" className="mt-2 h-20 rounded-lg object-cover border border-line" onError={(e) => ((e.currentTarget.style.display = 'none'))} />
+      )}
+      {err && (
+        <span className="block text-brand-red font-semibold text-[13px] mt-1" role="alert">
+          {err}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function RowForm({
   section,
   initial,
@@ -235,6 +327,9 @@ function RowForm({
             ? (initial[f.name] as string[]).join(', ')
             : String(initial[f.name] ?? '')
           : '';
+        if (f.type === 'media') {
+          return <MediaInput key={f.name} field={f} initial={initialVal} />;
+        }
         if (f.type === 'checkbox') {
           return (
             <label key={f.name} className={`flex items-center gap-2.5 text-[14px] font-semibold ${f.span ? 'sm:col-span-2' : ''}`}>

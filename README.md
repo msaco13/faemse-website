@@ -53,9 +53,16 @@ association's Supabase organization.
 - `library_resources` — the members-only resource library (tagged links),
   shown on the Members page.
 - `spotlights` — the homepage hero rotator ("one main screen that flips
-  through"): kicker, headline, body, optional photo, button, show-from and
-  stop-after dates. Board-editable from the portal's Boards & library panel;
-  the hero falls back to a bundled evergreen set if the table is unreachable.
+  through"): kicker, headline, body, optional photo, optional **video**,
+  button, show-from and stop-after dates. A video plays muted on loop behind
+  the slide (direct MP4/WebM, or a YouTube/Vimeo link as a background embed);
+  the photo is the still frame for reduced-motion and data-saver visitors.
+  Board-editable from the portal's Boards & library panel; the hero falls
+  back to a bundled evergreen set if the table is unreachable.
+- Storage bucket `media` — public-read, admin-write. The spotlight form's
+  Upload buttons put photos and clips here (50 MB cap, images and
+  MP4/WebM/MOV only) so the board never needs outside hosting. Guidance in
+  the form: clips of 10–20 seconds, 1080p, under 20 MB; no audio needed.
 - `qa_entries.published` — Q&A review queue. Unpublished entries are visible
   only to admins (badge: "Draft · admins only") until the board flips the
   Published box in the portal. Ten researched drafts were loaded unpublished
@@ -71,7 +78,10 @@ association's Supabase organization.
   collapses overlapping RLS policies and evaluates the auth checks once per
   query instead of once per row — same access rules, faster queries; then
   `supabase/migrations/20260902_links_bodies_messages.sql` (also applied):
-  event links, full news bodies, admin-readable contact messages.
+  event links, full news bodies, admin-readable contact messages; then
+  `supabase/migrations/20260902_spotlights_qa_publish.sql` and
+  `supabase/migrations/20260903_spotlight_video_media.sql` (both applied):
+  the spotlight rotator, Q&A review queue, spotlight video, media bucket.
 
 ### Email routing (interim)
 
@@ -111,9 +121,10 @@ Day-to-day content changes happen inside the website itself:
      paid-through dates, and grant the admin role to other members.
    - **Site content** — add, edit, and delete calendar events and news
      posts. Saves publish to the public site immediately.
-   - **Boards & library** — jobs, classes, Q&A entries, teaching videos,
-     and the member library. Jobs and classes carry an end date and drop
-     off the public site automatically when it passes.
+   - **Boards & library** — homepage spotlights (with photo/video upload),
+     jobs, classes, Q&A entries, teaching videos, and the member library.
+     Jobs, classes, and spotlights carry an end date and drop off the public
+     site automatically when it passes.
 
 Bootstrapping the first admin (one time, in the Supabase dashboard):
 Authentication → Users → Add user (email + password, auto-confirm), sign in
