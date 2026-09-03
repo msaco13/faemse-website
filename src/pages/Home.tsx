@@ -6,7 +6,7 @@ import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
 import { splitEvents, useSiteEvents, useSiteNews } from '../lib/content';
-import { useSpotlights, type Spotlight } from '../lib/postings';
+import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -43,6 +43,67 @@ function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   );
 }
 
+// The hero's media layer. A direct MP4/WebM plays in a native <video>
+// (muted, looping, inline — the only way mobile browsers autoplay); YouTube
+// and Vimeo links play as a chrome-free background embed scaled to cover.
+// Reduced-motion visitors and data-saver connections get the still photo
+// instead. The layer cross-fades as slides change.
+function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
+  const [still, setStill] = useState(false);
+  useEffect(() => {
+    const mq = matchMedia('(prefers-reduced-motion: reduce)');
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    const update = () => setStill(mq.matches || !!nav.connection?.saveData);
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
+
+  const image = spotlight?.imageUrl || '';
+  const video = !still && spotlight?.videoUrl ? spotlight.videoUrl : '';
+  const embed = video && !isVideoFile(video) ? backgroundEmbedUrl(video) : null;
+  const file = video && isVideoFile(video) ? video : '';
+  const show = !!(image || file || embed);
+
+  return (
+    <div
+      aria-hidden
+      className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${show ? 'opacity-100' : 'opacity-0'}`}
+    >
+      {image && !file && !embed && <img src={image} alt="" className="w-full h-full object-cover opacity-40" />}
+      {file && (
+        <video
+          key={file}
+          src={file}
+          poster={image || undefined}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="w-full h-full object-cover opacity-50"
+        />
+      )}
+      {embed && (
+        <div className="absolute inset-0 overflow-hidden opacity-50">
+          {image && <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+          {/* 16:9 frame sized to cover the section whatever its shape. */}
+          <iframe
+            key={embed}
+            src={embed}
+            title=""
+            tabIndex={-1}
+            allow="autoplay; encrypted-media"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[max(100%,177.78vh)] h-[max(100%,56.25vw)] min-w-[177.78%] min-h-full border-0"
+          />
+        </div>
+      )}
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,#0A1B33_0%,rgba(10,27,51,.72)_45%,rgba(10,27,51,.35)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#060F20] to-transparent" />
+    </div>
+  );
+}
+
 export default function Home() {
   const eventsState = useSiteEvents();
   const newsState = useSiteNews();
@@ -70,23 +131,15 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden text-white bg-[radial-gradient(1100px_700px_at_72%_-10%,#12315E_0%,#0A1B33_52%,#060F20_100%)]">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-          <div className="absolute -left-56 -top-40 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(229,64,74,.85),transparent_62%)]" />
-          <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)]" />
-          <div className="absolute left-1/3 -bottom-64 w-[720px] h-[720px] rounded-full opacity-[.16] blur-[100px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)]" />
+          <div className="absolute -left-56 -top-40 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(229,64,74,.85),transparent_62%)] animate-[drift_18s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
+          <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)] animate-[drift_24s_ease-in-out_infinite_alternate-reverse] motion-reduce:animate-none" />
+          <div className="absolute left-1/3 -bottom-64 w-[720px] h-[720px] rounded-full opacity-[.16] blur-[100px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)] animate-[drift_30s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
+          <style>{`@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(60px,40px,0) scale(1.12)}}`}</style>
         </div>
-        {/* Spotlight photo backdrop — only when the active slide carries one;
-            a dark gradient keeps the type legible over any picture. */}
-        <div
-          aria-hidden
-          className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
-            activeSpotlight?.imageUrl ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          {activeSpotlight?.imageUrl && (
-            <img src={activeSpotlight.imageUrl} alt="" className="w-full h-full object-cover opacity-40" />
-          )}
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,#0A1B33_0%,rgba(10,27,51,.72)_45%,rgba(10,27,51,.35)_100%)]" />
-        </div>
+        {/* Spotlight backdrop — a photo or a muted looping clip, only when the
+            active slide carries one; a dark gradient keeps the type legible
+            over any picture. */}
+        <HeroBackdrop spotlight={activeSpotlight} />
         <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20 lg:pb-24">
           <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 

@@ -46,6 +46,7 @@ export type Spotlight = {
   title: string;
   body: string;
   imageUrl: string;
+  videoUrl: string;
   linkUrl: string;
   linkLabel: string;
 };
@@ -130,6 +131,7 @@ export function useSpotlights(): Loaded<Spotlight> {
             title: r.title,
             body: r.body,
             imageUrl: r.image_url,
+            videoUrl: r.video_url ?? '',
             linkUrl: r.link_url,
             linkLabel: r.link_label,
           })),
@@ -384,6 +386,25 @@ export function qaMatches(item: QaIndexItem, query: string): boolean {
 
 // Turn a YouTube / Vimeo link into an embeddable player URL; null when the
 // host isn't one we embed (the UI then links out instead).
+// A muted, looping, chrome-free background embed for the hero. Direct video
+// files (mp4/webm/mov) return null: they play in a native <video> instead.
+export function backgroundEmbedUrl(raw: string): string | null {
+  const base = embedUrl(raw);
+  if (!base) return null;
+  if (base.includes('youtube-nocookie.com/embed/')) {
+    const id = base.split('/embed/')[1].split(/[?&]/)[0];
+    return `${base}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&rel=0&playsinline=1&modestbranding=1&iv_load_policy=3`;
+  }
+  if (base.includes('player.vimeo.com/video/')) {
+    return `${base}?background=1&autoplay=1&loop=1&muted=1`;
+  }
+  return null;
+}
+
+export function isVideoFile(raw: string): boolean {
+  return /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(raw);
+}
+
 export function embedUrl(raw: string): string | null {
   try {
     const u = new URL(raw);
