@@ -52,6 +52,14 @@ association's Supabase organization.
   public via `get_video_index()`.
 - `library_resources` — the members-only resource library (tagged links),
   shown on the Members page.
+- `spotlights` — the homepage hero rotator ("one main screen that flips
+  through"): kicker, headline, body, optional photo, button, show-from and
+  stop-after dates. Board-editable from the portal's Boards & library panel;
+  the hero falls back to a bundled evergreen set if the table is unreachable.
+- `qa_entries.published` — Q&A review queue. Unpublished entries are visible
+  only to admins (badge: "Draft · admins only") until the board flips the
+  Published box in the portal. Ten researched drafts were loaded unpublished
+  on 2026-09-02 for the board to verify.
 - `reminder_log` — service-role-only record of which renewal reminder
   (90/60/30 days) went to whom, so the daily job never double-sends.
 - Membership gate: `is_current_member()` — true for admins and for profiles

@@ -4,7 +4,7 @@
 // unreachable, or not yet populated.
 
 import { useEffect, useState } from 'react';
-import { sampleClasses, sampleJobs, sampleQa, sampleVideos } from '../content/data';
+import { fallbackSpotlights, sampleClasses, sampleJobs, sampleQa, sampleVideos } from '../content/data';
 import { supabase } from './supabase';
 
 export type JobItem = {
@@ -37,6 +37,17 @@ export type QaIndexItem = {
   topic: string;
   question: string;
   answer?: string;
+  published?: boolean;
+};
+
+export type Spotlight = {
+  id?: string;
+  kicker: string;
+  title: string;
+  body: string;
+  imageUrl: string;
+  linkUrl: string;
+  linkLabel: string;
 };
 
 export type VideoIndexItem = {
@@ -92,6 +103,44 @@ function useLoaded<T>(fetcher: () => Promise<{ items: T[]; live: boolean }>): Lo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return state;
+}
+
+// --- Homepage spotlights ----------------------------------------------------
+// Active rows only (RLS also enforces the window). Falls back to the bundled
+// evergreen set so the hero never rotates through nothing.
+
+export function useSpotlights(): Loaded<Spotlight> {
+  return useLoaded<Spotlight>(async () => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('spotlights')
+          .select('*')
+          .lte('starts_on', today)
+          .or(`expires_on.is.null,expires_on.gte.${today}`)
+          .order('sort_order', { ascending: true }),
+      );
+      if (!error && data && data.length > 0) {
+        return {
+          live: true,
+          items: data.map((r) => ({
+            id: r.id,
+            kicker: r.kicker,
+            title: r.title,
+            body: r.body,
+            imageUrl: r.image_url,
+            linkUrl: r.link_url,
+            linkLabel: r.link_label,
+          })),
+        };
+      }
+      if (!error && data) return { live: true, items: [] };
+    } catch {
+      /* fall back below */
+    }
+    return { live: false, items: fallbackSpotlights };
+  });
 }
 
 // --- Jobs (public; RLS hides expired rows from the public site) -------------
@@ -195,7 +244,7 @@ export function useQaEntries(enabled: boolean): Loaded<QaIndexItem> {
     (async () => {
       try {
         const { data, error } = await withTimeout(
-          supabase.from('qa_entries').select('id, published_on, topic, question, answer').order('published_on', { ascending: false }),
+          supabase.from('qa_entries').select('id, published_on, topic, question, answer, published').order('published_on', { ascending: false }),
         );
         if (!error && data && data.length > 0) {
           on &&
@@ -208,6 +257,7 @@ export function useQaEntries(enabled: boolean): Loaded<QaIndexItem> {
                 topic: r.topic,
                 question: r.question,
                 answer: r.answer,
+                published: r.published ?? true,
               })),
             });
           return;

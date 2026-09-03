@@ -15,7 +15,7 @@ type Row = Record<string, unknown> & { id: string };
 type Field = {
   name: string;
   label: string;
-  type: 'date' | 'text' | 'textarea' | 'number' | 'tags';
+  type: 'date' | 'text' | 'textarea' | 'number' | 'tags' | 'checkbox';
   required?: boolean;
   placeholder?: string;
   span?: boolean; // full-width in the two-column form grid
@@ -36,6 +36,30 @@ type Section = {
 const s = (r: Row, k: string) => String(r[k] ?? '');
 
 const SECTIONS: Section[] = [
+  {
+    table: 'spotlights',
+    title: 'Homepage spotlights',
+    addLabel: '+ Add spotlight',
+    emptyNote: 'No spotlights yet — the homepage falls back to its evergreen set. Add award winners, schools, instructors, lab work, or the next meeting.',
+    orderBy: { column: 'sort_order', ascending: true },
+    expiresKey: 'expires_on',
+    fields: [
+      { name: 'kicker', label: 'Kicker (small gold line above the headline)', type: 'text', placeholder: 'Educator of the Year · Next meeting · Program spotlight' },
+      { name: 'sort_order', label: 'Order (lower shows first)', type: 'number' },
+      { name: 'title', label: 'Headline (keep it under ~60 characters)', type: 'text', required: true, span: true },
+      { name: 'body', label: 'One or two sentences', type: 'textarea', span: true },
+      { name: 'image_url', label: 'Photo link (optional — becomes the backdrop)', type: 'text', placeholder: 'https://…' },
+      { name: 'link_url', label: 'Button link (/events, /about, or https://…)', type: 'text' },
+      { name: 'link_label', label: 'Button text', type: 'text', placeholder: 'See the calendar' },
+      { name: 'starts_on', label: 'Show from', type: 'date' },
+      { name: 'expires_on', label: 'Stop showing after (optional)', type: 'date', nullable: true },
+    ],
+    summary: (r) => ({
+      date: `#${s(r, 'sort_order')}`,
+      primary: s(r, 'title'),
+      secondary: [s(r, 'kicker'), s(r, 'expires_on') ? `until ${s(r, 'expires_on')}` : 'no end date'].filter(Boolean).join(' · '),
+    }),
+  },
   {
     table: 'jobs',
     title: 'Job board',
@@ -89,13 +113,14 @@ const SECTIONS: Section[] = [
     fields: [
       { name: 'topic', label: 'Topic', type: 'text', placeholder: 'Clinical, Teaching, Program Director…' },
       { name: 'published_on', label: 'Published on', type: 'date' },
+      { name: 'published', label: 'Published (unchecked = draft, visible to admins only)', type: 'checkbox', span: true },
       { name: 'question', label: 'The question', type: 'textarea', required: true, span: true },
       { name: 'answer', label: 'The distilled answer (members-only)', type: 'textarea', required: true, span: true },
     ],
     summary: (r) => ({
       date: s(r, 'published_on'),
       primary: s(r, 'question'),
-      secondary: s(r, 'topic'),
+      secondary: r.published === false ? `${s(r, 'topic')} · DRAFT — not public yet` : s(r, 'topic'),
     }),
   },
   {
@@ -178,6 +203,8 @@ function RowForm({
       const raw = String(data.get(f.name) ?? '').trim();
       if (f.type === 'tags') {
         row[f.name] = raw ? raw.split(',').map((t) => t.trim()).filter(Boolean) : [];
+      } else if (f.type === 'checkbox') {
+        row[f.name] = data.get(f.name) === 'on';
       } else if (f.type === 'number') {
         row[f.name] = raw === '' ? null : Number(raw);
       } else if (f.type === 'date') {
@@ -208,6 +235,19 @@ function RowForm({
             ? (initial[f.name] as string[]).join(', ')
             : String(initial[f.name] ?? '')
           : '';
+        if (f.type === 'checkbox') {
+          return (
+            <label key={f.name} className={`flex items-center gap-2.5 text-[14px] font-semibold ${f.span ? 'sm:col-span-2' : ''}`}>
+              <input
+                type="checkbox"
+                name={f.name}
+                defaultChecked={initial ? initial[f.name] !== false : true}
+                className="w-4 h-4 accent-[#2F6BFF]"
+              />
+              {f.label}
+            </label>
+          );
+        }
         return (
           <label key={f.name} className={f.span ? 'sm:col-span-2' : undefined}>
             <span className={labelCls}>{f.label}</span>
@@ -327,7 +367,8 @@ function SectionBlock({ section }: { section: Section }) {
         <div className="border border-line rounded-2xl overflow-hidden mb-8">
           {rows.map((r) => {
             const sum = section.summary(r);
-            const expired = section.expiresKey ? s(r, section.expiresKey) < today : false;
+            const exp = section.expiresKey ? s(r, section.expiresKey) : '';
+            const expired = exp !== '' && exp < today;
             return (
               <div key={r.id} className="px-5 py-4 border-b border-line last:border-b-0">
                 {editing === r.id ? (
@@ -387,9 +428,10 @@ export default function PostingsManager() {
         </span>
       </div>
       <p className="text-muted text-[14px] mb-6">
-        Jobs, classes, Q&amp;A entries, teaching videos, and the member library. Every job and
-        class carries an end date and disappears from the public site automatically when it
-        passes — edit the dates to repost a recurring listing instead of retyping it.
+        Homepage spotlights, jobs, classes, Q&amp;A entries, teaching videos, and the member
+        library. Jobs, classes, and spotlights carry end dates and leave the public site
+        automatically when they pass — edit the dates to repost instead of retyping. Q&amp;A
+        entries can be saved as drafts and published when the board is happy with them.
       </p>
       {needsSetup ? <SetupNotice /> : SECTIONS.map((sec) => <SectionBlock key={sec.table} section={sec} />)}
     </div>

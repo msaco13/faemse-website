@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import HeroSpotlight from '../components/HeroSpotlight';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
 import { splitEvents, useSiteEvents, useSiteNews } from '../lib/content';
+import { useSpotlights, type Spotlight } from '../lib/postings';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -44,6 +46,10 @@ function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
 export default function Home() {
   const eventsState = useSiteEvents();
   const newsState = useSiteNews();
+  const spotlights = useSpotlights();
+  // The active spotlight's photo (if it has one) becomes the hero backdrop.
+  const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
+  const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);
   const upcoming = splitEvents(eventsState.items).upcoming;
   // The live wire only shows genuinely live data — a sample or stale "latest"
   // would announce the site is dead, which is worse than no strip at all.
@@ -68,50 +74,21 @@ export default function Home() {
           <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)]" />
           <div className="absolute left-1/3 -bottom-64 w-[720px] h-[720px] rounded-full opacity-[.16] blur-[100px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)]" />
         </div>
-        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-24 pb-24 lg:pb-28">
-          <div>
-            <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
-              <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
-              Florida Association of EMS Educators
-            </p>
-            {/* 80px cap: the widest line ("We train the people") measures 7.99px
-                per 1px of font size, and the column is ~645px — above 80px the
-                three-line lockup rewraps onto five lines and buries the CTAs. */}
-            <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5.8vw,80px)]">
-              We train the people
-              <br />
-              who train Florida&apos;s
-              <br />
-              <span className="gold-text drop-shadow-[0_2px_24px_rgba(235,188,66,.35)]">
-                first responders.
-              </span>
-            </h1>
-            <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8">
-              FAEMSE is the statewide professional home for EMS instructors, program directors, and
-              training officers — the network, the resources, and the policy voice behind better EMT
-              and paramedic education.
-            </p>
-            <div className="flex flex-wrap gap-3.5 mb-8">
-              <Link to="/membership" className="btn-red">
-                Become a member — $50/yr
-              </Link>
-              <Link to="/events" className="btn-glass">
-                See what&apos;s coming up
-              </Link>
-            </div>
-            <div className="flex flex-wrap gap-2.5">
-              {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map(
-                (c) => (
-                  <span
-                    key={c}
-                    className="text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
-                  >
-                    {c}
-                  </span>
-                )
-              )}
-            </div>
-          </div>
+        {/* Spotlight photo backdrop — only when the active slide carries one;
+            a dark gradient keeps the type legible over any picture. */}
+        <div
+          aria-hidden
+          className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
+            activeSpotlight?.imageUrl ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          {activeSpotlight?.imageUrl && (
+            <img src={activeSpotlight.imageUrl} alt="" className="w-full h-full object-cover opacity-40" />
+          )}
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,#0A1B33_0%,rgba(10,27,51,.72)_45%,rgba(10,27,51,.35)_100%)]" />
+        </div>
+        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20 lg:pb-24">
+          <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 
           {/* Dispatch board */}
           <aside className="rounded-3xl border border-white/15 overflow-hidden backdrop-blur-md bg-gradient-to-b from-white/10 to-white/[.04] shadow-[0_40px_90px_rgba(4,10,22,.55)]">
@@ -298,8 +275,8 @@ export default function Home() {
             </h2>
             <p className="text-muted text-[17px] max-w-[62ch]">
               FAEMSE meets in person a few times a year — the rest of the year lives here:
-              answers that stop evaporating, teaching craft on tape, and the boards every
-              program watches.
+              answers that stop evaporating, a director&apos;s guide that didn&apos;t exist before,
+              and the boards every program watches.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -312,11 +289,11 @@ export default function Home() {
                 cta: 'Search the archive',
               },
               {
-                tag: 'Members only',
-                title: 'Teaching videos',
-                text: 'Short segments from strong instructors on the craft of teaching EMS — found nowhere else.',
-                to: '/videos',
-                cta: 'Browse the library',
+                tag: 'The reference shelf',
+                title: 'Resources & library',
+                text: 'Standards, state and federal links, and the members-only document library — one shelf, organized by tag.',
+                to: '/resources',
+                cta: 'Open the shelf',
               },
               {
                 tag: 'Free guide',
