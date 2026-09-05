@@ -16,6 +16,10 @@ npm run build    # type-check + production build to dist/
 - `src/content/data.ts` — all site content in one place (board roster, membership tiers,
   resources, sponsors, events, news, FAQ, contact info). Verified against the live
   faemse.org in Aug 2026; items marked SAMPLE need real association data.
+- `src/components/FloridaNetwork.tsx` — the homepage hero's Florida: a solid navy
+  state with a gold coastline, ten pulsing cities, and comet links that light
+  outward from Orlando until the state is joined (geometry in `src/lib/florida.ts`).
+  Steps aside when a spotlight brings a photo or clip; still for reduced motion.
 - `src/components/Mark.tsx` — the Pulse Star logo (Star of Life with carved EKG channel).
   Brand assets and design philosophy live in `brand/`.
 - `src/pages/` — one file per route (Home, About, Board, Bylaws, Membership, Events,
