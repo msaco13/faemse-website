@@ -81,3 +81,14 @@
     scroll-behavior: auto;
   }
 }
+
+/* Florida network (src/components/FloridaNetwork.tsx): pulsing cities and the
+   landing flare. Plain rules, not @layer, so the SVG classes always apply. */
+.fl-halo{transform-box:fill-box;transform-origin:center;animation:fl-halo 4.5s ease-in-out infinite}
+.fl-core{transform-box:fill-box;transform-origin:center;animation:fl-core 3s ease-in-out infinite}
+.fl-flash{opacity:0;transform-box:fill-box;transform-origin:center}
+.fl-head{filter:drop-shadow(0 0 3px #FFE9A3)}
+@keyframes fl-core{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.25)}}
+@keyframes fl-halo{0%,100%{transform:scale(.85);opacity:.5}50%{transform:scale(1.1);opacity:.85}}
+@keyframes fl-land{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(5)}}
+@media (prefers-reduced-motion:reduce){.fl-halo,.fl-core{animation:none}}

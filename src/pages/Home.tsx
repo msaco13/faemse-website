@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import FloridaNetwork from '../components/FloridaNetwork';
 import HeroSpotlight from '../components/HeroSpotlight';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
@@ -129,9 +130,9 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden text-white bg-[radial-gradient(1100px_700px_at_72%_-10%,#12315E_0%,#0A1B33_52%,#060F20_100%)]">
+      <section className="relative overflow-hidden text-white bg-[radial-gradient(880px_640px_at_74%_46%,#10305F_0%,#0B2149_36%,#0A1B33_62%,#060F20_100%)] max-lg:bg-[radial-gradient(520px_420px_at_50%_78%,#10305F_0%,#0B2149_40%,#0A1B33_64%,#060F20_100%)]">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
-          <div className="absolute -left-56 -top-40 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(229,64,74,.85),transparent_62%)] animate-[drift_18s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
+          <div className="absolute -left-56 -top-40 w-[640px] h-[640px] rounded-full opacity-[.18] blur-[90px] bg-[radial-gradient(circle,rgba(229,64,74,.85),transparent_62%)] animate-[drift_18s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
           <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)] animate-[drift_24s_ease-in-out_infinite_alternate-reverse] motion-reduce:animate-none" />
           <div className="absolute left-1/3 -bottom-64 w-[720px] h-[720px] rounded-full opacity-[.16] blur-[100px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)] animate-[drift_30s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
           <style>{`@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(60px,40px,0) scale(1.12)}}`}</style>
@@ -140,44 +141,60 @@ export default function Home() {
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} />
-        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20 lg:pb-24">
+        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-28">
           <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 
-          {/* Dispatch board */}
-          <aside className="rounded-3xl border border-white/15 overflow-hidden backdrop-blur-md bg-gradient-to-b from-white/10 to-white/[.04] shadow-[0_40px_90px_rgba(4,10,22,.55)]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h2 className="font-disp font-semibold tracking-[0.22em] uppercase text-brand-bluesoft">
-                On the board
-              </h2>
-              {eventsState.loaded && !eventsState.live && (
-                <span className="text-[11px] font-bold tracking-widest text-brand-goldsoft">
-                  SAMPLE CALENDAR
-                </span>
-              )}
-            </div>
-            {eventsState.loaded && upcoming.length === 0 && (
-              <p className="px-6 py-5 text-[14px] text-[#93A6C9]">
-                The 2026–27 calendar is being finalized — check back soon.
-              </p>
+          {/* Florida: the network coming together. Steps aside when a
+              spotlight brings its own photo or clip. */}
+          <div
+            className={`transition-opacity duration-700 ${
+              activeSpotlight?.imageUrl || activeSpotlight?.videoUrl ? 'opacity-0' : 'opacity-100'
+            }`}
+          >
+            <FloridaNetwork className="w-full max-w-[600px] aspect-[700/683] justify-self-center mx-auto -translate-y-3.5 max-lg:max-w-[380px] max-lg:mt-9" />
+          </div>
+        </div>
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-[2px] opacity-80 bg-[linear-gradient(90deg,transparent_0%,#C9962C_30%,#F1D585_50%,#C9962C_70%,transparent_100%)]"
+        />
+      </section>
+
+      {/* On the board — the next three dates, straight from the calendar the
+          board edits. */}
+      <section className="bg-[#08142A] border-t border-white/10 text-white" aria-label="On the board">
+        <div className="wrap grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] items-stretch">
+          <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
+            <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
+            On the board
+            {eventsState.loaded && !eventsState.live && (
+              <span className="ml-2 text-[11px] font-bold tracking-widest text-brand-goldsoft">SAMPLE</span>
             )}
-            {upcoming.slice(0, 3).map((e) => (
-              <div key={e.id ?? e.title} className="flex gap-4 items-center px-6 py-4 border-b border-white/5 hover:bg-white/5">
-                <div className="flex-none w-14 text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
-                  <b className="block text-2xl text-white">{e.day}</b>
-                  <span className="text-xs tracking-[0.14em] text-brand-bluesoft">{e.month}</span>
-                </div>
-                <div>
-                  <b className="block text-[15px] leading-snug text-white">{e.title}</b>
-                  <span className="text-[13px] text-[#93A6C9]">{e.location}</span>
-                </div>
+          </div>
+          {eventsState.loaded && upcoming.length === 0 && (
+            <p className="lg:col-span-3 flex items-center px-0 lg:px-6 py-4 text-[14px] text-[#93A6C9]">
+              The 2026–27 calendar is being finalized — check back soon.
+            </p>
+          )}
+          {upcoming.slice(0, 3).map((e) => (
+            <Link
+              key={e.id ?? e.title}
+              to="/events"
+              className="flex gap-4 items-center py-3.5 lg:px-6 lg:border-r border-white/10 max-lg:border-b max-lg:border-white/5 hover:bg-white/5"
+            >
+              <div className="flex-none w-[50px] text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
+                <b className="block text-[21px] text-white">{e.day}</b>
+                <span className="text-xs tracking-[0.14em] text-brand-bluesoft">{e.month}</span>
               </div>
-            ))}
-            <div className="px-6 py-4 bg-black/25">
-              <Link to="/events" className="text-[13.5px] font-bold text-brand-bluesoft hover:text-white">
-                Full calendar →
-              </Link>
-            </div>
-          </aside>
+              <div className="min-w-0">
+                <b className="block text-[15px] leading-snug text-white">{e.title}</b>
+                <span className="block text-[13px] text-[#93A6C9] truncate">{e.location}</span>
+              </div>
+            </Link>
+          ))}
+          <Link to="/events" className="flex items-center py-4 lg:pl-7 text-[13.5px] font-bold text-brand-bluesoft hover:text-white whitespace-nowrap">
+            Full calendar →
+          </Link>
         </div>
       </section>
 
