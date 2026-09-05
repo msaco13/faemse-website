@@ -1,5 +1,22 @@
 import { Component, PropsWithChildren } from 'react';
 
+export function isStaleChunkError(error: unknown): boolean {
+  const msg = String((error as Error)?.message ?? error);
+  return /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(msg);
+}
+
+// True the first time per tab session; false after, so a genuinely broken
+// build can never put the browser into a reload loop.
+export function reloadOnce(): boolean {
+  try {
+    if (sessionStorage.getItem('faemse:reloaded')) return false;
+    sessionStorage.setItem('faemse:reloaded', '1');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Last line of defense: no crash may ever white-screen the site. Render a
 // branded recovery card with the actual error text so failures are diagnosable.
 export default class ErrorBoundary extends Component<PropsWithChildren, { error: Error | null }> {
@@ -7,6 +24,13 @@ export default class ErrorBoundary extends Component<PropsWithChildren, { error:
 
   static getDerivedStateFromError(error: Error) {
     return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    // A tab opened before a deploy asks for a page chunk by its old, hashed
+    // file name, which the new build no longer serves. A fresh load fixes it,
+    // so do that once instead of showing the card.
+    if (isStaleChunkError(error) && reloadOnce()) window.location.reload();
   }
 
   render() {
