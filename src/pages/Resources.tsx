@@ -28,6 +28,14 @@ const faemseResources = [
     to: '/login',
     tag: 'Members',
   },
+  // Last on purpose: the wording ids below are index-based, so appending keeps
+  // the board's saved edits to the first four cards pointing at the same cards.
+  {
+    title: 'Program map',
+    text: 'Every EMT and paramedic program in Florida, by city, with a link to each school.',
+    to: '/programs',
+    tag: 'Statewide',
+  },
 ];
 
 export default function Resources() {
@@ -44,7 +52,7 @@ export default function Resources() {
           <p className="eyebrow mb-4">
             <T id="resources.faemse.eyebrow">From FAEMSE</T>
           </p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-12">
             {faemseResources.map((r, i) => (
               <Link
                 key={r.title}

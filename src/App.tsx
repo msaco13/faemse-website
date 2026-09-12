@@ -28,6 +28,7 @@ const Classes = lazy(() => import('./pages/Classes'));
 const QandA = lazy(() => import('./pages/QandA'));
 const Videos = lazy(() => import('./pages/Videos'));
 const DirectorGuide = lazy(() => import('./pages/DirectorGuide'));
+const Programs = lazy(() => import('./pages/Programs'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Dark placeholder the height of a page banner, so the header doesn't sit on
@@ -123,6 +124,7 @@ export default function App() {
             <Route path="/qa" element={<QandA />} />
             <Route path="/videos" element={<Videos />} />
             <Route path="/program-directors" element={<DirectorGuide />} />
+            <Route path="/programs" element={<Programs />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/members" element={<Members />} />
