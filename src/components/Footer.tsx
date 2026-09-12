@@ -62,6 +62,7 @@ export default function Footer() {
               <T id="footer.col.educators">For educators</T>
             </h5>
             <ul className="space-y-2.5">
+              <li><Link className="hover:text-white" to="/programs"><T id="footer.link.programs">Program map</T></Link></li>
               <li><Link className="hover:text-white" to="/qa"><T id="footer.link.qa">Q&amp;A archive</T></Link></li>
               <li><Link className="hover:text-white" to="/videos"><T id="footer.link.videos">Teaching videos</T></Link></li>
               <li><Link className="hover:text-white" to="/jobs"><T id="footer.link.jobs">Job board</T></Link></li>

@@ -113,6 +113,7 @@ export default function Home() {
   // The active spotlight's photo (if it has one) becomes the hero backdrop.
   const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
   const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);
+  const mapFaded = !!(activeSpotlight?.imageUrl || activeSpotlight?.videoUrl);
   const upcoming = splitEvents(eventsState.items).upcoming;
   // The live wire only shows genuinely live data — a sample or stale "latest"
   // would announce the site is dead, which is worse than no strip at all.
@@ -151,13 +152,20 @@ export default function Home() {
           <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 
           {/* Florida: the network coming together. Steps aside when a
-              spotlight brings its own photo or clip. */}
+              spotlight brings its own photo or clip. The map is interactive
+              (hover/tap opens a city, the chip links to /programs), so while
+              it is faded out it must also stop catching pointer events and
+              being read out — otherwise an invisible map would sit on top of
+              the spotlight and screen readers would announce 59 links that
+              nobody can see. */}
           <div
-            className={`transition-opacity duration-700 ${
-              activeSpotlight?.imageUrl || activeSpotlight?.videoUrl ? 'opacity-0' : 'opacity-100'
-            }`}
+            aria-hidden={mapFaded || undefined}
+            className={`transition-opacity duration-700 ${mapFaded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
-            <FloridaNetwork className="w-full max-w-[600px] aspect-[700/683] justify-self-center mx-auto -translate-y-3.5 max-lg:max-w-[380px] max-lg:mt-9" />
+            <FloridaNetwork
+              className="w-full max-w-[600px] aspect-[700/683] justify-self-center mx-auto -translate-y-3.5 max-lg:max-w-[380px] max-lg:mt-9"
+              chipTo="/programs"
+            />
           </div>
         </div>
         <div

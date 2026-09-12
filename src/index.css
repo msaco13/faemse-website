@@ -82,13 +82,33 @@
   }
 }
 
-/* Florida network (src/components/FloridaNetwork.tsx): pulsing cities and the
-   landing flare. Plain rules, not @layer, so the SVG classes always apply. */
+/* Florida network (src/components/FloridaNetwork.tsx): pulsing cities, the
+   landing flare, and the interactive layer (city hit targets, hover ring,
+   count numerals, labels, the program card). Plain rules, not @layer, so the
+   SVG classes always apply. */
 .fl-halo{transform-box:fill-box;transform-origin:center;animation:fl-halo 4.5s ease-in-out infinite}
 .fl-core{transform-box:fill-box;transform-origin:center;animation:fl-core 3s ease-in-out infinite}
 .fl-flash{opacity:0;transform-box:fill-box;transform-origin:center}
 .fl-head{filter:drop-shadow(0 0 3px #FFE9A3)}
+/* A city dot is a button; the ring is its hover/focus/open state, so the
+   browser's focus outline is not needed on top of it. */
+.fl-city{cursor:pointer}
+.fl-city:focus{outline:none}
+.fl-ring{fill:none;stroke:#FFF3D0;stroke-width:1.2;vector-effect:non-scaling-stroke;opacity:0;transition:opacity .25s}
+.fl-city.is-active .fl-ring,.fl-city:hover .fl-ring,.fl-city:focus-visible .fl-ring{opacity:.95}
+.fl-city.is-active .fl-core{fill:#fff}
+.fl-count{font:700 8.5px "Barlow Condensed",sans-serif;fill:#060F20;text-anchor:middle;pointer-events:none}
+/* Labels: sizes live here so a mode class can override them, and the hovered
+   label grows in place (its anchor and position never change). */
+.fl-lbl{font:600 12px "Barlow Condensed",sans-serif;letter-spacing:.18em;fill:#D2A445;paint-order:stroke;stroke:#0A1B33;stroke-width:3px;stroke-linejoin:round;pointer-events:none;transition:font-size .2s ease,opacity .2s ease,fill .2s ease}
+.fl-lbl.dense{font-size:11px}
+.fl-lbl.quiet{opacity:0}
+.fl-lbl.on{font-size:17px;fill:#FFE9A3;opacity:1}
+.fl-lbl.dense.on{font-size:15.5px}
+/* The program card fades and lifts in; it is only in the DOM while open. */
+.fl-pop{animation:fl-pop .18s ease}
 @keyframes fl-core{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.25)}}
 @keyframes fl-halo{0%,100%{transform:scale(.85);opacity:.5}50%{transform:scale(1.1);opacity:.85}}
 @keyframes fl-land{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(5)}}
+@keyframes fl-pop{from{opacity:0;transform:translateY(6px) scale(.98)}}
 @media (prefers-reduced-motion:reduce){.fl-halo,.fl-core{animation:none}}

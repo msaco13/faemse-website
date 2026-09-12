@@ -1,47 +1,141 @@
-import { useEffect, useRef, useState } from 'react';
-import { FL_H, FL_NODES, FL_POLYS, FL_W } from '../lib/florida';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Link } from 'react-router-dom';
+import { programCities, programs, type ProgramCity } from '../content/programs';
+import { FL_H, FL_POLYS, FL_W, projectLatLon } from '../lib/florida';
+import { T, useText } from '../lib/text';
 
-// The hero's Florida: a solid navy state with a crisp gold coastline, ten
-// cities pulsing from the first frame, and short comet links between
-// neighboring cities (all over land) that light outward from Orlando until
-// the whole state is joined. Holds, dims, and starts again while the tab is
-// visible. Reduced-motion visitors get the finished, still network.
+// The hero's Florida: a solid navy state with a crisp gold coastline and one
+// pulsing dot for every city that trains EMTs and paramedics. The dots are
+// joined by the shortest tree that reaches them all, lit outward from Orlando
+// by short comets until the whole state is connected. Holds, dims, and starts
+// again while the tab is visible. Reduced-motion visitors get the finished,
+// still network.
+//
+// Every dot is also a control: hover, tap, or focus it and a card lists the
+// programs in that city, while its label grows and comes forward.
 //
 // Drawn imperatively into an <svg> because the comets are per-frame path
-// updates; React owns the container and the phase chip only.
+// updates; React owns the container, the card, and the phase chip.
 
-const CITIES = ['Pensacola', 'Tallahassee', 'Jacksonville', 'Gainesville', 'Orlando', 'Tampa', 'Fort Myers', 'West Palm Beach', 'Miami', 'Key West'];
-const HUB = 'Orlando';
-const LINKS: [string, string][] = [
-  ['Pensacola', 'Tallahassee'], ['Tallahassee', 'Jacksonville'], ['Tallahassee', 'Gainesville'], ['Jacksonville', 'Gainesville'],
-  ['Jacksonville', 'Orlando'], ['Gainesville', 'Orlando'], ['Gainesville', 'Tampa'], ['Orlando', 'Tampa'], ['Orlando', 'West Palm Beach'],
-  ['Tampa', 'Fort Myers'], ['Fort Myers', 'West Palm Beach'], ['Fort Myers', 'Miami'], ['West Palm Beach', 'Miami'], ['Miami', 'Key West'],
-];
-// [side, vertical nudge] for the labels that fit at hero size
-const LABELS: Record<string, [number, number]> = {
-  Pensacola: [1, -1], Tallahassee: [1, -1], Jacksonville: [1, 0], Orlando: [1, 0], Tampa: [-1, 0], Miami: [1, 0], 'Key West': [-1, 1],
-};
-const GOLD = { lt: '#DDAA42', mid: '#C48F26', dk: '#9E6F16', link: '#D6A238', hot: '#FFE4A0', label: '#D2A445' };
-const PAD = 60;
-const NS = 'http://www.w3.org/2000/svg';
-
-type Link = {
-  na: string; nb: string; L: number;
+type Labels = 'auto' | 'dense' | 'major';
+type CityNode = ProgramCity & { x: number; y: number };
+type Anchor = 'start' | 'end' | 'middle';
+type Box = [number, number, number, number];
+type Placed = { x: number; y: number; anchor: Anchor; quiet: boolean };
+type Edge = {
+  a: CityNode; b: CityNode; L: number;
   glow: SVGPathElement; core: SVGPathElement; lit: boolean; busy: boolean;
 };
+type Controls = { hold: () => void; close: () => void; scheduleClose: () => void };
 
-export default function FloridaNetwork({ className = '' }: { className?: string }) {
+const HUB = 'Orlando';
+const GOLD = { lt: '#DDAA42', mid: '#C48F26', dk: '#9E6F16', link: '#D6A238', hot: '#FFE4A0' };
+const PAD = 60;
+const VW = FL_W + PAD * 2, VH = FL_H + PAD * 2;
+const NS = 'http://www.w3.org/2000/svg';
+
+// One node per city, busiest first, placed from its coordinates.
+const CITIES: CityNode[] = programCities().map((c) => {
+  const [x, y] = projectLatLon(c.lat, c.lon);
+  return { ...c, x, y };
+});
+const hubCity = CITIES.find((c) => c.name === HUB) ?? CITIES[0];
+const cityAt = (name: string) => CITIES.find((c) => c.name === name) ?? hubCity;
+
+// The roads: a minimum spanning tree (Prim, grown from the hub) in map space,
+// so the network is the shortest set of links that reaches every city and the
+// reveal naturally spreads outward from Orlando.
+const EDGES: [CityNode, CityNode][] = (() => {
+  const inTree = new Set<CityNode>([hubCity]);
+  const edges: [CityNode, CityNode][] = [];
+  while (inTree.size < CITIES.length) {
+    let best: { a: CityNode; b: CityNode; d: number } | null = null;
+    for (const a of inTree) {
+      for (const b of CITIES) {
+        if (inTree.has(b)) continue;
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (!best || d < best.d) best = { a, b, d };
+      }
+    }
+    if (!best) break;
+    inTree.add(best.b);
+    edges.push([best.a, best.b]);
+  }
+  return edges;
+})();
+
+const CENTER = [(hubCity.x + cityAt('Tampa').x) / 2, (hubCity.y + cityAt('Gainesville').y) / 2];
+// a gentle curve bowing toward the middle of the state keeps every link on land
+const linkPath = (a: CityNode, b: CityNode) => {
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, nx = -dy / len, ny = dx / len;
+  const side = (CENTER[0] - mx) * nx + (CENTER[1] - my) * ny > 0 ? 1 : -1;
+  const off = len * 0.07 * side;
+  return `M${a.x},${a.y} Q${mx + nx * off},${my + ny * off} ${b.x},${b.y}`;
+};
+const coastD = FL_POLYS.map((poly) => 'M' + poly.map((p) => `${p[0]},${p[1]}`).join('L') + 'Z').join('');
+
+// Label placement: the busiest cities claim space first; the rest try four
+// sides and go hover-only when nothing fits. Widths are estimated from the
+// character count because the text is measured before it is in the document.
+function placeLabels(mode: Labels): Record<string, Placed> {
+  const fs = mode === 'dense' ? 11 : 12, cw = fs * 0.82, lh = fs, dotR = 9, gap = 5;
+  const order = [...CITIES].sort((a, b) => b.programs.length - a.programs.length || a.y - b.y);
+  const boxes: Box[] = [], out: Record<string, Placed> = {};
+  const hitsDot = (bx: Box) => CITIES.some((c) => bx[0] < c.x + dotR && bx[0] + bx[2] > c.x - dotR && bx[1] < c.y + dotR && bx[1] + bx[3] > c.y - dotR);
+  const hitsBox = (bx: Box) => boxes.some((o) => bx[0] < o[0] + o[2] + gap && bx[0] + bx[2] + gap > o[0] && bx[1] < o[1] + o[3] + gap && bx[1] + bx[3] + gap > o[1]);
+  const inBounds = (bx: Box) => bx[0] > -PAD && bx[0] + bx[2] < FL_W + PAD && bx[1] > -PAD && bx[1] + bx[3] < FL_H + PAD;
+  for (const c of order) {
+    const w = c.name.length * cw;
+    const cands: (Placed & { box: Box })[] = [
+      { x: c.x + 11, y: c.y + 4.5, anchor: 'start', quiet: false, box: [c.x + 11, c.y - lh / 2, w, lh] },
+      { x: c.x - 11, y: c.y + 4.5, anchor: 'end', quiet: false, box: [c.x - 11 - w, c.y - lh / 2, w, lh] },
+      { x: c.x, y: c.y + 20, anchor: 'middle', quiet: false, box: [c.x - w / 2, c.y + 9, w, lh] },
+      { x: c.x, y: c.y - 12, anchor: 'middle', quiet: false, box: [c.x - w / 2, c.y - 21, w, lh] },
+    ];
+    // on phones only the cities with more than one program get printed
+    const wanted = mode !== 'major' || c.programs.length >= 2;
+    const pick = wanted ? cands.find((k) => inBounds(k.box) && !hitsBox(k.box) && !hitsDot(k.box)) : undefined;
+    if (pick) {
+      boxes.push(pick.box);
+      out[c.name] = { x: pick.x, y: pick.y, anchor: pick.anchor, quiet: false };
+    } else {
+      const k = cands[0];
+      out[c.name] = { x: k.x, y: k.y, anchor: k.anchor, quiet: true };
+    }
+  }
+  return out;
+}
+
+// The card sits beside its dot and flips to the other side past the middle of
+// the map so it never runs off the edge.
+const cardAt = (c: CityNode): CSSProperties => {
+  const px = ((c.x + PAD) / VW) * 100, py = ((c.y + PAD) / VH) * 100;
+  return {
+    ...(px > 55 ? { right: `calc(${100 - px}% + 16px)` } : { left: `calc(${px}% + 16px)` }),
+    ...(py > 62 ? { bottom: `calc(${100 - py}% - 10px)` } : { top: `calc(${py}% - 10px)` }),
+  };
+};
+
+export default function FloridaNetwork({ className = '', labels = 'auto', chipTo }: { className?: string; labels?: Labels; chipTo?: string }) {
   const host = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState('Connecting');
+  const [done, setDone] = useState(false);
+  const [active, setActive] = useState<CityNode | null>(null);
+  // bumped by Enter/Space on a dot; the effect below moves focus into the card once it has rendered
+  const [focusReq, setFocusReq] = useState(0);
+  // a pinned card ignores pointerleave; the listeners are built once, so they read a ref rather than state
+  const pinned = useRef(false);
+  const ctl = useRef<Controls | null>(null);
+  const ariaLabel = useText('map.aria', 'Map of Florida EMS programs');
+  const doneWording = useText('map.done', 'EMS programs · one network');
 
   useEffect(() => {
     const root = host.current;
     if (!root) return;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const N: Record<string, number[]> = {};
-    CITIES.forEach((k) => { N[k] = FL_NODES[k]; });
-    const CENTER = [(N.Orlando[0] + N.Tampa[0]) / 2, (N.Orlando[1] + N.Gainesville[1]) / 2];
-    const VW = FL_W + PAD * 2, VH = FL_H + PAD * 2;
+    const placed = placeLabels(labels);
 
     const el = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>, parent: Element): SVGElementTagNameMap[K] => {
       const e = document.createElementNS(NS, tag);
@@ -49,21 +143,12 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
       parent.appendChild(e);
       return e;
     };
-    // a gentle curve bowing toward the middle of the state keeps every link on land
-    const linkPath = (a: number[], b: number[]) => {
-      const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy);
-      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, nx = -dy / len, ny = dx / len;
-      const side = (CENTER[0] - mx) * nx + (CENTER[1] - my) * ny > 0 ? 1 : -1;
-      const off = len * 0.07 * side;
-      return `M${a[0]},${a[1]} Q${mx + nx * off},${my + ny * off} ${b[0]},${b[1]}`;
-    };
-    const coastD = FL_POLYS.map((poly) => 'M' + poly.map((p) => `${p[0]},${p[1]}`).join('L') + 'Z').join('');
 
     const svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${VW} ${VH}`);
     svg.innerHTML =
       '<defs>' +
-      `<radialGradient id="fl-pool" cx="${N[HUB][0]}" cy="${N[HUB][1]}" r="500" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1B3E78" stop-opacity=".9"/><stop offset=".55" stop-color="#0E2650" stop-opacity=".5"/><stop offset="1" stop-color="#0A1B33" stop-opacity="0"/></radialGradient>` +
+      `<radialGradient id="fl-pool" cx="${hubCity.x}" cy="${hubCity.y}" r="500" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1B3E78" stop-opacity=".9"/><stop offset=".55" stop-color="#0E2650" stop-opacity=".5"/><stop offset="1" stop-color="#0A1B33" stop-opacity="0"/></radialGradient>` +
       '<radialGradient id="fl-halo"><stop offset="0" stop-color="#FFE1A0" stop-opacity=".95"/><stop offset=".3" stop-color="#D9A63A" stop-opacity=".45"/><stop offset="1" stop-color="#D9A63A" stop-opacity="0"/></radialGradient>' +
       '<pattern id="fl-dots" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="#9DB9F0" fill-opacity=".22"/></pattern>' +
       `<linearGradient id="fl-coast" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${GOLD.lt}"/><stop offset=".5" stop-color="${GOLD.mid}"/><stop offset="1" stop-color="${GOLD.dk}"/></linearGradient>` +
@@ -76,10 +161,10 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
     el('path', { d: coastD, fill: 'none', stroke: '#000', 'stroke-opacity': '.35', 'stroke-width': '4', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, svg);
     el('path', { d: coastD, fill: 'none', stroke: 'url(#fl-coast)', 'stroke-width': '2', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, svg);
 
-    const road = el('g', {}, svg), fx = el('g', {}, svg), nodes = el('g', {}, svg);
-    const ringOf: Record<string, SVGCircleElement> = {};
-    const links: Link[] = LINKS.map(([na, nb]) => {
-      const d = linkPath(N[na], N[nb]);
+    // labels live in their own group above the dots so a grown label can be moved to the top of the pile
+    const road = el('g', {}, svg), fx = el('g', {}, svg), nodes = el('g', {}, svg), lblG = el('g', { 'aria-hidden': 'true' }, svg);
+    const edges: Edge[] = EDGES.map(([a, b]) => {
+      const d = linkPath(a, b);
       const glow = el('path', { d, fill: 'none', stroke: GOLD.link, 'stroke-width': '4', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, road);
       glow.style.filter = 'blur(1px)';
       const core = el('path', { d, fill: 'none', stroke: '#F1CC70', 'stroke-width': '1.3', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, road);
@@ -87,33 +172,114 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
       [glow, core].forEach((p) => { p.style.strokeDasharray = String(L); p.style.strokeDashoffset = String(reduced ? 0 : L); });
       glow.style.strokeOpacity = reduced ? '.3' : '0';
       core.style.strokeOpacity = reduced ? '.8' : '0';
-      return { na, nb, L, glow, core, lit: false, busy: false };
+      return { a, b, L, glow, core, lit: false, busy: false };
     });
-    CITIES.forEach((name, i) => {
-      const p = N[name], hub = name === HUB;
-      const h = el('circle', { cx: p[0], cy: p[1], r: hub ? 22 : 15, fill: 'url(#fl-halo)', class: 'fl-halo' }, nodes);
+    const flashOf: Record<string, SVGCircleElement> = {}, groupOf: Record<string, SVGGElement> = {}, lblOf: Record<string, SVGTextElement> = {};
+    CITIES.forEach((c, i) => {
+      const n = c.programs.length, hub = c === hubCity;
+      const r = n >= 4 ? 6.5 : n >= 2 ? 5 : 3.2;
+      const g = el('g', { class: 'fl-city', role: 'button', tabindex: '0', 'aria-label': `${c.name}, ${n} program${n === 1 ? '' : 's'}` }, nodes);
+      const h = el('circle', { cx: c.x, cy: c.y, r: hub ? 24 : 15 + n * 1.5, fill: 'url(#fl-halo)', class: 'fl-halo' }, g);
       h.style.animationDelay = `${-((i * 0.53) % 4.5)}s`;
-      const c = el('circle', { cx: p[0], cy: p[1], r: hub ? 4 : 3, fill: GOLD.hot, class: 'fl-core' }, nodes);
-      c.style.animationDelay = `${-((i * 0.71) % 3)}s`;
-      ringOf[name] = el('circle', { cx: p[0], cy: p[1], r: 5, fill: 'none', stroke: '#FFF3D0', 'stroke-width': '1.2', 'vector-effect': 'non-scaling-stroke', class: 'fl-flash' }, nodes);
-    });
-    Object.keys(LABELS).forEach((name) => {
-      const p = N[name], s = LABELS[name];
-      const t = el('text', { x: p[0] + s[0] * 11, y: p[1] + s[1] * 15 + 4.5, 'text-anchor': s[0] < 0 ? 'end' : 'start' }, nodes);
-      t.textContent = name.toUpperCase();
-      t.style.cssText = `font:600 14px "Barlow Condensed",sans-serif;letter-spacing:.18em;fill:${GOLD.label};paint-order:stroke;stroke:#0A1B33;stroke-width:3px;stroke-linejoin:round`;
+      const core = el('circle', { cx: c.x, cy: c.y, r, fill: GOLD.hot, class: 'fl-core' }, g);
+      core.style.animationDelay = `${-((i * 0.71) % 3)}s`;
+      if (n >= 2) {
+        const t = el('text', { x: c.x, y: c.y + 3, class: 'fl-count', 'aria-hidden': 'true' }, g);
+        t.textContent = String(n);
+      }
+      // two rings: the landing flare is a run-once animation whose end state sticks to the
+      // element, so the hover ring is a separate circle that nothing ever animates
+      flashOf[c.name] = el('circle', { cx: c.x, cy: c.y, r: r + 2, fill: 'none', stroke: '#FFF3D0', 'stroke-width': '1.2', 'vector-effect': 'non-scaling-stroke', class: 'fl-flash' }, g);
+      el('circle', { cx: c.x, cy: c.y, r: r + 3, fill: 'none', 'vector-effect': 'non-scaling-stroke', class: 'fl-ring' }, g);
+      // a generous invisible target so small dots are easy to hit, with room for a thumb
+      el('circle', { cx: c.x, cy: c.y, r: 16, fill: 'transparent' }, g);
+      groupOf[c.name] = g;
+      const L = placed[c.name];
+      const t = el('text', { x: L.x, y: L.y, 'text-anchor': L.anchor, class: `fl-lbl${labels === 'dense' ? ' dense' : ''}${L.quiet ? ' quiet' : ''}` }, lblG);
+      t.textContent = c.name.toUpperCase();
+      lblOf[c.name] = t;
     });
     root.appendChild(svg);
 
+    // The card. Hover opens it and it follows the pointer between neighbors; a click,
+    // tap, or Enter pins it so it survives the pointer leaving. The label and ring
+    // classes are flipped here, right on the elements, since only this effect knows them.
+    let current: CityNode | null = null, closeT = 0;
+    const open = (c: CityNode) => {
+      clearTimeout(closeT);
+      if (current && current !== c) {
+        groupOf[current.name].classList.remove('is-active');
+        lblOf[current.name].classList.remove('on');
+      }
+      current = c;
+      groupOf[c.name].classList.add('is-active');
+      const t = lblOf[c.name];
+      t.classList.add('on');
+      lblG.appendChild(t); // last drawn is on top, so the grown label clears its neighbors
+      setActive(c);
+    };
+    const close = () => {
+      if (!current) return;
+      groupOf[current.name].classList.remove('is-active');
+      lblOf[current.name].classList.remove('on');
+      // Escape from inside the card should hand keyboard focus back to the dot, not drop it
+      if (card.current?.contains(document.activeElement)) groupOf[current.name].focus({ preventScroll: true });
+      current = null;
+      pinned.current = false;
+      setActive(null);
+    };
+    const scheduleClose = () => {
+      if (pinned.current) return;
+      clearTimeout(closeT);
+      closeT = window.setTimeout(close, 180);
+    };
+    ctl.current = { hold: () => clearTimeout(closeT), close, scheduleClose };
+    CITIES.forEach((c) => {
+      const g = groupOf[c.name];
+      // touch has no hover: a tap goes straight to click, which pins
+      g.addEventListener('pointerenter', (e) => { if (e.pointerType === 'touch') return; if (!pinned.current) open(c); });
+      g.addEventListener('pointerleave', scheduleClose);
+      g.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (current === c && pinned.current) { close(); return; }
+        open(c);
+        pinned.current = true;
+      });
+      g.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open(c);
+          pinned.current = true;
+          setFocusReq((n) => n + 1);
+        }
+        if (e.key === 'Escape') close();
+      });
+      g.addEventListener('focus', () => { if (!pinned.current) open(c); });
+      g.addEventListener('blur', () => { if (!pinned.current) scheduleClose(); });
+    });
+    const onDocClick = () => { if (pinned.current) close(); };
+    const onDocKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onDocKey);
+    const teardown = () => {
+      clearTimeout(closeT);
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onDocKey);
+      ctl.current = null;
+      pinned.current = false;
+      setActive(null);
+      svg.remove();
+    };
+
     const flare = (name: string, dur = 1) => {
-      const r = ringOf[name];
+      const r = flashOf[name];
       r.style.animation = 'none';
       void r.getBBox();
       r.style.animation = `fl-land ${dur}s ease-out forwards`;
     };
     if (reduced) {
-      setPhase('Connected · statewide');
-      return () => { svg.remove(); };
+      setDone(true);
+      return teardown;
     }
 
     let alive = true;
@@ -123,7 +289,7 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
     const raf = (fn: FrameRequestCallback) => { const id = requestAnimationFrame((t) => { frames.delete(id); if (alive) fn(t); }); frames.add(id); };
 
     // a comet along one link: white-hot head, short tapered gold tail; the link stays lit behind it
-    const seg = (lk: Link, u0: number, u1: number, rev: boolean) => {
+    const seg = (lk: Edge, u0: number, u1: number, rev: boolean) => {
       const pts: string[] = [];
       for (let i = 0; i <= 10; i++) {
         const uu = Math.max(0, Math.min(1, u0 + ((u1 - u0) * i) / 10));
@@ -132,13 +298,14 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
       }
       return 'M' + pts.join('L');
     };
-    const comet = (lk: Link, rev: boolean, reveal: boolean, done?: () => void) => {
+    const comet = (lk: Edge, rev: boolean, reveal: boolean, done?: () => void) => {
       const g = el('g', {}, fx);
       const t1 = el('path', { fill: 'none', stroke: '#E9C76E', 'stroke-width': '1.2', 'stroke-opacity': '.35', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, g);
       const t2 = el('path', { fill: 'none', stroke: '#FFE1A0', 'stroke-width': '1.8', 'stroke-opacity': '.6', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, g);
       const t3 = el('path', { fill: 'none', stroke: '#FFFFFF', 'stroke-width': '2', 'stroke-opacity': '.95', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke', class: 'fl-head' }, g);
       const hd = el('circle', { r: 2.8, fill: '#fff', class: 'fl-head' }, g);
-      const t0 = performance.now(), dur = Math.max(900, (lk.L / 140) * 1000);
+      // the tree has many short hops, so comets move faster than the old hand-picked links
+      const t0 = performance.now(), dur = Math.max(650, (lk.L / 200) * 1000);
       if (reveal && rev) { lk.glow.style.strokeDashoffset = lk.core.style.strokeDashoffset = String(-lk.L); }
       const frame = (now: number) => {
         const u = Math.min(1, (now - t0) / dur), e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
@@ -155,55 +322,57 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
           lk.core.style.strokeOpacity = '.9';
         }
         if (u < 1) raf(frame);
-        else { g.remove(); flare(rev ? lk.na : lk.nb, 1); done?.(); }
+        else { g.remove(); flare(rev ? lk.a.name : lk.b.name, 1); done?.(); }
       };
       raf(frame);
     };
 
-    // build outward from Orlando: a link may light once one of its ends is lit; up to three comets at a time
+    // build outward from Orlando: a link may light once one of its ends is lit; up to four comets at a time
     let waiting = false;
     const cycle = () => {
       timers.splice(0).forEach(clearTimeout);
-      links.forEach((lk) => {
+      edges.forEach((lk) => {
         lk.lit = false; lk.busy = false;
         lk.glow.style.transition = lk.core.style.transition = 'none';
         lk.glow.style.strokeDashoffset = lk.core.style.strokeDashoffset = String(lk.L);
         lk.glow.style.strokeOpacity = lk.core.style.strokeOpacity = '0';
       });
-      const litCity: Record<string, boolean> = { [HUB]: true };
-      let inflight = 0, done = 0;
-      setPhase(`Connecting · 0 of ${links.length}`);
-      flare(HUB, 1);
+      const litCity: Record<string, boolean> = { [hubCity.name]: true };
+      let inflight = 0, joined = 0;
+      setDone(false);
+      setPhase(`Connecting · 0 of ${edges.length}`);
+      flare(hubCity.name, 1);
       const finish = () => {
-        setPhase('Connected · statewide');
-        later(() => CITIES.forEach((n) => flare(n, 1.2)), 300);
+        setDone(true);
+        later(() => CITIES.forEach((c) => flare(c.name, 1.2)), 300);
         // while connected, quiet signals keep moving between neighbors
-        for (let s = 0; s < 6; s++) later(() => comet(links[(s * 5 + 2) % links.length], s % 2 === 0, false), 1500 + s * 900);
+        for (let s = 0; s < 8; s++) later(() => comet(edges[(s * 7 + 3) % edges.length], s % 2 === 0, false), 1500 + s * 800);
         later(() => {
+          setDone(false);
           setPhase('Reaching out again');
-          links.forEach((lk) => {
+          edges.forEach((lk) => {
             lk.glow.style.transition = lk.core.style.transition = 'stroke-opacity 1.6s ease';
             lk.glow.style.strokeOpacity = lk.core.style.strokeOpacity = '0';
           });
-        }, 8600);
-        later(() => { if (document.visibilityState === 'visible') cycle(); else waiting = true; }, 10600);
+        }, 11000);
+        later(() => { if (document.visibilityState === 'visible') cycle(); else waiting = true; }, 13000);
       };
       const step = () => {
-        if (done === links.length) return finish();
-        if (inflight >= 3) return;
-        const cand = links.filter((lk) => !lk.lit && !lk.busy && (litCity[lk.na] || litCity[lk.nb]));
+        if (joined === edges.length) return finish();
+        if (inflight >= 4) return;
+        const cand = edges.filter((lk) => !lk.lit && !lk.busy && (litCity[lk.a.name] || litCity[lk.b.name]));
         if (!cand.length) return;
-        const lk = cand[Math.floor(Math.random() * cand.length)], rev = !litCity[lk.na];
+        const lk = cand[Math.floor(Math.random() * cand.length)], rev = !litCity[lk.a.name];
         lk.busy = true; inflight++;
         comet(lk, rev, true, () => {
-          lk.lit = true; lk.busy = false; inflight--; done++;
-          litCity[lk.na] = litCity[lk.nb] = true;
-          setPhase(`Connecting · ${done} of ${links.length}`);
+          lk.lit = true; lk.busy = false; inflight--; joined++;
+          litCity[lk.a.name] = litCity[lk.b.name] = true;
+          setPhase(`Connecting · ${joined} of ${edges.length}`);
           step();
-          later(step, 320);
+          later(step, 260);
         });
       };
-      step(); later(step, 420); later(step, 900);
+      step(); later(step, 350); later(step, 700); later(step, 1000);
     };
     const onVis = () => { if (document.visibilityState === 'visible' && waiting) { waiting = false; cycle(); } };
     document.addEventListener('visibilitychange', onVis);
@@ -214,24 +383,99 @@ export default function FloridaNetwork({ className = '' }: { className?: string 
       timers.forEach(clearTimeout);
       frames.forEach(cancelAnimationFrame);
       document.removeEventListener('visibilitychange', onVis);
-      svg.remove();
+      teardown();
     };
-  }, []);
+  }, [labels]);
+
+  // Enter/Space on a dot pins its card and puts the keyboard on the first link in it.
+  useEffect(() => {
+    if (!focusReq) return;
+    card.current?.querySelector<HTMLAnchorElement>('a')?.focus();
+  }, [focusReq]);
+
+  // The card's hover hold uses native listeners, not React's onPointerEnter: the
+  // pointer arrives from the imperatively built SVG, which React's enter/leave
+  // bookkeeping doesn't see, so the synthetic events never fire and the dot's
+  // pending close would win. Re-bound whenever the card mounts for a new city.
+  useEffect(() => {
+    const d = card.current;
+    if (!d) return;
+    const hold = () => ctl.current?.hold();
+    const leave = () => ctl.current?.scheduleClose();
+    d.addEventListener('pointerenter', hold);
+    d.addEventListener('pointerleave', leave);
+    return () => {
+      d.removeEventListener('pointerenter', hold);
+      d.removeEventListener('pointerleave', leave);
+    };
+  }, [active]);
+
+  const n = active?.programs.length ?? 0;
+  const chip =
+    'inline-flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.2em] uppercase border bg-white/5 px-3 py-1.5 rounded-full backdrop-blur tabular-nums whitespace-nowrap transition-colors max-sm:text-[11px] max-sm:tracking-[0.14em] ' +
+    (done ? 'border-brand-goldsoft/45 text-brand-goldsoft' : 'border-white/15 text-[#C9D6EE]');
+  const chipBody = (
+    <>
+      <i className="w-[7px] h-[7px] rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse motion-reduce:animate-none" aria-hidden />
+      {done ? `${programs.length} ${doneWording}` : phase}
+    </>
+  );
 
   return (
-    <div className={`relative ${className}`}>
-      <div ref={host} className="absolute -inset-[9%] [&>svg]:w-full [&>svg]:h-full [&>svg]:overflow-visible" aria-hidden />
+    <div className={`relative ${className}`} role="group" aria-label={ariaLabel}>
+      <div ref={host} className="absolute -inset-[9%] [&>svg]:w-full [&>svg]:h-full [&>svg]:overflow-visible">
+        {active && (
+          <div
+            ref={card}
+            role="dialog"
+            aria-label={`Programs in ${active.name}`}
+            style={cardAt(active)}
+            className="fl-pop absolute z-[5] min-w-[230px] max-w-[320px] px-4 pt-3.5 pb-3 rounded-2xl bg-ink2/[.97] border border-white/15 shadow-[0_24px_60px_rgba(4,10,22,.6)] text-white before:content-[''] before:absolute before:inset-x-4 before:top-0 before:h-[2px] before:rounded-sm before:bg-gradient-to-r before:from-brand-goldsoft before:to-brand-golddeep"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => { if (e.key === 'Escape') ctl.current?.close(); }}
+          >
+            <div className="font-disp font-bold text-[19px] tracking-[0.06em] uppercase leading-none">{active.name}</div>
+            <div className="font-disp font-semibold text-[11.5px] tracking-[0.2em] uppercase text-brand-goldsoft mt-1.5">
+              {n} program{n === 1 ? '' : 's'}
+            </div>
+            <ul className="list-none m-0 mt-2.5 p-0 pt-2.5 border-t border-white/10 grid gap-[7px]">
+              {active.programs.map((p) => (
+                <li key={p.name} className="text-[14px] leading-[1.3]">
+                  {p.url ? (
+                    <a
+                      href={p.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group inline-flex items-baseline gap-1.5 font-semibold text-[#DCE7FA] no-underline hover:text-brand-goldsoft focus-visible:text-brand-goldsoft"
+                    >
+                      {p.name}
+                      <span className="text-[12px] text-brand-bluesoft group-hover:text-brand-goldsoft" aria-hidden>↗</span>
+                    </a>
+                  ) : (
+                    <span className="font-medium text-[#93A6C9]">{p.name}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {active.programs.some((p) => !p.url) && (
+              <p className="mt-2.5 text-[11.5px] text-[#7C90B6]">Schools without a listed website appear by name.</p>
+            )}
+          </div>
+        )}
+      </div>
       <div className="absolute inset-x-0 -bottom-14 flex items-center justify-between gap-3.5">
         <span className="font-disp font-semibold text-[13px] tracking-[0.24em] uppercase text-[#D2A445] whitespace-nowrap max-sm:text-[11.5px] max-sm:tracking-[0.18em]">
-          Florida&apos;s EMS educators
+          <T id="map.caption">Florida&apos;s EMS educators</T>
         </span>
-        <span
-          className="inline-flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.2em] uppercase text-[#C9D6EE] border border-white/15 bg-white/5 px-3 py-1.5 rounded-full backdrop-blur tabular-nums whitespace-nowrap max-sm:text-[11px] max-sm:tracking-[0.14em]"
-          aria-live="polite"
-        >
-          <i className="w-[7px] h-[7px] rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse motion-reduce:animate-none" aria-hidden />
-          {phase}
-        </span>
+        {chipTo ? (
+          <Link to={chipTo} className={`${chip} hover:border-brand-gold`} aria-live="polite">
+            {chipBody}
+          </Link>
+        ) : (
+          <span className={chip} aria-live="polite">
+            {chipBody}
+          </span>
+        )}
       </div>
     </div>
   );

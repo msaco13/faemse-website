@@ -16,17 +16,24 @@ npm run build    # type-check + production build to dist/
 - `src/content/data.ts` — all site content in one place (board roster, membership tiers,
   resources, sponsors, events, news, FAQ, contact info). Verified against the live
   faemse.org in Aug 2026; items marked SAMPLE need real association data.
-- `src/components/FloridaNetwork.tsx` — the homepage hero's Florida: a solid navy
-  state with a gold coastline, ten pulsing cities, and comet links that light
-  outward from Orlando until the state is joined (geometry in `src/lib/florida.ts`).
-  Steps aside when a spotlight brings a photo or clip; still for reduced motion.
+- `src/content/programs.ts` — the 59 Florida EMT and paramedic programs, one
+  row per school with its campus city, coordinates, and homepage. Feeds the
+  map and the Programs page (`src/pages/Programs.tsx`); edit it to add or
+  correct a school.
+- `src/components/FloridaNetwork.tsx` — the Florida map on the homepage hero
+  and the Programs page: a solid navy state with a gold coastline and one
+  pulsing dot per city with an EMS program. Hover or tap a city to open its
+  programs with links. The comet links are a minimum spanning tree lit
+  outward from Orlando until the state is joined (geometry in
+  `src/lib/florida.ts`). Steps aside when a spotlight brings a photo or clip;
+  still for reduced motion.
 - `src/lib/text.tsx` — admin-editable wording: the `<T id>` wrapper every
   static string sits in, the provider that loads overrides from `site_text`,
   and the in-page editor. `src/components/EditModeBar.tsx` is the admin toggle.
 - `src/components/Mark.tsx` — the Pulse Star logo (Star of Life with carved EKG channel).
   Brand assets and design philosophy live in `brand/`.
 - `src/pages/` — one file per route (Home, About, Board, Bylaws, Membership, Events,
-  News, Resources, Sponsors, Contact, 404).
+  News, Resources, Programs, Sponsors, Contact, 404).
 - `src/lib/supabase.ts` — client for the association's Supabase project. The embedded
   anon key is public by design; row-level security governs access. Override with
   `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` env vars if the project changes.

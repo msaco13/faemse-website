@@ -19,6 +19,7 @@ const nav = [
 
 // The mobile menu has room for everything.
 const mobileExtra = [
+  { to: '/programs', label: 'Programs' },
   { to: '/videos', label: 'Teaching Videos' },
   { to: '/classes', label: 'Class Board' },
   { to: '/program-directors', label: 'Director Guide' },
