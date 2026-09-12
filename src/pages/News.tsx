@@ -1,5 +1,6 @@
 import PageHead from '../components/PageHead';
 import { useSiteNews } from '../lib/content';
+import { T } from '../lib/text';
 
 const tagChip: Record<string, string> = {
   Awards: 'text-brand-goldink bg-[#FBF3D9]',
@@ -13,6 +14,7 @@ export default function News() {
   return (
     <>
       <PageHead
+        id="news"
         eyebrow="Association news"
         title="The latest"
         sub="State policy updates in plain English, board news, awards, and resources for Florida's EMS education community."
@@ -21,12 +23,12 @@ export default function News() {
         <div className="wrap max-w-[860px] space-y-6">
           {loaded && !live && (
             <p className="inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              Sample posts — real news coming
+              <T id="news.sample">Sample posts — real news coming</T>
             </p>
           )}
           {!loaded && (
             <div className="card p-8 text-muted" aria-busy="true">
-              Loading the latest…
+              <T id="news.loading">Loading the latest…</T>
             </div>
           )}
           {news.map((n) => (
@@ -46,8 +48,8 @@ export default function News() {
               {n.body && (
                 <details className="mt-4 group">
                   <summary className="cursor-pointer list-none font-bold text-brand-blue text-[14.5px] hover:underline">
-                    <span className="group-open:hidden">Read the full post →</span>
-                    <span className="hidden group-open:inline">Collapse ↑</span>
+                    <span className="group-open:hidden"><T id="news.item.more">Read the full post →</T></span>
+                    <span className="hidden group-open:inline"><T id="news.item.less">Collapse ↑</T></span>
                   </summary>
                   <div className="mt-4 text-[15.5px] text-body leading-relaxed whitespace-pre-line border-l-[3px] border-brand-gold/60 pl-5 max-w-[72ch]">
                     {n.body}
@@ -58,7 +60,7 @@ export default function News() {
           ))}
           {loaded && !live && (
             <p className="text-muted text-[14px]">
-              Sample posts shown for the concept — real association news will populate this page.
+              <T id="news.note">Sample posts shown for the concept — real association news will populate this page.</T>
             </p>
           )}
         </div>

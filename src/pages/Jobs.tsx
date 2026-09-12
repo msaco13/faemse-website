@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { mailto } from '../content/data';
 import { useJobs } from '../lib/postings';
+import { T } from '../lib/text';
 
 // Public on purpose: there is no paid-posting model — the board posts openings
 // as it hears of them, and gating would only shrink the audience. Placement is
@@ -13,6 +14,7 @@ export default function Jobs() {
   return (
     <>
       <PageHead
+        id="jobs"
         eyebrow="Careers in EMS education"
         title="Job board"
         sub="Openings for instructors, coordinators, and program directors across Florida — posted by the board as we hear of them."
@@ -21,18 +23,20 @@ export default function Jobs() {
         <div className="wrap">
           {loaded && !live && (
             <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              Sample listings — real openings post here
+              <T id="jobs.sample">Sample listings — real openings post here</T>
             </p>
           )}
 
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
-              Loading openings…
+              <T id="jobs.loading">Loading openings…</T>
             </div>
           ) : items.length === 0 ? (
             <div className="card p-8 text-muted">
-              No open positions listed right now. New openings post here as the board hears of
-              them — check back, or send us one below.
+              <T id="jobs.empty">
+                No open positions listed right now. New openings post here as the board hears of
+                them — check back, or send us one below.
+              </T>
             </div>
           ) : (
             <div className="space-y-5">
@@ -41,7 +45,7 @@ export default function Jobs() {
                   <div className="flex flex-wrap items-baseline justify-between gap-3 mb-1.5">
                     <h2 className="font-disp font-bold uppercase text-2xl">{j.title}</h2>
                     <span className="text-[12px] font-bold tracking-[0.09em] uppercase px-3 py-1.5 rounded-full text-[#0E7A4A] bg-[#E2F7EC]">
-                      Open through {j.closes}
+                      <T id="jobs.item.open">Open through</T> {j.closes}
                     </span>
                   </div>
                   <p className="text-[14.5px] font-semibold text-brand-blue mb-3">
@@ -51,10 +55,10 @@ export default function Jobs() {
                   <div className="flex flex-wrap items-center gap-4 text-[13.5px]">
                     {j.applyUrl && (
                       <a href={j.applyUrl} target="_blank" rel="noreferrer" className="btn-outline !py-2 !px-4 text-[13.5px]">
-                        Apply ↗
+                        <T id="jobs.item.apply">Apply ↗</T>
                       </a>
                     )}
-                    <span className="text-muted">Posted {j.posted}</span>
+                    <span className="text-muted"><T id="jobs.item.posted">Posted</T> {j.posted}</span>
                   </div>
                 </article>
               ))}
@@ -63,23 +67,27 @@ export default function Jobs() {
 
           <div className="card p-8 mt-10 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="font-disp font-bold uppercase text-xl mb-1">Hiring an EMS educator?</h2>
+              <h2 className="font-disp font-bold uppercase text-xl mb-1"><T id="jobs.send.h2">Hiring an EMS educator?</T></h2>
               <p className="text-muted text-[15px] max-w-[64ch]">
-                Send the posting to the board and we&apos;ll list it here — free, statewide, in
-                front of every program. Listings come down automatically on their closing date.
+                <T id="jobs.send.text">
+                  Send the posting to the board and we&apos;ll list it here — free, statewide, in
+                  front of every program. Listings come down automatically on their closing date.
+                </T>
               </p>
             </div>
             <a href={mailto('Job%20posting%20for%20the%20FAEMSE%20board')} className="btn-red">
-              Send a posting
+              <T id="jobs.send.cta">Send a posting</T>
             </a>
           </div>
 
           <p className="text-muted text-[14px] mt-6 max-w-[80ch]">
-            Why we run this: graduate placement is one of the three outcomes every accredited
-            paramedic program is measured on, alongside retention and exam pass rate. New program
-            director?{' '}
+            <T id="jobs.why.text">
+              Why we run this: graduate placement is one of the three outcomes every accredited
+              paramedic program is measured on, alongside retention and exam pass rate. New program
+              director?
+            </T>{' '}
             <Link to="/program-directors" className="text-brand-blue font-semibold hover:underline">
-              Start with the director guide →
+              <T id="jobs.why.link">Start with the director guide →</T>
             </Link>
           </p>
         </div>

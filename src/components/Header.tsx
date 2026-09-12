@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Mark from './Mark';
+import { T, useText } from '../lib/text';
 
 // Seven slots is all the 1180px wrap can fit (see the layout note below), so
 // the header carries the pages people return to; Board, Sponsors, Classes,
@@ -28,6 +29,8 @@ const mobileExtra = [
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const menuOpen = useText('nav.menu.open', 'Open menu');
+  const menuClose = useText('nav.menu.close', 'Close menu');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -78,7 +81,7 @@ export default function Header() {
                     }`
                   }
                 >
-                  {n.label}
+                  <T id={`nav.${n.to.slice(1)}`}>{n.label}</T>
                 </NavLink>
               </li>
             ))}
@@ -87,7 +90,7 @@ export default function Header() {
 
         <div className="flex items-center gap-4">
           <Link to="/contact" className="hidden xl:block font-semibold text-[15px] text-[#D6E1F5]/90 hover:text-white">
-            Contact
+            <T id="nav.contact">Contact</T>
           </Link>
           <Link
             to="/login"
@@ -99,15 +102,15 @@ export default function Header() {
                 fill="currentColor"
               />
             </svg>
-            Members
+            <T id="nav.members">Members</T>
           </Link>
           <Link to="/membership" className="btn-red !px-4 sm:!px-5 !py-3">
-            <span className="hidden sm:inline">Join / Renew</span>
-            <span className="sm:hidden">Join</span>
+            <span className="hidden sm:inline"><T id="nav.join">Join / Renew</T></span>
+            <span className="sm:hidden"><T id="nav.join-short">Join</T></span>
           </Link>
           <button
             className="xl:hidden w-11 h-11 grid place-items-center rounded-lg hover:bg-white/10"
-            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-label={open ? menuClose : menuOpen}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
           >
@@ -134,7 +137,7 @@ export default function Header() {
                   onClick={() => setOpen(false)}
                   className="block py-3 font-semibold text-[#D6E1F5] border-b border-white/5"
                 >
-                  {n.label}
+                  <T id={`nav.${n.to.slice(1)}`}>{n.label}</T>
                 </NavLink>
               </li>
             ))}

@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
+import { SiteTextProvider } from './lib/text';
+import EditModeBar from './components/EditModeBar';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -93,7 +95,7 @@ function CanonicalUrl() {
 
 export default function App() {
   return (
-    <>
+    <SiteTextProvider>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-white focus:text-ink focus:font-bold focus:px-5 focus:py-3 focus:rounded-xl focus:shadow-xl"
@@ -131,6 +133,8 @@ export default function App() {
         </Suspense>
       </main>
       <Footer />
-    </>
+      {/* Admin-only; renders nothing for everyone else. */}
+      <EditModeBar />
+    </SiteTextProvider>
   );
 }

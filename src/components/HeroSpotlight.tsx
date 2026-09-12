@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Spotlight } from '../lib/postings';
+import { T, useText } from '../lib/text';
 
 // The homepage's "one main screen that flips through": the mission statement
 // leads, then board-editable spotlights (next meeting, awards, schools,
@@ -36,6 +37,10 @@ export default function HeroSpotlight({
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
   const liveRef = useRef<HTMLDivElement>(null);
+  const regionLabel = useText('home.hero.aria.region', 'FAEMSE spotlight');
+  const tabsLabel = useText('home.hero.aria.tabs', 'Choose a slide');
+  const prevLabel = useText('home.hero.aria.prev', 'Previous slide');
+  const nextLabel = useText('home.hero.aria.next', 'Next slide');
 
   useEffect(() => {
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
@@ -78,7 +83,7 @@ export default function HeroSpotlight({
     <div
       role="region"
       aria-roledescription="carousel"
-      aria-label="FAEMSE spotlight"
+      aria-label={regionLabel}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -100,40 +105,42 @@ export default function HeroSpotlight({
         >
           <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
             <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
-            Florida Association of EMS Educators
+            <T id="home.hero.kicker">Florida Association of EMS Educators</T>
           </p>
           {/* 80px cap: the widest line ("We train the people") measures 7.99px
               per 1px of font size, and the column is ~645px — above 80px the
               three-line lockup rewraps onto five lines and buries the CTAs. */}
           <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5.8vw,80px)]">
-            We train the people
+            <T id="home.hero.h1a">We train the people</T>
             <br />
-            who train Florida&apos;s
+            <T id="home.hero.h1b">who train Florida&apos;s</T>
             <br />
             <span className="gold-text drop-shadow-[0_2px_24px_rgba(235,188,66,.35)]">
-              first responders.
+              <T id="home.hero.h1c">first responders.</T>
             </span>
           </h1>
           <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8">
-            FAEMSE is the statewide professional home for EMS instructors, program directors, and
-            training officers — the network, the resources, and the policy voice behind better EMT
-            and paramedic education.
+            <T id="home.hero.lede">
+              FAEMSE is the statewide professional home for EMS instructors, program directors, and
+              training officers — the network, the resources, and the policy voice behind better EMT
+              and paramedic education.
+            </T>
           </p>
           <div className="flex flex-wrap gap-3.5 mb-8">
             <Link to="/membership" className="btn-red">
-              Become a member — $50/yr
+              <T id="home.hero.join">Become a member — $50/yr</T>
             </Link>
             <Link to="/events" className="btn-glass">
-              See what&apos;s coming up
+              <T id="home.hero.events">See what&apos;s coming up</T>
             </Link>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map((c) => (
+            {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map((c, i) => (
               <span
                 key={c}
                 className="text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
               >
-                {c}
+                <T id={`home.hero.chip.${i + 1}`}>{c}</T>
               </span>
             ))}
           </div>
@@ -153,7 +160,7 @@ export default function HeroSpotlight({
             >
               <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
                 <i className="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_12px_rgba(58,219,143,.9)]" aria-hidden />
-                {s.kicker || 'Spotlight'}
+                {s.kicker || <T id="home.hero.spot.kicker">Spotlight</T>}
               </p>
               <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,68px)] max-w-[14ch] [text-wrap:balance]">
                 {s.title}
@@ -167,7 +174,7 @@ export default function HeroSpotlight({
                   </SlideLink>
                 )}
                 <Link to="/membership" className="btn-glass">
-                  Become a member
+                  <T id="home.hero.spot.join">Become a member</T>
                 </Link>
               </div>
             </div>
@@ -178,7 +185,7 @@ export default function HeroSpotlight({
       {/* Controls: one progress bar per slide, arrows, and a live counter. */}
       {total > 1 && (
         <div className="flex items-center gap-4 mt-10">
-          <div className="flex gap-2 flex-1 max-w-[360px]" role="tablist" aria-label="Choose a slide">
+          <div className="flex gap-2 flex-1 max-w-[360px]" role="tablist" aria-label={tabsLabel}>
             {Array.from({ length: total }, (_, i) => (
               <button
                 key={i}
@@ -205,7 +212,7 @@ export default function HeroSpotlight({
           <div className="flex gap-1.5">
             <button
               onClick={() => go(index - 1)}
-              aria-label="Previous slide"
+              aria-label={prevLabel}
               className="w-10 h-10 grid place-items-center rounded-full border border-white/15 bg-white/5 text-white hover:bg-white/15 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -214,7 +221,7 @@ export default function HeroSpotlight({
             </button>
             <button
               onClick={() => go(index + 1)}
-              aria-label="Next slide"
+              aria-label={nextLabel}
               className="w-10 h-10 grid place-items-center rounded-full border border-white/15 bg-white/5 text-white hover:bg-white/15 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>

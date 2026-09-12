@@ -20,6 +20,9 @@ npm run build    # type-check + production build to dist/
   state with a gold coastline, ten pulsing cities, and comet links that light
   outward from Orlando until the state is joined (geometry in `src/lib/florida.ts`).
   Steps aside when a spotlight brings a photo or clip; still for reduced motion.
+- `src/lib/text.tsx` — admin-editable wording: the `<T id>` wrapper every
+  static string sits in, the provider that loads overrides from `site_text`,
+  and the in-page editor. `src/components/EditModeBar.tsx` is the admin toggle.
 - `src/components/Mark.tsx` — the Pulse Star logo (Star of Life with carved EKG channel).
   Brand assets and design philosophy live in `brand/`.
 - `src/pages/` — one file per route (Home, About, Board, Bylaws, Membership, Events,
@@ -71,6 +74,13 @@ association's Supabase organization.
   only to admins (badge: "Draft · admins only") until the board flips the
   Published box in the portal. Ten researched drafts were loaded unpublished
   on 2026-09-02 for the board to verify.
+- `site_text` — admin-edited wording. One row per editable string on the
+  public site, keyed by the dotted id in the code (`home.hero.h1`). No row
+  means "use the words in the code", which is also what happens if the table
+  is unreachable, so an outage can never blank the site. Public read,
+  admin-only write. Schema: `supabase/migrations/20260912_site_text.sql`
+  (paste it once into the dashboard SQL Editor; until then the edit bar shows
+  setup instructions instead of failing).
 - `reminder_log` — service-role-only record of which renewal reminder
   (90/60/30 days) went to whom, so the daily job never double-sends.
 - Membership gate: `is_current_member()` — true for admins and for profiles
@@ -129,6 +139,31 @@ Day-to-day content changes happen inside the website itself:
      jobs, classes, Q&A entries, teaching videos, and the member library.
      Jobs, classes, and spotlights carry an end date and drop off the public
      site automatically when it passes.
+
+### Editing the words on the site (admins)
+
+Any signed-in admin sees a small **Board tools** bar at the bottom-left of
+every page. Turn on **Edit text** and every piece of site wording lights up:
+gold means the original words from the code, green means the board has
+already changed it. Click a phrase, change it in the panel, **Save** — it is
+live for everyone on their next page load. **Restore original** puts the
+code's words back. The "N edited" button lists everything the board has
+changed, with a Restore next to each.
+
+What it covers: headlines, paragraphs, buttons, card copy, page banners,
+navigation labels, footer text, form labels, and empty-state messages on the
+public pages and the member portal. What it does not cover: content that
+already has its own editor (events, news, jobs, classes, Q&A, videos,
+spotlights, library), names, addresses, emails, prices, and layout. For
+visitors the page is unchanged — with edit mode off the wording renders with
+no extra markup.
+
+Under the hood: `src/lib/text.tsx`. Each string in the code is wrapped as
+`<T id="page.section.slot">original words</T>`; the words in the code are the
+fallback and the `site_text` row is the override. Adding a new editable
+string is one wrapper; there is no registry to keep in sync. Overrides are
+cached per browser so returning visitors never see the code's wording flash
+before the saved wording arrives.
 
 Bootstrapping the first admin (one time, in the Supabase dashboard):
 Authentication → Users → Add user (email + password, auto-confirm), sign in
