@@ -9,10 +9,15 @@ export type MemberStatus = {
   // Current member or admin — the client-side mirror of what RLS enforces
   // server-side; used only to choose which UI to show.
   current: boolean;
+  // Board admin. Also only a UI signal: every admin-only write is gated by
+  // is_admin() in the database, so flipping this in a browser gains nothing.
+  admin: boolean;
 };
 
+const SIGNED_OUT: MemberStatus = { checked: true, signedIn: false, current: false, admin: false };
+
 export function useMemberStatus(): MemberStatus {
-  const [status, setStatus] = useState<MemberStatus>({ checked: false, signedIn: false, current: false });
+  const [status, setStatus] = useState<MemberStatus>({ ...SIGNED_OUT, checked: false });
   useEffect(() => {
     let on = true;
     (async () => {
@@ -20,7 +25,7 @@ export function useMemberStatus(): MemberStatus {
         const { data } = await supabase.auth.getSession();
         const uid = data.session?.user.id;
         if (!uid) {
-          on && setStatus({ checked: true, signedIn: false, current: false });
+          on && setStatus(SIGNED_OUT);
           return;
         }
         const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
@@ -30,9 +35,10 @@ export function useMemberStatus(): MemberStatus {
             checked: true,
             signedIn: true,
             current: p?.role === 'admin' || membershipState(p) === 'current',
+            admin: p?.role === 'admin',
           });
       } catch {
-        on && setStatus({ checked: true, signedIn: false, current: false });
+        on && setStatus(SIGNED_OUT);
       }
     })();
     return () => {

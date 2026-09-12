@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Seal from '../components/Seal';
 import { supabase } from '../lib/supabase';
+import { T, useText } from '../lib/text';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,10 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
   const [email, setEmail] = useState('');
   const [justReset, setJustReset] = useState(false);
+  const docTitle = useText('login.doctitle', 'Member Login');
+  const badCredentials = useText('login.error.credentials', 'Email or password not recognized.');
+  const needEmail = useText('login.error.email', 'Enter your email above first, then press "Forgot password".');
+  const emailPlaceholder = useText('login.email.placeholder', 'you@example.org');
 
   useEffect(() => {
     try {
@@ -22,11 +27,11 @@ export default function Login() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Member Login · FAEMSE';
+    document.title = `${docTitle} · FAEMSE`;
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate('/members', { replace: true });
     });
-  }, [navigate]);
+  }, [navigate, docTitle]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,7 +44,7 @@ export default function Login() {
     if (error) {
       setErrorMsg(
         error.message === 'Invalid login credentials'
-          ? 'Email or password not recognized.'
+          ? badCredentials
           : error.message,
       );
       setStatus('error');
@@ -50,7 +55,7 @@ export default function Login() {
 
   async function onForgot() {
     if (!email.trim()) {
-      setErrorMsg('Enter your email above first, then press "Forgot password".');
+      setErrorMsg(needEmail);
       setStatus('error');
       return;
     }
@@ -75,9 +80,9 @@ export default function Login() {
         <div className="text-center mb-8">
           <Seal className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,.55)]" />
           <p className="font-disp font-semibold text-[14px] tracking-[0.28em] uppercase text-brand-goldsoft">
-            Member portal
+            <T id="login.eyebrow">Member portal</T>
           </p>
-          <h1 className="font-disp font-bold uppercase text-[44px] leading-none mt-2">Sign in</h1>
+          <h1 className="font-disp font-bold uppercase text-[44px] leading-none mt-2"><T id="login.h1">Sign in</T></h1>
         </div>
 
         {justReset && (
@@ -85,7 +90,7 @@ export default function Login() {
             className="mb-5 rounded-xl border border-brand-green/40 bg-brand-green/10 text-brand-green font-semibold text-[14.5px] px-5 py-3.5 text-center"
             role="status"
           >
-            Password updated — sign in with your new password.
+            <T id="login.reset.done">Password updated — sign in with your new password.</T>
           </p>
         )}
         <form
@@ -94,7 +99,7 @@ export default function Login() {
         >
           <label className="block mb-4">
             <span className="text-[12.5px] font-bold uppercase tracking-[0.1em] text-[#AFC1E2]">
-              Email
+              <T id="login.email.label">Email</T>
             </span>
             <input
               name="email"
@@ -104,12 +109,12 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1.5 w-full rounded-xl border border-white/20 bg-ink/60 text-white px-4 py-3 outline-none focus:border-brand-goldsoft placeholder:text-white/30"
-              placeholder="you@example.org"
+              placeholder={emailPlaceholder}
             />
           </label>
           <label className="block mb-6">
             <span className="text-[12.5px] font-bold uppercase tracking-[0.1em] text-[#AFC1E2]">
-              Password
+              <T id="login.password.label">Password</T>
             </span>
             <input
               name="password"
@@ -120,7 +125,7 @@ export default function Login() {
             />
           </label>
           <button type="submit" disabled={status === 'working'} className="btn-gold w-full disabled:opacity-60">
-            {status === 'working' ? 'Signing in…' : 'Sign in'}
+            {status === 'working' ? <T id="login.submit.working">Signing in…</T> : <T id="login.submit.cta">Sign in</T>}
           </button>
           {status === 'error' && (
             <p className="mt-4 text-brand-redhot font-semibold text-[14.5px]" role="alert">
@@ -129,20 +134,20 @@ export default function Login() {
           )}
           {status === 'reset-sent' && (
             <p className="mt-4 text-brand-green font-semibold text-[14.5px]" role="status">
-              Password reset email sent — check your inbox.
+              <T id="login.reset.sent">Password reset email sent — check your inbox.</T>
             </p>
           )}
           <div className="flex justify-between items-center mt-5 text-[13.5px]">
             <button type="button" onClick={onForgot} className="text-[#AFC1E2] hover:text-white font-semibold">
-              Forgot password?
+              <T id="login.forgot">Forgot password?</T>
             </button>
             <Link to="/membership" className="text-brand-goldsoft hover:text-white font-semibold">
-              Not a member yet?
+              <T id="login.join">Not a member yet?</T>
             </Link>
           </div>
         </form>
         <p className="text-center text-[12.5px] text-[#7C90B6] mt-5">
-          Portal accounts are issued to current FAEMSE members. Questions:{' '}
+          <T id="login.note">Portal accounts are issued to current FAEMSE members. Questions:</T>{' '}
           <a className="text-brand-bluesoft hover:text-white" href="mailto:info@faemse.org">
             info@faemse.org
           </a>

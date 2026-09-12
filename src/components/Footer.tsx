@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Mark from './Mark';
 import { contact } from '../content/data';
+import { T } from '../lib/text';
 
 export default function Footer() {
   return (
@@ -16,8 +17,8 @@ export default function Footer() {
               </span>
             </Link>
             <p className="mt-4 max-w-[300px] text-[#7C90B6]">
-              The {contact.legalName} — a {contact.taxStatus} fostering excellence in EMS education
-              and training.
+              <T id="footer.about.a">The</T> {contact.legalName} <T id="footer.about.b">— a</T> {contact.taxStatus}{' '}
+              <T id="footer.about.c">fostering excellence in EMS education and training.</T>
             </p>
             <div className="flex gap-2.5 mt-4">
               <a
@@ -42,35 +43,35 @@ export default function Footer() {
           </div>
           <div>
             <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
-              Association
+              <T id="footer.col.association">Association</T>
             </h5>
             <ul className="space-y-2.5">
-              <li><Link className="hover:text-white" to="/about">About FAEMSE</Link></li>
-              <li><Link className="hover:text-white" to="/board">Board of Directors</Link></li>
-              <li><Link className="hover:text-white" to="/bylaws">Bylaws &amp; elections</Link></li>
-              <li><Link className="hover:text-white" to="/sponsors">Sponsors</Link></li>
+              <li><Link className="hover:text-white" to="/about"><T id="footer.link.about">About FAEMSE</T></Link></li>
+              <li><Link className="hover:text-white" to="/board"><T id="footer.link.board">Board of Directors</T></Link></li>
+              <li><Link className="hover:text-white" to="/bylaws"><T id="footer.link.bylaws">Bylaws &amp; elections</T></Link></li>
+              <li><Link className="hover:text-white" to="/sponsors"><T id="footer.link.sponsors">Sponsors</T></Link></li>
               <li>
                 <a className="hover:text-white" href="https://www.faemsefoundation.org" target="_blank" rel="noreferrer">
-                  Foundation ↗
+                  <T id="footer.link.foundation">Foundation ↗</T>
                 </a>
               </li>
             </ul>
           </div>
           <div>
             <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
-              For educators
+              <T id="footer.col.educators">For educators</T>
             </h5>
             <ul className="space-y-2.5">
-              <li><Link className="hover:text-white" to="/qa">Q&amp;A archive</Link></li>
-              <li><Link className="hover:text-white" to="/videos">Teaching videos</Link></li>
-              <li><Link className="hover:text-white" to="/jobs">Job board</Link></li>
-              <li><Link className="hover:text-white" to="/classes">Class board</Link></li>
-              <li><Link className="hover:text-white" to="/program-directors">Director guide</Link></li>
+              <li><Link className="hover:text-white" to="/qa"><T id="footer.link.qa">Q&amp;A archive</T></Link></li>
+              <li><Link className="hover:text-white" to="/videos"><T id="footer.link.videos">Teaching videos</T></Link></li>
+              <li><Link className="hover:text-white" to="/jobs"><T id="footer.link.jobs">Job board</T></Link></li>
+              <li><Link className="hover:text-white" to="/classes"><T id="footer.link.classes">Class board</T></Link></li>
+              <li><Link className="hover:text-white" to="/program-directors"><T id="footer.link.program-directors">Director guide</T></Link></li>
             </ul>
           </div>
           <div>
             <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
-              Get in touch
+              <T id="footer.col.contact">Get in touch</T>
             </h5>
             <p className="text-[#7C90B6] mb-2">{contact.address}</p>
             <a className="text-brand-bluesoft hover:text-white font-semibold" href={`mailto:${contact.email}`}>
@@ -80,12 +81,12 @@ export default function Footer() {
         </div>
         <div className="flex flex-wrap justify-between gap-2.5 pt-6 text-[13px] text-[#5E739C]">
           <span>
-            © {new Date().getFullYear()} {contact.legalName} · St. Petersburg, FL
+            © {new Date().getFullYear()} {contact.legalName} · <T id="footer.copy.city">St. Petersburg, FL</T>
           </span>
           <span>
-            <Link className="hover:text-white" to="/privacy">Privacy</Link>
+            <Link className="hover:text-white" to="/privacy"><T id="footer.link.privacy">Privacy</T></Link>
             {' · '}
-            <Link className="hover:text-white" to="/terms">Terms</Link>
+            <Link className="hover:text-white" to="/terms"><T id="footer.link.terms">Terms</T></Link>
           </span>
         </div>
       </div>

@@ -1,10 +1,12 @@
 import PageHead from '../components/PageHead';
 import { board } from '../content/data';
+import { T } from '../lib/text';
 
 export default function Board() {
   return (
     <>
       <PageHead
+        id="board"
         eyebrow="Leadership"
         title="Board of Directors"
         sub="Elected by the membership on a two-year cycle, the board guides the association's business between statewide meetings."
@@ -12,8 +14,9 @@ export default function Board() {
       <section className="py-20 bg-paper">
         <div className="wrap">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {board.map((m) => {
+            {board.map((m, index) => {
               const isPresident = m.role === 'President';
+              const roleKey = m.role.toLowerCase().replace(/[^a-z0-9]+/g, '-');
               return (
                 <div
                   key={m.role + m.name}
@@ -48,21 +51,29 @@ export default function Board() {
                       </span>
                     </div>
                   </div>
-                  {m.blurb && <p className="text-[13.5px] text-muted mt-4 leading-relaxed">{m.blurb}</p>}
+                  {m.blurb && (
+                    <p className="text-[13.5px] text-muted mt-4 leading-relaxed">
+                      <T id={`board.${roleKey}.${index}.blurb`}>{m.blurb}</T>
+                    </p>
+                  )}
                 </div>
               );
             })}
           </div>
           <div className="card p-8 mt-10">
-            <h2 className="font-disp font-bold uppercase text-2xl mb-2">Elections</h2>
+            <h2 className="font-disp font-bold uppercase text-2xl mb-2">
+              <T id="board.elections.h2">Elections</T>
+            </h2>
             <p className="text-muted max-w-[70ch]">
-              Board positions are filled through elections held on a two-year cycle. Active members
-              vote and may run for office. Interested in serving? Reach out to any current board
-              member or contact the association at{' '}
+              <T id="board.elections.text.a">
+                Board positions are filled through elections held on a two-year cycle. Active members
+                vote and may run for office. Interested in serving? Reach out to any current board
+                member or contact the association at
+              </T>{' '}
               <a className="text-brand-blue font-semibold" href="mailto:info@faemse.org">
                 info@faemse.org
               </a>
-              .
+              <T id="board.elections.text.b">.</T>
             </p>
           </div>
         </div>

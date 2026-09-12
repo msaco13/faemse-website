@@ -8,6 +8,7 @@ import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
 import { splitEvents, useSiteEvents, useSiteNews } from '../lib/content';
 import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
+import { T, useText } from '../lib/text';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -117,6 +118,11 @@ export default function Home() {
   // would announce the site is dead, which is worse than no strip at all.
   const latestPost = newsState.live ? newsState.items[0] : undefined;
   const nextMeeting = eventsState.live ? upcoming[0] : undefined;
+  const boardAria = useText('home.board.aria', 'On the board');
+  const wireAria = useText('home.wire.aria', 'Latest from the association');
+  const sponsorsAria = useText('home.sponsors.aria', 'Sponsors');
+  const vitalsAria = useText('home.vitals.aria', 'Association statistics');
+  const sealAlt = useText('home.cta.alt', 'Seal of the Florida Association of EMS Educators');
   useEffect(() => {
     // Inner pages set their own titles; restore the defaults when landing back home.
     document.title = 'FAEMSE — Florida Association of EMS Educators';
@@ -162,18 +168,18 @@ export default function Home() {
 
       {/* On the board — the next three dates, straight from the calendar the
           board edits. */}
-      <section className="bg-[#08142A] border-t border-white/10 text-white" aria-label="On the board">
+      <section className="bg-[#08142A] border-t border-white/10 text-white" aria-label={boardAria}>
         <div className="wrap grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] items-stretch">
           <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
-            On the board
+            <T id="home.board.label">On the board</T>
             {eventsState.loaded && !eventsState.live && (
-              <span className="ml-2 text-[11px] font-bold tracking-widest text-brand-goldsoft">SAMPLE</span>
+              <span className="ml-2 text-[11px] font-bold tracking-widest text-brand-goldsoft"><T id="home.board.sample">SAMPLE</T></span>
             )}
           </div>
           {eventsState.loaded && upcoming.length === 0 && (
             <p className="lg:col-span-3 flex items-center px-0 lg:px-6 py-4 text-[14px] text-[#93A6C9]">
-              The 2026–27 calendar is being finalized — check back soon.
+              <T id="home.board.empty">The 2026–27 calendar is being finalized — check back soon.</T>
             </p>
           )}
           {upcoming.slice(0, 3).map((e) => (
@@ -193,7 +199,7 @@ export default function Home() {
             </Link>
           ))}
           <Link to="/events" className="flex items-center py-4 lg:pl-7 text-[13.5px] font-bold text-brand-bluesoft hover:text-white whitespace-nowrap">
-            Full calendar →
+            <T id="home.board.cta">Full calendar →</T>
           </Link>
         </div>
       </section>
@@ -202,21 +208,21 @@ export default function Home() {
           content tables the board edits. Hidden entirely until live data
           exists; it must never fake freshness. */}
       {(latestPost || nextMeeting) && (
-        <section className="bg-[#08142A] border-t border-white/10" aria-label="Latest from the association">
+        <section className="bg-[#08142A] border-t border-white/10" aria-label={wireAria}>
           <div className="wrap flex flex-wrap items-center gap-x-8 gap-y-2 py-3.5 text-[14px]">
             <span className="flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.24em] uppercase text-brand-goldsoft">
               <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse" />
-              Live wire
+              <T id="home.wire.label">Live wire</T>
             </span>
             {latestPost && (
               <Link to="/news" className="text-[#BCCBE7] hover:text-white min-w-0">
-                <b className="text-white">Latest:</b> {latestPost.title}
+                <b className="text-white"><T id="home.wire.latest">Latest:</T></b> {latestPost.title}
                 <span className="text-[#7C90B6]"> · {latestPost.date}</span>
               </Link>
             )}
             {nextMeeting && (
               <Link to="/events" className="text-[#BCCBE7] hover:text-white">
-                <b className="text-white">Next up:</b> {nextMeeting.title}
+                <b className="text-white"><T id="home.wire.next">Next up:</T></b> {nextMeeting.title}
                 <span className="text-[#7C90B6]">
                   {' '}
                   · {nextMeeting.month} {nextMeeting.day}
@@ -232,9 +238,9 @@ export default function Home() {
       </div>
 
       {/* Sponsor marquee */}
-      <section className="bg-ink2 py-8 overflow-hidden" aria-label="Sponsors">
+      <section className="bg-ink2 py-8 overflow-hidden" aria-label={sponsorsAria}>
         <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-5">
-          Backed by the companies behind Florida EMS education
+          <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
         </p>
         <div className="flex w-max gap-16 pr-16 animate-[marq_38s_linear_infinite]">
           {[...sponsors, ...sponsors].map((s, i) => (
@@ -255,11 +261,11 @@ export default function Home() {
 
       {/* Vitals — hidden until the association confirms the real numbers. */}
       {CONTENT_VERIFIED && (
-      <section className="bg-ink2 text-white py-11 border-t border-white/5" aria-label="Association statistics">
+      <section className="bg-ink2 text-white py-11 border-t border-white/5" aria-label={vitalsAria}>
         <div className="wrap">
           <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#5E739C] mb-5 flex items-center gap-2.5">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" />
-            Association vitals
+            <T id="home.vitals.label">Association vitals</T>
           </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-7">
             {[
@@ -273,7 +279,7 @@ export default function Home() {
                   <Count to={v.n} suffix={v.s} />
                 </b>
                 <span className="text-[12.5px] font-semibold tracking-[0.12em] uppercase text-[#7C90B6]">
-                  {v.label}
+                  <T id={`home.vitals.${i + 1}.label`}>{v.label}</T>
                 </span>
               </div>
             ))}
@@ -286,15 +292,17 @@ export default function Home() {
       <section className="bg-paper py-24">
         <div className="wrap">
           <div className="mb-11">
-            <p className="eyebrow">Why FAEMSE</p>
+            <p className="eyebrow"><T id="home.why.eyebrow">Why FAEMSE</T></p>
             <h2 className="h-sec">
-              Built for the people
+              <T id="home.why.h2a">Built for the people</T>
               <br />
-              at the front of the classroom
+              <T id="home.why.h2b">at the front of the classroom</T>
             </h2>
             <p className="text-muted text-[17px] max-w-[60ch]">
-              Whether you run a paramedic program, teach an EMT cohort, or oversee field training
-              for an agency — membership is leverage.
+              <T id="home.why.lede">
+                Whether you run a paramedic program, teach an EMT cohort, or oversee field training
+                for an agency — membership is leverage.
+              </T>
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -320,10 +328,10 @@ export default function Home() {
             ].map((c, i) => (
               <Reveal key={c.title} delay={i * 110}>
                 <div className="card h-full p-8 border-t-[3px] border-t-brand-gold/70 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]">
-                  <h3 className="font-disp font-bold uppercase text-2xl mb-2.5">{c.title}</h3>
-                  <p className="text-muted text-[15px] mb-5">{c.text}</p>
+                  <h3 className="font-disp font-bold uppercase text-2xl mb-2.5"><T id={`home.why.${i + 1}.title`}>{c.title}</T></h3>
+                  <p className="text-muted text-[15px] mb-5"><T id={`home.why.${i + 1}.text`}>{c.text}</T></p>
                   <Link to={c.to} className="font-bold text-brand-blue hover:underline">
-                    {c.cta} →
+                    <T id={`home.why.${i + 1}.cta`}>{c.cta}</T> →
                   </Link>
                 </div>
               </Reveal>
@@ -337,16 +345,18 @@ export default function Home() {
       <section className="bg-white py-24">
         <div className="wrap">
           <div className="mb-11">
-            <p className="eyebrow">Between meetings</p>
+            <p className="eyebrow"><T id="home.between.eyebrow">Between meetings</T></p>
             <h2 className="h-sec">
-              The association,
+              <T id="home.between.h2a">The association,</T>
               <br />
-              open all year
+              <T id="home.between.h2b">open all year</T>
             </h2>
             <p className="text-muted text-[17px] max-w-[62ch]">
-              FAEMSE meets in person a few times a year — the rest of the year lives here:
-              answers that stop evaporating, a director&apos;s guide that didn&apos;t exist before,
-              and the boards every program watches.
+              <T id="home.between.lede">
+                FAEMSE meets in person a few times a year — the rest of the year lives here:
+                answers that stop evaporating, a director&apos;s guide that didn&apos;t exist before,
+                and the boards every program watches.
+              </T>
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -385,10 +395,10 @@ export default function Home() {
                   to={c.to}
                   className="card p-7 flex flex-col border-t-[3px] border-t-brand-blue/60 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]"
                 >
-                  <p className="text-[11.5px] font-bold tracking-[0.14em] uppercase text-brand-blue mb-2">{c.tag}</p>
-                  <h3 className="font-disp font-bold uppercase text-[21px] leading-tight mb-2">{c.title}</h3>
-                  <p className="text-muted text-[14px] flex-1 mb-4">{c.text}</p>
-                  <span className="font-bold text-brand-blue text-[14.5px]">{c.cta} →</span>
+                  <p className="text-[11.5px] font-bold tracking-[0.14em] uppercase text-brand-blue mb-2"><T id={`home.between.${i + 1}.tag`}>{c.tag}</T></p>
+                  <h3 className="font-disp font-bold uppercase text-[21px] leading-tight mb-2"><T id={`home.between.${i + 1}.title`}>{c.title}</T></h3>
+                  <p className="text-muted text-[14px] flex-1 mb-4"><T id={`home.between.${i + 1}.text`}>{c.text}</T></p>
+                  <span className="font-bold text-brand-blue text-[14.5px]"><T id={`home.between.${i + 1}.cta`}>{c.cta}</T> →</span>
                 </Link>
               </Reveal>
             ))}
@@ -405,15 +415,15 @@ export default function Home() {
           <Reveal>
             <Seal className="w-[88px] h-[88px] mx-auto mb-7 drop-shadow-[0_8px_30px_rgba(223,175,55,.45)]" />
             <p className="font-disp font-semibold text-[15px] tracking-[0.3em] uppercase text-brand-goldsoft mb-4">
-              {honors.title}
+              <T id="home.honors.title">{honors.title}</T>
             </p>
             <h2 className="font-disp font-bold uppercase leading-[0.95] text-[clamp(40px,5.6vw,72px)]">
-              The <span className="gold-text">gold standard</span>,
+              <T id="home.honors.h2a">The</T>{' '}<span className="gold-text"><T id="home.honors.h2b">gold standard</T></span>,
               <br />
-              held by real people
+              <T id="home.honors.h2c">held by real people</T>
             </h2>
             <p className="text-[#BCCBE7] text-[17px] max-w-[58ch] mx-auto mt-6 mb-9">
-              {honors.blurb}
+              <T id="home.honors.blurb">{honors.blurb}</T>
             </p>
             <div className="flex flex-wrap justify-center gap-2.5 mb-10">
               {Array.from({ length: honors.categories }, (_, i) => (
@@ -426,11 +436,11 @@ export default function Home() {
                 </span>
               ))}
               <span className="self-center ml-2 text-[13px] font-semibold tracking-[0.14em] uppercase text-brand-goldsoft/80">
-                Seven categories, honored annually
+                <T id="home.honors.count">Seven categories, honored annually</T>
               </span>
             </div>
             <Link to="/about" className="btn-gold">
-              About the award
+              <T id="home.honors.cta">About the award</T>
             </Link>
           </Reveal>
         </div>
@@ -442,10 +452,10 @@ export default function Home() {
       <section className="bg-white py-24">
         <div className="wrap max-w-[880px]">
           <Reveal>
-            <p className="eyebrow">From the president</p>
+            <p className="eyebrow"><T id="home.president.eyebrow">From the president</T></p>
             <blockquote className="mt-7">
               <p className="font-disp font-semibold text-[clamp(26px,3.2vw,38px)] leading-[1.22] text-ink [text-wrap:balance]">
-                &ldquo;{presidentMessage.quote}&rdquo;
+                &ldquo;<T id="home.president.quote">{presidentMessage.quote}</T>&rdquo;
               </p>
               <footer className="flex items-center gap-4 mt-8">
                 <span className="flex-none w-14 h-14 rounded-full grid place-items-center font-disp font-bold text-xl text-ink2 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep ring-2 ring-brand-gold/30 ring-offset-2">
@@ -457,7 +467,7 @@ export default function Home() {
                 <span>
                   <b className="block text-[17px]">{presidentMessage.name}</b>
                   <span className="text-[14px] text-muted tracking-[0.06em] uppercase font-semibold">
-                    {presidentMessage.role}
+                    <T id="home.president.role">{presidentMessage.role}</T>
                   </span>
                 </span>
               </footer>
@@ -476,11 +486,11 @@ export default function Home() {
         <div className="wrap">
           <div className="flex flex-wrap items-end justify-between gap-6 mb-11">
             <div>
-              <p className="eyebrow">Association news</p>
-              <h2 className="h-sec">The latest</h2>
+              <p className="eyebrow"><T id="home.news.eyebrow">Association news</T></p>
+              <h2 className="h-sec"><T id="home.news.h2">The latest</T></h2>
             </div>
             <Link to="/news" className="btn-outline">
-              All news
+              <T id="home.news.cta">All news</T>
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -493,7 +503,7 @@ export default function Home() {
                   <p className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-2">
                     {!newsState.live && (
                       <span className="mr-2 px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]">
-                        Sample
+                        <T id="home.news.sample">Sample</T>
                       </span>
                     )}
                     {n.date} · {n.tag}
@@ -501,7 +511,7 @@ export default function Home() {
                   <h3 className="text-[18.5px] font-bold leading-snug mb-2">{n.title}</h3>
                   <p className="text-[14.5px] text-muted flex-1">{n.excerpt}</p>
                   <Link to="/news" className="mt-4 font-bold text-brand-blue text-[14.5px] hover:underline">
-                    Read more →
+                    <T id="home.news.readmore">Read more →</T>
                   </Link>
                 </div>
               </article>
@@ -515,11 +525,11 @@ export default function Home() {
       <section className="relative overflow-hidden text-white py-24 bg-[radial-gradient(900px_600px_at_20%_0%,#12315E_0%,#0A1B33_55%,#060F20_100%)]">
         <div className="wrap relative">
           <div className="mb-11">
-            <p className="eyebrow !text-brand-bluesoft">Membership</p>
+            <p className="eyebrow !text-brand-bluesoft"><T id="home.tiers.eyebrow">Membership</T></p>
             <h2 className="h-sec text-white">
-              The best $50 your
+              <T id="home.tiers.h2a">The best $50 your</T>
               <br />
-              program spends this year
+              <T id="home.tiers.h2b">program spends this year</T>
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -534,28 +544,28 @@ export default function Home() {
               >
                 {t.featured && (
                   <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2 font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-[0_8px_24px_rgba(223,175,55,.4)]">
-                    MOST POPULAR
+                    <T id="home.tiers.popular">MOST POPULAR</T>
                   </span>
                 )}
-                <h3 className="font-disp font-bold uppercase text-2xl">{t.name}</h3>
-                <p className={`text-[13.5px] mb-5 ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}>{t.who}</p>
+                <h3 className="font-disp font-bold uppercase text-2xl"><T id={`home.tiers.${t.name.toLowerCase()}.name`}>{t.name}</T></h3>
+                <p className={`text-[13.5px] mb-5 ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}><T id={`home.tiers.${t.name.toLowerCase()}.who`}>{t.who}</T></p>
                 <p className="font-disp font-bold text-[54px] leading-none [font-variant-numeric:tabular-nums]">
                   {t.price}
                   <small className={`text-[17px] font-body font-semibold ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}>
                     {' '}
-                    {t.per}
+                    <T id={`home.tiers.${t.name.toLowerCase()}.per`}>{t.per}</T>
                   </small>
                 </p>
                 <ul className={`my-6 space-y-3 text-[14.5px] ${t.featured ? '' : 'text-[#C4D1EA]'}`}>
-                  {t.perks.map((p) => (
+                  {t.perks.map((p, i) => (
                     <li key={p} className="flex gap-2.5">
                       <span className="text-brand-green font-bold">✓</span>
-                      {p}
+                      <T id={`home.tiers.${t.name.toLowerCase()}.perk.${i + 1}`}>{p}</T>
                     </li>
                   ))}
                 </ul>
                 <Link to="/membership" className={t.featured ? 'btn-red w-full' : 'btn-glass w-full'}>
-                  Learn more
+                  <T id="home.tiers.cta">Learn more</T>
                 </Link>
               </div>
             ))}
@@ -568,24 +578,26 @@ export default function Home() {
         <div className="wrap relative py-24 lg:py-28">
           <img
             src={`${import.meta.env.BASE_URL}seal.svg`}
-            alt="Seal of the Florida Association of EMS Educators"
+            alt={sealAlt}
             className="w-44 h-44 mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
           />
           <h2 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,7vw,96px)]">
-            Raise the
+            <T id="home.cta.h2a">Raise the</T>
             <br />
-            <span className="gold-text drop-shadow-[0_2px_28px_rgba(235,188,66,.4)]">standard.</span>
+            <span className="gold-text drop-shadow-[0_2px_28px_rgba(235,188,66,.4)]"><T id="home.cta.h2b">standard.</T></span>
           </h2>
           <p className="text-[#BCCBE7] text-[17px] max-w-[52ch] mx-auto my-7">
-            Join the educators building the future of EMS in Florida — and get the network,
-            resources, and voice that come with them.
+            <T id="home.cta.text">
+              Join the educators building the future of EMS in Florida — and get the network,
+              resources, and voice that come with them.
+            </T>
           </p>
           <div className="flex flex-wrap gap-3.5 justify-center">
             <Link to="/membership" className="btn-gold">
-              Become a member
+              <T id="home.cta.join">Become a member</T>
             </Link>
             <Link to="/contact" className="btn-glass">
-              Talk to the board
+              <T id="home.cta.contact">Talk to the board</T>
             </Link>
           </div>
         </div>

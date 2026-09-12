@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { mailto } from '../content/data';
 import { embedUrl, useVideoIndex, useVideos } from '../lib/postings';
+import { T } from '../lib/text';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // The differentiator: nobody teaches EMS instructors how to teach. Short
@@ -41,6 +42,7 @@ export default function Videos() {
   return (
     <>
       <PageHead
+        id="videos"
         eyebrow="Teaching the teachers"
         title="Teaching videos"
         sub="Short, specific segments from Florida's strongest instructors — the craft of teaching EMS, not just the content."
@@ -49,45 +51,54 @@ export default function Videos() {
         <div className="wrap">
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
-              Loading the library…
+              <T id="videos.loading">Loading the library…</T>
             </div>
           ) : inDevelopment ? (
             <>
               <div className="card p-8 md:p-10 mb-8 border-t-[3px] border-t-brand-gold/70">
-                <p className="eyebrow mb-3">In development</p>
+                <p className="eyebrow mb-3"><T id="videos.dev.eyebrow">In development</T></p>
                 <h2 className="font-disp font-bold uppercase text-[clamp(28px,3.6vw,40px)] leading-tight mb-4">
-                  The one thing no one else offers
+                  <T id="videos.dev.h2">The one thing no one else offers</T>
                 </h2>
                 <p className="text-muted text-[16px] max-w-[70ch] mb-3">
-                  Most EMS instructors are hired for meeting the minimum and handed a generic
-                  instructor course. Nobody teaches them how to <i>teach</i>. FAEMSE is building a
-                  library of three-to-four-minute segments from the state&apos;s best — one specific
-                  skill, one specific technique, per video.
+                  <T id="videos.dev.p1.a">
+                    Most EMS instructors are hired for meeting the minimum and handed a generic
+                    instructor course. Nobody teaches them how to
+                  </T>{' '}
+                  <i><T id="videos.dev.p1.i">teach</T></i>.{' '}
+                  <T id="videos.dev.p1.b">
+                    FAEMSE is building a library of three-to-four-minute segments from the
+                    state&apos;s best — one specific skill, one specific technique, per video.
+                  </T>
                 </p>
                 <p className="text-muted text-[16px] max-w-[70ch]">
-                  The first segments are being lined up with launch instructors now. They post
-                  here the moment they&apos;re ready, and watching is a member benefit.
+                  <T id="videos.dev.p2">
+                    The first segments are being lined up with launch instructors now. They post
+                    here the moment they&apos;re ready, and watching is a member benefit.
+                  </T>
                 </p>
               </div>
               <div className="grid md:grid-cols-3 gap-5 mb-10">
                 {tracks.map((t, i) => (
                   <div key={t.name} className="card p-7">
                     <span className="font-disp font-bold text-[34px] text-brand-gold/70 leading-none">0{i + 1}</span>
-                    <h3 className="font-disp font-bold uppercase text-xl mt-2 mb-2">{t.name}</h3>
-                    <p className="text-muted text-[14.5px]">{t.text}</p>
+                    <h3 className="font-disp font-bold uppercase text-xl mt-2 mb-2"><T id={`videos.tracks.${i + 1}.name`}>{t.name}</T></h3>
+                    <p className="text-muted text-[14.5px]"><T id={`videos.tracks.${i + 1}.text`}>{t.text}</T></p>
                   </div>
                 ))}
               </div>
               <div className="card p-8 flex flex-wrap items-center justify-between gap-4 bg-ink !border-white/10 text-white">
                 <div>
-                  <h2 className="font-disp font-bold uppercase text-2xl mb-1">Good at one piece of teaching?</h2>
+                  <h2 className="font-disp font-bold uppercase text-2xl mb-1"><T id="videos.volunteer.h2">Good at one piece of teaching?</T></h2>
                   <p className="text-[#BCCBE7] text-[15px] max-w-[55ch]">
-                    A skill station, a hard lecture topic, a way of running scenarios — the library
-                    grows one short segment at a time, and the first contributors set the bar.
+                    <T id="videos.volunteer.text">
+                      A skill station, a hard lecture topic, a way of running scenarios — the library
+                      grows one short segment at a time, and the first contributors set the bar.
+                    </T>
                   </p>
                 </div>
                 <a href={mailto('Teaching%20video%20contribution')} className="btn-gold">
-                  Volunteer a segment
+                  <T id="videos.volunteer.cta">Volunteer a segment</T>
                 </a>
               </div>
             </>
@@ -96,18 +107,20 @@ export default function Videos() {
               {status.checked && !status.current && (
                 <div className="card p-7 mb-8 border-t-[3px] border-t-brand-gold/70 flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <h2 className="font-disp font-bold uppercase text-xl mb-1">Watching is a member benefit</h2>
+                    <h2 className="font-disp font-bold uppercase text-xl mb-1"><T id="videos.gate.h2">Watching is a member benefit</T></h2>
                     <p className="text-muted text-[14.5px] max-w-[56ch]">
-                      Most programs get no instructional training beyond the minimum course. This
-                      library is FAEMSE closing that gap — every video opens with membership.
+                      <T id="videos.gate.text">
+                        Most programs get no instructional training beyond the minimum course. This
+                        library is FAEMSE closing that gap — every video opens with membership.
+                      </T>
                     </p>
                   </div>
                   <div className="flex gap-3">
                     <Link to="/membership" className="btn-red !py-2.5 !px-5">
-                      Join — $50/yr
+                      <T id="videos.gate.join">Join — $50/yr</T>
                     </Link>
                     <Link to="/login" className="btn-outline !py-2.5 !px-5">
-                      Member sign in
+                      <T id="videos.gate.signin">Member sign in</T>
                     </Link>
                   </div>
                 </div>
@@ -131,7 +144,7 @@ export default function Videos() {
                         <div className="aspect-video grid place-items-center bg-[radial-gradient(400px_240px_at_50%_0%,#12315E_0%,#0A1B33_70%)] text-white">
                           {memberView && v.videoUrl ? (
                             <a href={v.videoUrl} target="_blank" rel="noreferrer" className="btn-glass !py-2.5 !px-5">
-                              Watch ↗
+                              <T id="videos.item.watch">Watch ↗</T>
                             </a>
                           ) : (
                             <span role="img" className="w-14 h-14 grid place-items-center rounded-full border border-brand-gold/50 bg-brand-gold/10 text-brand-goldsoft text-xl" aria-label="Members only">
@@ -156,10 +169,12 @@ export default function Videos() {
                 })}
               </div>
               <p className="text-muted text-[14px] mt-8 max-w-[75ch]">
-                Good at a specific piece of teaching? The library grows one 3–4 minute segment at a
-                time.{' '}
+                <T id="videos.note.text">
+                  Good at a specific piece of teaching? The library grows one 3–4 minute segment at a
+                  time.
+                </T>{' '}
                 <a className="text-brand-blue font-semibold hover:underline" href={mailto('Teaching%20video%20contribution')}>
-                  Volunteer a segment →
+                  <T id="videos.note.link">Volunteer a segment →</T>
                 </a>
               </p>
             </>

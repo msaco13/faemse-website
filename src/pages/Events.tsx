@@ -1,5 +1,6 @@
 import PageHead from '../components/PageHead';
 import { EventItem, splitEvents, useSiteEvents } from '../lib/content';
+import { T } from '../lib/text';
 
 const tagStyles: Record<string, string> = {
   blue: 'text-[#1A47B8] bg-[#E7EEFF]',
@@ -31,7 +32,7 @@ function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
             rel="noreferrer"
             className="block mt-1 text-[13.5px] font-bold text-brand-blue hover:underline"
           >
-            Details &amp; registration ↗
+            <T id="events.item.details">Details &amp; registration ↗</T>
           </a>
         )}
       </div>
@@ -41,7 +42,7 @@ function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
           past ? 'text-muted bg-paper' : tagStyles[e.tagColor]
         }`}
       >
-        {past ? 'Held' : e.tag}
+        {past ? <T id="events.item.held">Held</T> : e.tag}
       </span>
     </div>
   );
@@ -54,6 +55,7 @@ export default function Events() {
   return (
     <>
       <PageHead
+        id="events"
         eyebrow="Calendar"
         title="Upcoming across Florida"
         sub={
@@ -66,12 +68,12 @@ export default function Events() {
         <div className="wrap">
           {loaded && !live && (
             <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              Sample calendar — dates being confirmed
+              <T id="events.sample">Sample calendar — dates being confirmed</T>
             </p>
           )}
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
-              Loading the calendar…
+              <T id="events.loading">Loading the calendar…</T>
             </div>
           ) : upcoming.length > 0 ? (
             <div className="card overflow-hidden shadow-[0_18px_50px_rgba(10,27,51,.08)]">
@@ -81,15 +83,17 @@ export default function Events() {
             </div>
           ) : (
             <div className="card p-8 text-muted">
-              No upcoming events on the calendar right now — new dates post here as the board
-              confirms them.
+              <T id="events.empty">
+                No upcoming events on the calendar right now — new dates post here as the board
+                confirms them.
+              </T>
             </div>
           )}
 
           {past.length > 0 && (
             <>
               <h2 className="font-disp font-bold uppercase text-xl mt-12 mb-4 text-muted">
-                Recently held
+                <T id="events.past.h2">Recently held</T>
               </h2>
               <div className="card overflow-hidden">
                 {past.map((e) => (
@@ -100,7 +104,7 @@ export default function Events() {
           )}
 
           <p className="text-muted text-[14px] mt-6">
-            Registration and event questions:{' '}
+            <T id="events.contact.label">Registration and event questions:</T>{' '}
             <a className="text-brand-blue font-semibold" href="mailto:info@faemse.org">
               info@faemse.org
             </a>

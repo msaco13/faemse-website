@@ -1,10 +1,12 @@
 import PageHead from '../components/PageHead';
 import { mailto, sponsors } from '../content/data';
+import { T } from '../lib/text';
 
 export default function Sponsors() {
   return (
     <>
       <PageHead
+        id="sponsors"
         eyebrow="Partners"
         title="Sponsors"
         sub="The companies backing EMS education across Florida. Thank you for keeping great teaching at the front line of emergency care."
@@ -28,14 +30,18 @@ export default function Sponsors() {
           </ul>
           <div className="card p-8 mt-10 flex flex-wrap items-center justify-between gap-4 bg-ink !border-white/10 text-white">
             <div>
-              <h2 className="font-disp font-bold uppercase text-2xl mb-1">Become a sponsor</h2>
+              <h2 className="font-disp font-bold uppercase text-2xl mb-1">
+                <T id="sponsors.become.h2">Become a sponsor</T>
+              </h2>
               <p className="text-[#BCCBE7] text-[15px] max-w-[55ch]">
-                Put your company in front of the educators who decide what Florida&apos;s EMS
-                programs buy, teach, and recommend.
+                <T id="sponsors.become.text">
+                  Put your company in front of the educators who decide what Florida&apos;s EMS
+                  programs buy, teach, and recommend.
+                </T>
               </p>
             </div>
             <a href={mailto('Sponsorship')} className="btn-gold">
-              Get sponsorship info
+              <T id="sponsors.become.cta">Get sponsorship info</T>
             </a>
           </div>
         </div>

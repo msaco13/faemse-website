@@ -10,6 +10,7 @@ import type { DirectoryEntry, Profile } from '../lib/portal';
 import { formatDate, membershipState } from '../lib/portal';
 import { useLibrary } from '../lib/postings';
 import { supabase } from '../lib/supabase';
+import { T, useText } from '../lib/text';
 
 const stateBadge = {
   current: { text: 'Current member', cls: 'text-[#0E7A4A] bg-[#E2F7EC]' },
@@ -28,6 +29,8 @@ export default function Members() {
   const [pwStatus, setPwStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
   const [pwMsg, setPwMsg] = useState('');
   const library = useLibrary(!!session);
+  const pwPlaceholder = useText('members.password.placeholder', 'New password (8+ characters)');
+  const pwAria = useText('members.password.aria', 'New password, at least 8 characters');
 
   async function onSignOut() {
     try {
@@ -142,6 +145,8 @@ export default function Members() {
   return (
     <>
       <PageHead
+        id="members"
+        dynamicTitle
         eyebrow="Member portal"
         title={`Welcome, ${firstName}`}
         sub="Your member home — resources, meetings, and association business in one place."
@@ -150,31 +155,31 @@ export default function Members() {
         <div className="wrap">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
             <p className="text-muted text-[15px]">
-              Signed in as <b className="text-body">{session.user.email}</b>
+              <T id="members.signedin">Signed in as</T> <b className="text-body">{session.user.email}</b>
               <span className={`ml-3 inline-block align-middle text-[11px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full ${badge.cls}`}>
-                {badge.text}
+                <T id={`members.badge.${mState}`}>{badge.text}</T>
               </span>
               {mState === 'current' && profile?.expires_at && (
-                <span className="ml-2 text-[13px] text-muted">through {formatDate(profile.expires_at)}</span>
+                <span className="ml-2 text-[13px] text-muted"><T id="members.through">through</T> {formatDate(profile.expires_at)}</span>
               )}
               {profile?.role === 'admin' && (
                 <span className="ml-2 inline-block align-middle text-[11px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full text-brand-red bg-[#FDEAEB]">
-                  Admin
+                  <T id="members.admin">Admin</T>
                 </span>
               )}
             </p>
             <button onClick={onSignOut} className="btn-outline !py-2.5 !px-5 text-[14px]">
-              Sign out
+              <T id="members.signout">Sign out</T>
             </button>
           </div>
 
           {mState === 'lapsed' && (
             <p className="mb-8 rounded-2xl border border-brand-red/30 bg-[#FDEAEB] px-6 py-4 text-[14.5px] font-semibold text-brand-red">
-              Your membership lapsed{profile?.expires_at ? ` on ${formatDate(profile.expires_at)}` : ''} —{' '}
+              <T id="members.lapsed.a">Your membership lapsed</T>{profile?.expires_at ? ` on ${formatDate(profile.expires_at)}` : ''} —{' '}
               <Link to="/membership" className="underline">
-                renew here
+                <T id="members.lapsed.link">renew here</T>
               </Link>{' '}
-              to keep your benefits.
+              <T id="members.lapsed.b">to keep your benefits.</T>
             </p>
           )}
 
@@ -203,12 +208,12 @@ export default function Members() {
                 text: 'Agendas, minutes, and Zoom links for statewide membership meetings post to the calendar.',
                 cta: { label: 'See the calendar →', to: '/events' },
               },
-            ].map((c) => (
+            ].map((c, i) => (
               <div key={c.title} className="card p-7 border-t-[3px] border-t-brand-gold/70">
-                <h2 className="font-disp font-bold uppercase text-xl mb-2">{c.title}</h2>
-                <p className="text-muted text-[14.5px] mb-4">{c.text}</p>
+                <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id={`members.card.${i + 1}.title`}>{c.title}</T></h2>
+                <p className="text-muted text-[14.5px] mb-4"><T id={`members.card.${i + 1}.text`}>{c.text}</T></p>
                 <Link to={c.cta.to} className="font-bold text-brand-blue hover:underline text-[14.5px]">
-                  {c.cta.label}
+                  <T id={`members.card.${i + 1}.cta`}>{c.cta.label}</T>
                 </Link>
               </div>
             ))}
@@ -217,28 +222,28 @@ export default function Members() {
           <div className="grid lg:grid-cols-2 gap-6 mb-10">
             {/* Profile */}
             <div className="card p-8 border-t-[3px] border-t-brand-gold/70">
-              <h2 className="font-disp font-bold uppercase text-xl mb-2">Your profile</h2>
+              <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.profile.title">Your profile</T></h2>
               <p className="text-muted text-[14px] mb-5">
-                What fellow members see about you in the directory.
+                <T id="members.profile.text">What fellow members see about you in the directory.</T>
               </p>
               <form onSubmit={onSaveProfile}>
                 <div className="grid sm:grid-cols-2 gap-4 mb-4">
                   <label className="block">
-                    <span className={label}>Full name</span>
+                    <span className={label}><T id="members.profile.name">Full name</T></span>
                     <input name="full_name" defaultValue={profile?.full_name ?? ''} maxLength={200} className={input} />
                   </label>
                   <label className="block">
-                    <span className={label}>Certification level</span>
+                    <span className={label}><T id="members.profile.cert">Certification level</T></span>
                     <input name="cert_level" defaultValue={profile?.cert_level ?? ''} maxLength={100} className={input} />
                   </label>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4 mb-4">
                   <label className="block">
-                    <span className={label}>County</span>
+                    <span className={label}><T id="members.profile.county">County</T></span>
                     <input name="county" defaultValue={profile?.county ?? ''} maxLength={100} className={input} />
                   </label>
                   <label className="block">
-                    <span className={label}>Agency / program</span>
+                    <span className={label}><T id="members.profile.agency">Agency / program</T></span>
                     <input name="agency" defaultValue={profile?.agency ?? ''} maxLength={300} className={input} />
                   </label>
                 </div>
@@ -249,10 +254,10 @@ export default function Members() {
                     defaultChecked={profile?.show_in_directory ?? true}
                     className="w-4 h-4 accent-[#2F6BFF]"
                   />
-                  List me in the member directory
+                  <T id="members.profile.listme">List me in the member directory</T>
                 </label>
                 <button type="submit" disabled={profileStatus === 'working'} className="btn-outline disabled:opacity-60">
-                  {profileStatus === 'working' ? 'Saving…' : 'Save profile'}
+                  {profileStatus === 'working' ? <T id="members.profile.saving">Saving…</T> : <T id="members.profile.save">Save profile</T>}
                 </button>
                 {profileStatus === 'done' && (
                   <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{profileMsg}</p>
@@ -265,13 +270,13 @@ export default function Members() {
 
             {/* Directory */}
             <div className="card p-8 border-t-[3px] border-t-brand-gold/70">
-              <h2 className="font-disp font-bold uppercase text-xl mb-2">Member directory</h2>
+              <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.directory.title">Member directory</T></h2>
               <p className="text-muted text-[14px] mb-5">
-                Current members who chose to be listed.
+                <T id="members.directory.text">Current members who chose to be listed.</T>
               </p>
               {directory.length === 0 ? (
                 <p className="text-muted text-[14.5px]">
-                  No listed members yet — the directory fills in as memberships are verified.
+                  <T id="members.directory.empty">No listed members yet — the directory fills in as memberships are verified.</T>
                 </p>
               ) : (
                 <ul className="divide-y divide-line max-h-[340px] overflow-y-auto pr-1">
@@ -289,9 +294,9 @@ export default function Members() {
           </div>
 
           <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70 max-w-[560px]">
-            <h2 className="font-disp font-bold uppercase text-xl mb-2">Set a new password</h2>
+            <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.password.title">Set a new password</T></h2>
             <p className="text-muted text-[14px] mb-4">
-              Choose the password you&apos;ll use to sign in from now on.
+              <T id="members.password.text">Choose the password you&apos;ll use to sign in from now on.</T>
             </p>
             <form onSubmit={onSetPassword} className="flex flex-wrap gap-3">
               <input
@@ -300,12 +305,12 @@ export default function Members() {
                 autoComplete="new-password"
                 required
                 minLength={8}
-                placeholder="New password (8+ characters)"
-                aria-label="New password, at least 8 characters"
+                placeholder={pwPlaceholder}
+                aria-label={pwAria}
                 className="flex-1 min-w-[220px] rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-gold"
               />
               <button type="submit" disabled={pwStatus === 'working'} className="btn-gold disabled:opacity-60">
-                {pwStatus === 'working' ? 'Saving…' : 'Save password'}
+                {pwStatus === 'working' ? <T id="members.password.saving">Saving…</T> : <T id="members.password.save">Save password</T>}
               </button>
             </form>
             {pwStatus === 'done' && (
@@ -317,14 +322,16 @@ export default function Members() {
           </div>
 
           <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
-            <h2 className="font-disp font-bold uppercase text-2xl mb-2">Member library</h2>
+            <h2 className="font-disp font-bold uppercase text-2xl mb-2"><T id="members.library.title">Member library</T></h2>
             <p className="text-muted text-[14px] mb-5">
-              Documents and references shelved by the board — one library, organized by tag.
+              <T id="members.library.text">Documents and references shelved by the board — one library, organized by tag.</T>
             </p>
             {library.items.length === 0 ? (
               <p className="text-muted text-[14.5px]">
-                The shelves are being stocked — program director guidance, teaching craft, and
-                clinical references land here first.
+                <T id="members.library.empty">
+                  The shelves are being stocked — program director guidance, teaching craft, and
+                  clinical references land here first.
+                </T>
               </p>
             ) : (
               <ul className="divide-y divide-line">
@@ -358,7 +365,7 @@ export default function Members() {
           </div>
 
           <div className="card p-8">
-            <h2 className="font-disp font-bold uppercase text-2xl mb-5">The reference shelf</h2>
+            <h2 className="font-disp font-bold uppercase text-2xl mb-5"><T id="members.shelf.title">The reference shelf</T></h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-7">
               {resourceCategories.map((cat) => (
                 <div key={cat.category}>
