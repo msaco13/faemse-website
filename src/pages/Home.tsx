@@ -160,6 +160,9 @@ export default function Home() {
               nobody can see. */}
           <div
             aria-hidden={mapFaded || undefined}
+            // inert also takes the 40 dots out of the tab order while hidden;
+            // aria-hidden alone leaves them reachable with the keyboard.
+            {...(mapFaded ? { inert: '' } : {})}
             className={`transition-opacity duration-700 ${mapFaded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
             <FloridaNetwork
