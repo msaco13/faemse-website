@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { mailto } from '../content/data';
 import { embedUrl, useVideoIndex, useVideos } from '../lib/postings';
-import { T } from '../lib/text';
+import { slug, T } from '../lib/text';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // The differentiator: nobody teaches EMS instructors how to teach. Short
@@ -82,8 +82,8 @@ export default function Videos() {
                 {tracks.map((t, i) => (
                   <div key={t.name} className="card p-7">
                     <span className="font-disp font-bold text-[34px] text-brand-gold/70 leading-none">0{i + 1}</span>
-                    <h3 className="font-disp font-bold uppercase text-xl mt-2 mb-2"><T id={`videos.tracks.${i + 1}.name`}>{t.name}</T></h3>
-                    <p className="text-muted text-[14.5px]"><T id={`videos.tracks.${i + 1}.text`}>{t.text}</T></p>
+                    <h3 className="font-disp font-bold uppercase text-xl mt-2 mb-2"><T id={`videos.tracks.${slug(t.name)}.name`}>{t.name}</T></h3>
+                    <p className="text-muted text-[14.5px]"><T id={`videos.tracks.${slug(t.name)}.text`}>{t.text}</T></p>
                   </div>
                 ))}
               </div>

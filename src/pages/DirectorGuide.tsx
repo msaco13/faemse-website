@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { mailto } from '../content/data';
-import { T } from '../lib/text';
+import { slug, T } from '../lib/text';
 
 // The clearest unmet need from the build brief: program director turnover is
 // high, institutional knowledge leaves with each departure, and the required
@@ -97,9 +97,9 @@ export default function DirectorGuide() {
           <div className="grid md:grid-cols-3 gap-5 mb-12">
             {clocks.map((c, i) => (
               <div key={c.title} className="card p-7 border-t-[3px] border-t-brand-gold/70">
-                <p className="font-disp font-bold text-[34px] text-brand-red leading-none mb-2"><T id={`directors.clocks.${i + 1}.window`}>{c.window}</T></p>
-                <h3 className="font-bold text-[16px] leading-snug mb-2"><T id={`directors.clocks.${i + 1}.title`}>{c.title}</T></h3>
-                <p className="text-muted text-[14px]"><T id={`directors.clocks.${i + 1}.text`}>{c.text}</T></p>
+                <p className="font-disp font-bold text-[34px] text-brand-red leading-none mb-2"><T id={`directors.clocks.${slug(c.title)}.window`}>{c.window}</T></p>
+                <h3 className="font-bold text-[16px] leading-snug mb-2"><T id={`directors.clocks.${slug(c.title)}.title`}>{c.title}</T></h3>
+                <p className="text-muted text-[14px]"><T id={`directors.clocks.${slug(c.title)}.text`}>{c.text}</T></p>
               </div>
             ))}
           </div>
@@ -138,7 +138,7 @@ export default function DirectorGuide() {
                 <span className="flex-none w-9 h-9 grid place-items-center rounded-full bg-brand-blue/10 text-brand-blue font-disp font-bold">
                   {i + 1}
                 </span>
-                <p className="text-[15px] text-body max-w-[75ch] pt-1.5"><T id={`directors.ninety.${i + 1}.text`}>{item}</T></p>
+                <p className="text-[15px] text-body max-w-[75ch] pt-1.5"><T id={`directors.ninety.${slug(item)}.text`}>{item}</T></p>
               </div>
             ))}
           </div>

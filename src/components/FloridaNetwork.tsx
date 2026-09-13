@@ -128,6 +128,16 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
   // a pinned card ignores pointerleave; the listeners are built once, so they read a ref rather than state
   const pinned = useRef(false);
   const ctl = useRef<Controls | null>(null);
+  // 'auto' prints every label on a wide screen and only the busy cities on a
+  // phone, where 40 names at half scale are a smear. Re-resolved on rotation.
+  const [narrow, setNarrow] = useState(() => matchMedia('(max-width: 640px)').matches);
+  useEffect(() => {
+    const mq = matchMedia('(max-width: 640px)');
+    const onChange = (e: MediaQueryListEvent) => setNarrow(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const mode: Labels = labels === 'auto' && narrow ? 'major' : labels;
   const ariaLabel = useText('map.aria', 'Map of Florida EMS programs');
   const doneWording = useText('map.done', 'EMS programs · one network');
 
@@ -135,7 +145,12 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
     const root = host.current;
     if (!root) return;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const placed = placeLabels(labels);
+    const placed = placeLabels(mode);
+    // The hit target is sized in screen pixels, not map units: at phone width
+    // the map draws at about half scale and a 16-unit circle is a 15px tap.
+    // Capped so neighbors a few units apart don't swallow each other.
+    const scale = root.getBoundingClientRect().width / VW || 1;
+    const hitR = Math.min(28, Math.max(16, 20 / scale));
 
     const el = <K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>, parent: Element): SVGElementTagNameMap[K] => {
       const e = document.createElementNS(NS, tag);
@@ -165,9 +180,12 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
     const road = el('g', {}, svg), fx = el('g', {}, svg), nodes = el('g', {}, svg), lblG = el('g', { 'aria-hidden': 'true' }, svg);
     const edges: Edge[] = EDGES.map(([a, b]) => {
       const d = linkPath(a, b);
-      const glow = el('path', { d, fill: 'none', stroke: GOLD.link, 'stroke-width': '4', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, road);
+      // No non-scaling-stroke on the links: their dash length is the path
+      // length in user units, and the two must live in the same space or the
+      // reveal runs ahead of (or behind) the comet once the map is scaled.
+      const glow = el('path', { d, fill: 'none', stroke: GOLD.link, 'stroke-width': '4', 'stroke-linecap': 'round' }, road);
       glow.style.filter = 'blur(1px)';
-      const core = el('path', { d, fill: 'none', stroke: '#F1CC70', 'stroke-width': '1.3', 'stroke-linecap': 'round', 'vector-effect': 'non-scaling-stroke' }, road);
+      const core = el('path', { d, fill: 'none', stroke: '#F1CC70', 'stroke-width': '1.3', 'stroke-linecap': 'round' }, road);
       const L = core.getTotalLength();
       [glow, core].forEach((p) => { p.style.strokeDasharray = String(L); p.style.strokeDashoffset = String(reduced ? 0 : L); });
       glow.style.strokeOpacity = reduced ? '.3' : '0';
@@ -192,10 +210,10 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
       flashOf[c.name] = el('circle', { cx: c.x, cy: c.y, r: r + 2, fill: 'none', stroke: '#FFF3D0', 'stroke-width': '1.2', 'vector-effect': 'non-scaling-stroke', class: 'fl-flash' }, g);
       el('circle', { cx: c.x, cy: c.y, r: r + 3, fill: 'none', 'vector-effect': 'non-scaling-stroke', class: 'fl-ring' }, g);
       // a generous invisible target so small dots are easy to hit, with room for a thumb
-      el('circle', { cx: c.x, cy: c.y, r: 16, fill: 'transparent' }, g);
+      el('circle', { cx: c.x, cy: c.y, r: hitR, fill: 'transparent' }, g);
       groupOf[c.name] = g;
       const L = placed[c.name];
-      const t = el('text', { x: L.x, y: L.y, 'text-anchor': L.anchor, class: `fl-lbl${labels === 'dense' ? ' dense' : ''}${L.quiet ? ' quiet' : ''}` }, lblG);
+      const t = el('text', { x: L.x, y: L.y, 'text-anchor': L.anchor, class: `fl-lbl${mode === 'dense' ? ' dense' : ''}${L.quiet ? ' quiet' : ''}` }, lblG);
       t.textContent = c.name.toUpperCase();
       lblOf[c.name] = t;
     });
@@ -204,7 +222,7 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
     // The card. Hover opens it and it follows the pointer between neighbors; a click,
     // tap, or Enter pins it so it survives the pointer leaving. The label and ring
     // classes are flipped here, right on the elements, since only this effect knows them.
-    let current: CityNode | null = null, closeT = 0;
+    let current: CityNode | null = null, closeT = 0, restoring = false;
     const open = (c: CityNode) => {
       clearTimeout(closeT);
       if (current && current !== c) {
@@ -222,8 +240,13 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
       if (!current) return;
       groupOf[current.name].classList.remove('is-active');
       lblOf[current.name].classList.remove('on');
-      // Escape from inside the card should hand keyboard focus back to the dot, not drop it
-      if (card.current?.contains(document.activeElement)) groupOf[current.name].focus({ preventScroll: true });
+      // Escape from inside the card should hand keyboard focus back to the dot, not drop it.
+      // The dot's focus listener would reopen the card, so it is told to stand down for this one.
+      if (card.current?.contains(document.activeElement)) {
+        restoring = true;
+        groupOf[current.name].focus({ preventScroll: true });
+        restoring = false;
+      }
       current = null;
       pinned.current = false;
       setActive(null);
@@ -254,8 +277,13 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
         }
         if (e.key === 'Escape') close();
       });
-      g.addEventListener('focus', () => { if (!pinned.current) open(c); });
-      g.addEventListener('blur', () => { if (!pinned.current) scheduleClose(); });
+      g.addEventListener('focus', () => { if (!pinned.current && !restoring) open(c); });
+      // Tabbing from the dot into its own card is not leaving: the card's
+      // onBlur takes over from there and closes when focus exits the pair.
+      g.addEventListener('blur', (e) => {
+        if (pinned.current || card.current?.contains(e.relatedTarget as Node | null)) return;
+        scheduleClose();
+      });
     });
     const onDocClick = () => { if (pinned.current) close(); };
     const onDocKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
@@ -271,11 +299,13 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
       svg.remove();
     };
 
-    const flare = (name: string, dur = 1) => {
-      const r = flashOf[name];
-      r.style.animation = 'none';
-      void r.getBBox();
-      r.style.animation = `fl-land ${dur}s ease-out forwards`;
+    // Restarting a run-once animation needs a reflow between "none" and the
+    // new value; when the whole state lands at once, one reflow serves all 40.
+    const flare = (names: string[], dur = 1) => {
+      const rings = names.map((n) => flashOf[n]);
+      rings.forEach((r) => { r.style.animation = 'none'; });
+      void rings[0]?.getBBox();
+      rings.forEach((r) => { r.style.animation = `fl-land ${dur}s ease-out forwards`; });
     };
     if (reduced) {
       setDone(true);
@@ -322,7 +352,7 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
           lk.core.style.strokeOpacity = '.9';
         }
         if (u < 1) raf(frame);
-        else { g.remove(); flare(rev ? lk.a.name : lk.b.name, 1); done?.(); }
+        else { g.remove(); flare([rev ? lk.a.name : lk.b.name], 1); done?.(); }
       };
       raf(frame);
     };
@@ -341,10 +371,10 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
       let inflight = 0, joined = 0;
       setDone(false);
       setPhase(`Connecting · 0 of ${edges.length}`);
-      flare(hubCity.name, 1);
+      flare([hubCity.name], 1);
       const finish = () => {
         setDone(true);
-        later(() => CITIES.forEach((c) => flare(c.name, 1.2)), 300);
+        later(() => flare(CITIES.map((c) => c.name), 1.2), 300);
         // while connected, quiet signals keep moving between neighbors
         for (let s = 0; s < 8; s++) later(() => comet(edges[(s * 7 + 3) % edges.length], s % 2 === 0, false), 1500 + s * 800);
         later(() => {
@@ -385,7 +415,7 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
       document.removeEventListener('visibilitychange', onVis);
       teardown();
     };
-  }, [labels]);
+  }, [mode]);
 
   // Enter/Space on a dot pins its card and puts the keyboard on the first link in it.
   useEffect(() => {
@@ -433,6 +463,12 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
             className="fl-pop absolute z-[5] min-w-[230px] max-w-[320px] px-4 pt-3.5 pb-3 rounded-2xl bg-ink2/[.97] border border-white/15 shadow-[0_24px_60px_rgba(4,10,22,.6)] text-white before:content-[''] before:absolute before:inset-x-4 before:top-0 before:h-[2px] before:rounded-sm before:bg-gradient-to-r before:from-brand-goldsoft before:to-brand-golddeep"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => { if (e.key === 'Escape') ctl.current?.close(); }}
+            // an unpinned card that was opened by focusing its dot closes once the
+            // keyboard leaves it (shift-tab back onto the dot reopens, cancelling this)
+            onBlur={(e) => {
+              if (pinned.current || card.current?.contains(e.relatedTarget as Node | null)) return;
+              ctl.current?.scheduleClose();
+            }}
           >
             <div className="font-disp font-bold text-[19px] tracking-[0.06em] uppercase leading-none">{active.name}</div>
             <div className="font-disp font-semibold text-[11.5px] tracking-[0.2em] uppercase text-brand-goldsoft mt-1.5">
@@ -468,14 +504,17 @@ export default function FloridaNetwork({ className = '', labels = 'auto', chipTo
           <T id="map.caption">Florida&apos;s EMS educators</T>
         </span>
         {chipTo ? (
-          <Link to={chipTo} className={`${chip} hover:border-brand-gold`} aria-live="polite">
+          <Link to={chipTo} className={`${chip} hover:border-brand-gold`}>
             {chipBody}
           </Link>
         ) : (
-          <span className={chip} aria-live="polite">
-            {chipBody}
-          </span>
+          <span className={chip}>{chipBody}</span>
         )}
+        {/* Screen readers hear the finished state once, not every one of the
+            39 "Connecting · n of 39" ticks the visible chip runs through. */}
+        <span className="sr-only" aria-live="polite">
+          {done ? `${programs.length} ${doneWording}` : ''}
+        </span>
       </div>
     </div>
   );

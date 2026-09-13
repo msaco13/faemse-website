@@ -1,6 +1,6 @@
 import PageHead from '../components/PageHead';
 import { contact } from '../content/data';
-import { T } from '../lib/text';
+import { slug, T } from '../lib/text';
 
 const sections = [
   {
@@ -39,8 +39,8 @@ export default function Terms() {
           <div className="card p-8 space-y-7">
             {sections.map((s, i) => (
               <div key={s.h}>
-                <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id={`terms.section.${i + 1}.h`}>{s.h}</T></h2>
-                <p className="text-muted text-[15.5px]">{i === 0 ? s.p : <T id={`terms.section.${i + 1}.p`}>{s.p}</T>}</p>
+                <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id={`terms.section.${slug(s.h)}.h`}>{s.h}</T></h2>
+                <p className="text-muted text-[15.5px]">{i === 0 ? s.p : <T id={`terms.section.${slug(s.h)}.p`}>{s.p}</T>}</p>
               </div>
             ))}
             <p className="text-muted text-[13.5px] pt-2 border-t border-line">

@@ -24,7 +24,11 @@ export default function PageHead({
 }) {
   const editedTitle = useText(`${id}.title`, title);
   const liveTitle = dynamicTitle ? title : editedTitle;
-  const liveSub = useText(`${id}.sub`, sub ?? '');
+  // Only a page that has a subtitle lets an override drive its description;
+  // a stray <id>.sub row must never set a meta description the banner
+  // doesn't show.
+  const editedSub = useText(`${id}.sub`, sub ?? '');
+  const liveSub = sub ? editedSub : '';
 
   useEffect(() => {
     document.title = `${liveTitle} · FAEMSE`;

@@ -10,15 +10,23 @@ import { T, useText } from '../lib/text';
 // what a director looking for a neighbor to call actually needs.
 const cities = programCities();
 
+const fold = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
 export default function Programs() {
   const [query, setQuery] = useState('');
   const placeholder = useText('programs.search.placeholder', 'Search a school or city…');
 
-  const q = query.trim().toLowerCase();
+  // Accent- and punctuation-blind on both sides, so "st pete" finds
+  // "St. Petersburg" and "miami dade" finds "Miami Dade College".
+  const q = fold(query);
   const shown = q
-    ? cities.filter(
-        (c) => c.name.toLowerCase().includes(q) || c.programs.some((p) => p.name.toLowerCase().includes(q)),
-      )
+    ? cities.filter((c) => fold(c.name).includes(q) || c.programs.some((p) => fold(p.name).includes(q)))
     : cities;
 
   return (
@@ -33,7 +41,11 @@ export default function Programs() {
       {/* The map at full size. It draws its own caption 56px below itself
           (absolutely positioned), so the deep bottom padding is what keeps
           the caption inside the dark stage instead of over the directory. */}
-      <section className="bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)] py-20 pb-32">
+      {/* overflow-hidden: the map's drawing area bleeds 9% past its box on
+          purpose (comets and halos near the coast), which on a phone is a few
+          pixels past the viewport and a sideways scroll. The deep bottom
+          padding keeps the caption inside the clip. */}
+      <section className="overflow-hidden bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)] py-20 pb-32">
         <div className="wrap">
           <FloridaNetwork className="w-full max-w-[900px] aspect-[700/683] mx-auto" labels="dense" />
         </div>

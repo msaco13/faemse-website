@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { T, useText } from '../lib/text';
+import { slug, T, useText } from '../lib/text';
 
 export default function About() {
   const sealAlt = useText('about.heritage.seal.alt', 'Seal of the Florida Association of EMS Educators');
@@ -34,10 +34,10 @@ export default function About() {
             ].map((m, i) => (
               <div key={m.year}>
                 <b className="block font-disp font-bold text-[34px] leading-none gold-text mb-2">
-                  <T id={`about.heritage.${i + 1}.label`}>{m.year}</T>
+                  <T id={`about.heritage.${slug(`${m.year} ${m.text}`)}.label`}>{m.year}</T>
                 </b>
                 <p className="text-[14px] text-[#93A6C9]">
-                  <T id={`about.heritage.${i + 1}.text`}>{m.text}</T>
+                  <T id={`about.heritage.${slug(`${m.year} ${m.text}`)}.text`}>{m.text}</T>
                 </p>
               </div>
             ))}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Spotlight } from '../lib/postings';
-import { T, useText } from '../lib/text';
+import { slug, T, useText } from '../lib/text';
 
 // The homepage's "one main screen that flips through": the mission statement
 // leads, then board-editable spotlights (next meeting, awards, schools,
@@ -140,7 +140,7 @@ export default function HeroSpotlight({
                 key={c}
                 className="text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
               >
-                <T id={`home.hero.chip.${i + 1}`}>{c}</T>
+                <T id={`home.hero.chip.${slug(c)}`}>{c}</T>
               </span>
             ))}
           </div>
