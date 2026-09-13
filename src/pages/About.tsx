@@ -58,9 +58,10 @@ export default function About() {
             </h2>
             <p className="text-muted mb-4">
               <T id="about.mission.p1">
-                The Florida Association of Emergency Medical Services Educators is the professional
-                home for the people who train Florida&apos;s EMTs and paramedics — instructors,
-                program directors, and agency training officers.
+                Our mission, in the words of the bylaws: to provide resources to individuals and
+                organizations that will foster excellence in EMS education and training. In practice
+                that makes FAEMSE the professional home for the people who train Florida&apos;s EMTs
+                and paramedics: instructors, program directors, and agency training officers.
               </T>
             </p>
             <p className="text-muted mb-4">
@@ -85,9 +86,9 @@ export default function About() {
               </h3>
               <p className="text-muted text-[15px]">
                 <T id="about.award.text">
-                  Every year FAEMSE honors outstanding EMS educators across seven categories —
-                  recognizing the people whose students are measurably better for having been in
-                  their classroom.
+                  Every year FAEMSE honors outstanding EMS educators: the people whose students are
+                  measurably better for having been in their classroom. Active members nominate and
+                  vote, and anyone may be nominated.
                 </T>
               </p>
             </div>
@@ -116,8 +117,9 @@ export default function About() {
               </h3>
               <p className="text-muted text-[15px] mb-3">
                 <T id="about.leadership.text">
-                  FAEMSE is guided by a Board of Directors elected by the membership on a two-year
-                  cycle.
+                  FAEMSE is guided by a seven-seat Board of Directors elected by the Active
+                  membership, with an Executive Director appointed by the board to run day-to-day
+                  operations.
                 </T>
               </p>
               <Link className="font-bold text-brand-blue hover:underline" to="/board">
