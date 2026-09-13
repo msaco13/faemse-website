@@ -35,7 +35,7 @@ export default function News() {
             <article
               key={n.id ?? n.title}
               id={n.id}
-              className="card p-8 hover:shadow-[0_18px_50px_rgba(10,27,51,.1)] transition-shadow"
+              className="card p-8 hover:shadow-[0_18px_50px_rgba(10,33,59,.1)] transition-shadow"
             >
               <p className="flex items-center gap-2.5 text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-3">
                 {n.date}

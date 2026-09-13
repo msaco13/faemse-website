@@ -50,7 +50,7 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-[rgba(8,20,42,.85)] backdrop-blur-xl border-b border-white/10 transition-shadow ${
+      className={`sticky top-0 z-50 bg-[rgba(7,26,50,.86)] backdrop-blur-xl border-b border-white/10 transition-shadow ${
         scrolled ? 'shadow-[0_12px_40px_rgba(4,10,22,.5)]' : ''
       }`}
     >
@@ -61,8 +61,8 @@ export default function Header() {
         <Link to="/" className="flex items-center gap-3 shrink-0" aria-label="FAEMSE home">
           {/* The seal is the one logo, here at 40px next to the wordmark. */}
           <Seal className="w-10 h-10 drop-shadow-[0_3px_10px_rgba(0,0,0,.45)]" />
-          <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide whitespace-nowrap">
-            FA<b className="text-brand-bluesoft">EMS</b>E
+          <span className="font-disp font-bold text-[26px] leading-none gold-text tracking-wide whitespace-nowrap">
+            FAEMSE
           </span>
         </Link>
 

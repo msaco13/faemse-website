@@ -76,7 +76,7 @@ export default function Events() {
               <T id="events.loading">Loading the calendar…</T>
             </div>
           ) : upcoming.length > 0 ? (
-            <div className="card overflow-hidden shadow-[0_18px_50px_rgba(10,27,51,.08)]">
+            <div className="card overflow-hidden shadow-[0_18px_50px_rgba(10,33,59,.08)]">
               {upcoming.map((e) => (
                 <EventRow key={e.id ?? e.title} e={e} />
               ))}

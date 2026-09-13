@@ -9,7 +9,7 @@ export default function NotFound() {
     document.title = `${docTitle} · FAEMSE`;
   }, [docTitle]);
   return (
-    <section className="bg-ink text-white min-h-[60vh] grid place-items-center text-center py-24">
+    <section className="velvet bg-ink text-white min-h-[60vh] grid place-items-center text-center py-24">
       <div>
         <Seal className="w-20 h-20 mx-auto mb-6 opacity-90" />
         <h1 className="font-disp font-bold uppercase text-6xl mb-3"><T id="notfound.h1">Lost signal</T></h1>

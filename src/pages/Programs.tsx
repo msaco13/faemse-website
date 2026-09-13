@@ -42,7 +42,7 @@ export default function Programs() {
       {/* overflow-hidden: the map's drawing area bleeds 9% past its box on
           purpose (comets and halos near the coast), which on a phone is a few
           pixels past the viewport and a sideways scroll. */}
-      <section className="overflow-hidden bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)] py-20">
+      <section className="velvet overflow-hidden bg-[radial-gradient(1000px_620px_at_50%_-20%,#163659_0%,#0A213B_55%,#04152A_100%)] py-20">
         <div className="wrap">
           <FloridaNetwork className="w-full max-w-[900px] mx-auto" labels="dense" />
         </div>
@@ -72,7 +72,7 @@ export default function Programs() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={placeholder}
                 autoComplete="off"
-                className="w-full rounded-2xl border border-line bg-white px-5 py-4 text-[15px] outline-none focus:border-brand-blue shadow-[0_8px_30px_rgba(10,27,51,.06)]"
+                className="w-full rounded-2xl border border-line bg-white px-5 py-4 text-[15px] outline-none focus:border-brand-blue shadow-[0_8px_30px_rgba(10,33,59,.06)]"
               />
             </label>
           </div>

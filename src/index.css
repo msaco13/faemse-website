@@ -106,10 +106,10 @@
 .fl-stage.dragging .fl-city,.fl-stage.dragging .fl-school{cursor:grabbing}
 .fl-stage.zoomed .fl-host{overflow:hidden;border-radius:28px;-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%)}
 .fl-stage.engaged::after{content:"";position:absolute;inset:-6px;border-radius:32px;border:1px solid rgba(241,204,112,.35);pointer-events:none}
-.fl-count{font:700 8.5px "Barlow Condensed",sans-serif;fill:#060F20;text-anchor:middle;pointer-events:none}
+.fl-count{font:700 8.5px "Barlow Condensed",sans-serif;fill:#04152A;text-anchor:middle;pointer-events:none}
 /* Labels: sizes live here so a mode class can override them, and the hovered
    label grows in place (its anchor and position never change). */
-.fl-lbl{font:600 12px "Barlow Condensed",sans-serif;letter-spacing:.18em;fill:#D2A445;paint-order:stroke;stroke:#0A1B33;stroke-width:3px;stroke-linejoin:round;pointer-events:none;transition:font-size .2s ease,opacity .2s ease,fill .2s ease}
+.fl-lbl{font:600 12px "Barlow Condensed",sans-serif;letter-spacing:.18em;fill:#D2A445;paint-order:stroke;stroke:#0A213B;stroke-width:3px;stroke-linejoin:round;pointer-events:none;transition:font-size .2s ease,opacity .2s ease,fill .2s ease}
 .fl-lbl.dense{font-size:11px}
 .fl-lbl.quiet{opacity:0}
 .fl-lbl.on{font-size:17px;fill:#FFE9A3;opacity:1}
@@ -141,3 +141,12 @@
 @keyframes hero-crest-spin{to{transform:rotateY(360deg)}}
 @media (max-width:767px){.hero-crest{display:none}}
 @media (prefers-reduced-motion:reduce){.hero-crest-coin{animation:none}}
+
+/* Velvet: the mottled navy of the seal's backdrop. Every dark section carries
+   the class; the pseudo-element lays two layers of noise (a soft cloud and a
+   fine grain, both tinted ice blue at a few percent) over the section's own
+   background and under everything in it. The section becomes its own stacking
+   context so z-index -1 lands exactly there. Colors in the gradients are the
+   seal's: lit top #143257, field #0A213B, shadowed corners #04152A. */
+.velvet{position:relative;isolation:isolate}
+.velvet::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.011' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.62  0 0 0 0 0.92  0 0 0 0.11 0'/%3E%3C/filter%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.75  0 0 0 0 0.85  0 0 0 0 1  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E")}

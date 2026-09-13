@@ -72,7 +72,7 @@ export default function Login() {
   }
 
   return (
-    <section className="relative overflow-hidden text-white min-h-[78vh] grid place-items-center py-20 bg-[radial-gradient(1000px_640px_at_50%_-15%,#12315E_0%,#0A1B33_55%,#060F20_100%)]">
+    <section className="velvet relative overflow-hidden text-white min-h-[78vh] grid place-items-center py-20 bg-[radial-gradient(1000px_640px_at_50%_-15%,#143257_0%,#0A213B_55%,#04152A_100%)]">
       <div className="absolute inset-0 pointer-events-none" aria-hidden>
         <div className="absolute left-1/2 -translate-x-1/2 -bottom-72 w-[760px] h-[760px] rounded-full opacity-[.14] blur-[95px] bg-[radial-gradient(circle,rgba(245,206,90,.9),transparent_60%)]" />
       </div>

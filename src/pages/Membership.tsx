@@ -73,7 +73,7 @@ export default function Membership() {
                 key={t.name}
                 className={
                   t.featured
-                    ? 'relative rounded-[20px] p-8 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2F6BFF)_border-box] shadow-[0_30px_70px_rgba(10,27,51,.18)]'
+                    ? 'relative rounded-[20px] p-8 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2F6BFF)_border-box] shadow-[0_30px_70px_rgba(10,33,59,.18)]'
                     : 'card p-8'
                 }
               >

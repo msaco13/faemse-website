@@ -284,7 +284,7 @@ export default function FloridaNetwork({
     svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${VW} ${VH}`);
     svg.innerHTML =
       '<defs>' +
-      `<radialGradient id="fl-pool" cx="${hubCity.x}" cy="${hubCity.y}" r="500" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1B3E78" stop-opacity=".9"/><stop offset=".55" stop-color="#0E2650" stop-opacity=".5"/><stop offset="1" stop-color="#0A1B33" stop-opacity="0"/></radialGradient>` +
+      `<radialGradient id="fl-pool" cx="${hubCity.x}" cy="${hubCity.y}" r="500" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1B3E78" stop-opacity=".9"/><stop offset=".55" stop-color="#0E2650" stop-opacity=".5"/><stop offset="1" stop-color="#0A213B" stop-opacity="0"/></radialGradient>` +
       '<radialGradient id="fl-halo"><stop offset="0" stop-color="#FFE1A0" stop-opacity=".95"/><stop offset=".3" stop-color="#D9A63A" stop-opacity=".45"/><stop offset="1" stop-color="#D9A63A" stop-opacity="0"/></radialGradient>' +
       '<pattern id="fl-dots" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="#9DB9F0" fill-opacity=".22"/></pattern>' +
       `<linearGradient id="fl-coast" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${GOLD.lt}"/><stop offset=".5" stop-color="${GOLD.mid}"/><stop offset="1" stop-color="${GOLD.dk}"/></linearGradient>` +

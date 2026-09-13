@@ -101,8 +101,8 @@ function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
           />
         </div>
       )}
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,#0A1B33_0%,rgba(10,27,51,.72)_45%,rgba(10,27,51,.35)_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#060F20] to-transparent" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,#0A213B_0%,rgba(10,33,59,.72)_45%,rgba(10,33,59,.35)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#04152A] to-transparent" />
     </div>
   );
 }
@@ -138,7 +138,7 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden text-white bg-[radial-gradient(880px_640px_at_74%_46%,#10305F_0%,#0B2149_36%,#0A1B33_62%,#060F20_100%)] max-lg:bg-[radial-gradient(520px_420px_at_50%_78%,#10305F_0%,#0B2149_40%,#0A1B33_64%,#060F20_100%)]">
+      <section className="velvet relative overflow-hidden text-white bg-[radial-gradient(880px_640px_at_74%_46%,#173A62_0%,#102C4E_36%,#0A213B_62%,#04152A_100%)] max-lg:bg-[radial-gradient(520px_420px_at_50%_78%,#173A62_0%,#102C4E_40%,#0A213B_64%,#04152A_100%)]">
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
           <div className="absolute -left-56 -top-40 w-[640px] h-[640px] rounded-full opacity-[.18] blur-[90px] bg-[radial-gradient(circle,rgba(229,64,74,.85),transparent_62%)] animate-[drift_18s_ease-in-out_infinite_alternate] motion-reduce:animate-none" />
           <div className="absolute -right-52 top-16 w-[640px] h-[640px] rounded-full opacity-30 blur-[90px] bg-[radial-gradient(circle,rgba(47,107,255,.9),transparent_62%)] animate-[drift_24s_ease-in-out_infinite_alternate-reverse] motion-reduce:animate-none" />
@@ -186,7 +186,7 @@ export default function Home() {
 
       {/* On the board — the next three dates, straight from the calendar the
           board edits. */}
-      <section className="bg-[#08142A] border-t border-white/10 text-white" aria-label={boardAria}>
+      <section className="velvet bg-[#071A32] border-t border-white/10 text-white" aria-label={boardAria}>
         <div className="wrap grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] items-stretch">
           <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
@@ -226,7 +226,7 @@ export default function Home() {
           content tables the board edits. Hidden entirely until live data
           exists; it must never fake freshness. */}
       {(latestPost || nextMeeting) && (
-        <section className="bg-[#08142A] border-t border-white/10" aria-label={wireAria}>
+        <section className="velvet bg-[#071A32] border-t border-white/10" aria-label={wireAria}>
           <div className="wrap flex flex-wrap items-center gap-x-8 gap-y-2 py-3.5 text-[14px]">
             <span className="flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.24em] uppercase text-brand-goldsoft">
               <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse" />
@@ -256,7 +256,7 @@ export default function Home() {
       </div>
 
       {/* Sponsor marquee */}
-      <section className="bg-ink2 py-8 overflow-hidden" aria-label={sponsorsAria}>
+      <section className="velvet bg-ink2 py-8 overflow-hidden" aria-label={sponsorsAria}>
         <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-5">
           <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
         </p>
@@ -279,7 +279,7 @@ export default function Home() {
 
       {/* Vitals — hidden until the association confirms the real numbers. */}
       {CONTENT_VERIFIED && (
-      <section className="bg-ink2 text-white py-11 border-t border-white/5" aria-label={vitalsAria}>
+      <section className="velvet bg-ink2 text-white py-11 border-t border-white/5" aria-label={vitalsAria}>
         <div className="wrap">
           <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#5E739C] mb-5 flex items-center gap-2.5">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" />
@@ -425,7 +425,7 @@ export default function Home() {
       </section>
 
       {/* Honors — the Gold Standard band */}
-      <section className="relative overflow-hidden text-white bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)]">
+      <section className="velvet relative overflow-hidden text-white bg-[radial-gradient(1000px_620px_at_50%_-20%,#163659_0%,#0A213B_55%,#04152A_100%)]">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <div className="absolute left-1/2 -translate-x-1/2 -top-52 w-[880px] h-[560px] rounded-full opacity-[.14] blur-[90px] bg-[radial-gradient(circle,rgba(245,206,90,.95),transparent_62%)]" />
         </div>
@@ -515,7 +515,7 @@ export default function Home() {
             {newsState.items.slice(0, 3).map((n, i) => (
               <Reveal key={n.id ?? n.title} delay={i * 110} className="flex">
               <article
-                className="card overflow-hidden flex flex-col transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_80px_rgba(10,27,51,.16)]"
+                className="card overflow-hidden flex flex-col transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_80px_rgba(10,33,59,.16)]"
               >
                 <div className="p-6 flex flex-col flex-1">
                   <p className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-2">
@@ -540,7 +540,7 @@ export default function Home() {
       </section>
 
       {/* Membership CTA */}
-      <section className="relative overflow-hidden text-white py-24 bg-[radial-gradient(900px_600px_at_20%_0%,#12315E_0%,#0A1B33_55%,#060F20_100%)]">
+      <section className="velvet relative overflow-hidden text-white py-24 bg-[radial-gradient(900px_600px_at_20%_0%,#143257_0%,#0A213B_55%,#04152A_100%)]">
         <div className="wrap relative">
           <div className="mb-11">
             <p className="eyebrow !text-brand-bluesoft"><T id="home.tiers.eyebrow">Membership</T></p>
@@ -592,7 +592,7 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="relative overflow-hidden text-white text-center bg-[radial-gradient(900px_600px_at_50%_120%,#12315E_0%,#0A1B33_55%,#060F20_100%)]">
+      <section className="velvet relative overflow-hidden text-white text-center bg-[radial-gradient(900px_600px_at_50%_120%,#143257_0%,#0A213B_55%,#04152A_100%)]">
         <div className="wrap relative py-24 lg:py-28">
           <Seal
             large
