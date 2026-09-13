@@ -20,10 +20,13 @@ export function useMemberStatus(): MemberStatus {
   const [status, setStatus] = useState<MemberStatus>({ ...SIGNED_OUT, checked: false });
   useEffect(() => {
     let on = true;
-    (async () => {
+    // Re-evaluated on every auth change, not just on mount: the site is a
+    // single-page app, so signing in on /login and landing on /members never
+    // reloads the page. Long-lived consumers (the edit-mode provider, the
+    // Board tools bar) would otherwise keep the signed-out answer until the
+    // next full reload.
+    const evaluate = async (uid: string | undefined) => {
       try {
-        const { data } = await supabase.auth.getSession();
-        const uid = data.session?.user.id;
         if (!uid) {
           on && setStatus(SIGNED_OUT);
           return;
@@ -40,9 +43,14 @@ export function useMemberStatus(): MemberStatus {
       } catch {
         on && setStatus(SIGNED_OUT);
       }
-    })();
+    };
+    supabase.auth.getSession().then(({ data }) => evaluate(data.session?.user.id), () => evaluate(undefined));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') evaluate(session?.user.id);
+    });
     return () => {
       on = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
   return status;
