@@ -37,6 +37,10 @@ npm run build    # type-check + production build to dist/
 - `src/lib/text.tsx` — admin-editable wording: the `<T id>` wrapper every
   static string sits in, the provider that loads overrides from `site_text`,
   and the in-page editor. `src/components/EditModeBar.tsx` is the admin toggle.
+- `src/components/HeroCrest.tsx` — the association's seal ghosted behind the
+  homepage hero copy at 8%, turning on its vertical axis like a coin once every
+  20 seconds. Source render: `brand/seal-3d.webp`; the site serves the circular
+  crop `public/seal-crest.webp`. Off on phones and for reduced motion.
 - `src/components/Mark.tsx` — the Pulse Star logo (Star of Life with carved EKG channel).
   Brand assets and design philosophy live in `brand/`.
 - `src/pages/` — one file per route (Home, About, Board, Bylaws, Membership, Events,
