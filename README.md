@@ -53,8 +53,8 @@ npm run build    # type-check + production build to dist/
   and `ink2` tokens in `tailwind.config.js` and the section gradients in the
   pages). Every dark section carries the `velvet` class (`src/index.css`),
   which lays the backdrop's soft mottling over it as a few percent of noise.
-  The FAEMSE wordmark in the header and footer is set in the gold gradient
-  (`.gold-text`), matching the seal's ring.
+  In the FAEMSE wordmark (header and footer) the EMS is set in the gold
+  gradient (`.gold-text`), matching the seal's ring; FA and E stay white.
 - Design philosophy lives in `brand/PHILOSOPHY.md`.
 - `src/pages/` — one file per route (Home, About, Board, Bylaws, Membership, Events,
   News, Resources, Programs, Sponsors, Contact, 404).
