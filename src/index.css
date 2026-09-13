@@ -92,20 +92,12 @@
 .fl-head{filter:drop-shadow(0 0 3px #FFE9A3)}
 /* A city dot is a button; the ring is its hover/focus/open state, so the
    browser's focus outline is not needed on top of it. */
-.fl-city,.fl-school{cursor:pointer;transition:opacity .45s ease}
-.fl-city:focus,.fl-school:focus{outline:none}
+.fl-city{cursor:pointer;transition:opacity .45s ease}
+.fl-city:focus{outline:none}
 .fl-ring{fill:none;stroke:#FFF3D0;stroke-width:1.2;vector-effect:non-scaling-stroke;opacity:0;transition:opacity .25s}
-.is-active .fl-ring,.fl-city:hover .fl-ring,.fl-school:hover .fl-ring,.fl-city:focus-visible .fl-ring,.fl-school:focus-visible .fl-ring{opacity:.95}
+.is-active .fl-ring,.fl-city:hover .fl-ring,.fl-city:focus-visible .fl-ring{opacity:.95}
 .is-active .fl-core{fill:#fff}
-/* Zoom: the frame is a window while zoomed in (clipped, edges feathered into
-   the page), a grab handle while dragging, and gets a thin ring once it has
-   been clicked and the wheel belongs to it. */
 .fl-stage{user-select:none;-webkit-user-select:none}
-.fl-stage.zoomed{cursor:grab;touch-action:none}
-.fl-stage.dragging{cursor:grabbing}
-.fl-stage.dragging .fl-city,.fl-stage.dragging .fl-school{cursor:grabbing}
-.fl-stage.zoomed .fl-host{overflow:hidden;border-radius:28px;-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 50%,#000 58%,transparent 100%)}
-.fl-stage.engaged::after{content:"";position:absolute;inset:-6px;border-radius:32px;border:1px solid rgba(241,204,112,.35);pointer-events:none}
 .fl-count{font:700 8.5px "Barlow Condensed",sans-serif;fill:#04152A;text-anchor:middle;pointer-events:none}
 /* Labels: sizes live here so a mode class can override them, and the hovered
    label grows in place (its anchor and position never change). */
@@ -114,9 +106,6 @@
 .fl-lbl.quiet{opacity:0}
 .fl-lbl.on{font-size:17px;fill:#FFE9A3;opacity:1}
 .fl-lbl.dense.on{font-size:15.5px}
-/* School labels only appear zoomed in, where they are scaled up with the map. */
-.fl-lbl.school{font-size:11px;letter-spacing:.06em;fill:#F3E4BC;text-transform:none;stroke-width:3.5px}
-.fl-lbl.school.on{font-size:14px;fill:#fff}
 /* The program card fades and lifts in; it is only in the DOM while open. */
 .fl-pop{animation:fl-pop .18s ease}
 @keyframes fl-core{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.25)}}
@@ -125,13 +114,14 @@
 @keyframes fl-pop{from{opacity:0;transform:translateY(6px) scale(.98)}}
 @media (prefers-reduced-motion:reduce){.fl-halo,.fl-core{animation:none}}
 
-/* Hero crest (src/components/HeroCrest.tsx): the seal ghosted behind the hero
-   spinning on its vertical axis like a coin. Centered on the hero grid (its
-   containing block in Home.tsx), so it sits midway between the page margins
-   and vertically midway through the hero; `translate` rather than `transform`
-   so the coin's own 3D transform underneath is left alone. Plain rules, not @layer, so the opacity here is the one that wins;
-   z-index -1 keeps it under the copy's button shadows inside the hero grid's
-   own stacking context (isolate). */
+/* Hero crest (src/components/HeroCrest.tsx): the seal ghosted at the center of
+   the hero, spinning on its vertical axis like a coin. Centered on the hero
+   grid (its containing block in Home.tsx), so it sits midway between the page
+   margins and vertically midway through the hero; `translate` rather than
+   `transform` so the coin's own 3D transform underneath is left alone. Plain
+   rules, not @layer, so the opacity here is the one that wins; z-index -1
+   keeps it under the copy's button shadows inside the hero grid's own
+   stacking context (isolate). */
 .hero-crest{position:absolute;left:50%;top:50%;translate:-50% -50%;width:560px;height:560px;z-index:-1;pointer-events:none;opacity:.08;mix-blend-mode:screen;filter:saturate(1.05) brightness(1.15);perspective:1300px;transition:opacity .7s ease}
 .hero-crest.is-faded{opacity:0}
 .hero-crest-coin{position:absolute;inset:0;transform-style:preserve-3d;animation:hero-crest-spin 20s linear infinite}
