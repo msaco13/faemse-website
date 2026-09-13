@@ -17,16 +17,23 @@ npm run build    # type-check + production build to dist/
   resources, sponsors, events, news, FAQ, contact info). Verified against the live
   faemse.org in Aug 2026; items marked SAMPLE need real association data.
 - `src/content/programs.ts` — the 59 Florida EMT and paramedic programs, one
-  row per school with its campus city, coordinates, and homepage. Feeds the
-  map and the Programs page (`src/pages/Programs.tsx`); edit it to add or
+  row per school with its campus city, coordinates, and homepage. Schools that
+  share a city also carry `campus` (where the campus actually is, for the
+  zoomed-in map) and, where the full name is long, a `short` map label. Feeds
+  the map and the Programs page (`src/pages/Programs.tsx`); edit it to add or
   correct a school.
 - `src/components/FloridaNetwork.tsx` — the Florida map on the homepage hero
   and the Programs page: a solid navy state with a gold coastline and one
   pulsing dot per city with an EMS program. Hover or tap a city to open its
   programs with links. The comet links are a minimum spanning tree lit
   outward from Orlando until the state is joined (geometry in
-  `src/lib/florida.ts`). Steps aside when a spotlight brings a photo or clip;
-  still for reduced motion.
+  `src/lib/florida.ts`). The map zooms: click it (or a numbered city, or a
+  region button under it) and the wheel zooms toward the cursor up to 5×,
+  drag pans, pinch works on a phone; names grow as you go in and a city with
+  several schools folds open into one dot per campus. Until the map is
+  clicked the wheel scrolls the page as usual. Esc zooms out and releases it.
+  Steps aside when a spotlight brings a photo or clip; still for reduced
+  motion.
 - `src/lib/text.tsx` — admin-editable wording: the `<T id>` wrapper every
   static string sits in, the provider that loads overrides from `site_text`,
   and the in-page editor. `src/components/EditModeBar.tsx` is the admin toggle.
