@@ -4,8 +4,9 @@ name: Deploy to GitHub Pages
 #   1. Settings -> General -> Danger Zone -> Change visibility -> Public
 #      (or stay private on a plan with private-repo Pages)
 #   2. Settings -> Pages -> Source: "GitHub Actions"
-# After that, every push to main deploys to
-# https://msaco13.github.io/faemse-website/ automatically.
+# After that, every push to main deploys to https://faemse.org/ (custom
+# domain set under Settings -> Pages; DNS at GoDaddy points the apex at
+# GitHub Pages and www at msaco13.github.io).
 on:
   push:
     branches: [main]
@@ -30,11 +31,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      # Built at base "/": the site lives at the root of faemse.org. (Before
+      # the custom domain it needed BASE_PATH=/faemse-website/ for the
+      # msaco13.github.io project path, which now redirects here.)
       - run: npm run build
-        env:
-          # GitHub Pages serves project sites from /<repo>/. Drop this env
-          # (build with default base "/") when moving to a custom domain.
-          BASE_PATH: /faemse-website/
       - name: SPA fallback
         run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
