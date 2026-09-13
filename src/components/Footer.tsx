@@ -5,15 +5,15 @@ import { T } from '../lib/text';
 
 export default function Footer() {
   return (
-    <footer className="bg-ink2 text-[#93A6C9] text-[14.5px] pb-8">
+    <footer className="velvet bg-ink2 text-[#93A6C9] text-[14.5px] pb-8">
       <div className="gold-braid opacity-70" aria-hidden />
       <div className="wrap pt-16">
         <div className="grid gap-9 pb-11 border-b border-white/10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.4fr]">
           <div>
             <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
               <Seal className="w-10 h-10" />
-              <span className="font-disp font-bold text-[26px] text-white tracking-wide">
-                FA<b className="text-brand-bluesoft">EMS</b>E
+              <span className="font-disp font-bold text-[26px] gold-text tracking-wide">
+                FAEMSE
               </span>
             </Link>
             <p className="mt-4 max-w-[300px] text-[#7C90B6]">

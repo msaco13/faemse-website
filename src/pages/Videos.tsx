@@ -141,7 +141,7 @@ export default function Videos() {
                           />
                         </div>
                       ) : (
-                        <div className="aspect-video grid place-items-center bg-[radial-gradient(400px_240px_at_50%_0%,#12315E_0%,#0A1B33_70%)] text-white">
+                        <div className="aspect-video grid place-items-center bg-[radial-gradient(400px_240px_at_50%_0%,#143257_0%,#0A213B_70%)] text-white">
                           {memberView && v.videoUrl ? (
                             <a href={v.videoUrl} target="_blank" rel="noreferrer" className="btn-glass !py-2.5 !px-5">
                               <T id="videos.item.watch">Watch ↗</T>

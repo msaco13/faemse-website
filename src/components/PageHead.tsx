@@ -43,7 +43,7 @@ export default function PageHead({
   }, [liveTitle, liveSub]);
 
   return (
-    <section className="bg-ink text-white relative overflow-hidden">
+    <section className="velvet bg-ink text-white relative overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none opacity-70"
         style={{

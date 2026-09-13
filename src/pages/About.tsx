@@ -14,7 +14,7 @@ export default function About() {
         sub="A member-based association organized to provide resources to individuals and organizations that foster excellence in EMS education and training."
       />
       {/* Heritage — verified dates from the association's bylaws */}
-      <section className="bg-ink2 text-white py-14 border-t border-white/5">
+      <section className="velvet bg-ink2 text-white py-14 border-t border-white/5">
         <div className="wrap lg:grid lg:grid-cols-[240px_1fr] lg:gap-14 items-center">
           <Seal
             large

@@ -78,7 +78,7 @@ export default function QandA() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={placeholder}
-                className="w-full rounded-2xl border border-line bg-white px-5 py-4 text-[15px] outline-none focus:border-brand-blue shadow-[0_8px_30px_rgba(10,27,51,.06)]"
+                className="w-full rounded-2xl border border-line bg-white px-5 py-4 text-[15px] outline-none focus:border-brand-blue shadow-[0_8px_30px_rgba(10,33,59,.06)]"
               />
             </label>
             <div className="flex flex-wrap gap-2 mt-4">
@@ -115,7 +115,7 @@ export default function QandA() {
             <div className="space-y-4">
               {shown.map((item) =>
                 memberView ? (
-                  <details key={item.id ?? item.question} className="card group open:shadow-[0_18px_50px_rgba(10,27,51,.1)]">
+                  <details key={item.id ?? item.question} className="card group open:shadow-[0_18px_50px_rgba(10,33,59,.1)]">
                     <summary className="cursor-pointer list-none px-7 py-5 flex items-start justify-between gap-4">
                       <span>
                         <span className="block text-[12px] font-bold tracking-[0.09em] uppercase text-muted mb-1">

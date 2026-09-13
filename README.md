@@ -48,6 +48,13 @@ npm run build    # type-check + production build to dist/
 - `src/components/HeroCrest.tsx` — the seal ghosted behind the homepage hero
   copy at 8%, turning on its vertical axis like a coin once every 20 seconds.
   Off on phones and for reduced motion.
+- Palette: the site's navies are sampled from the seal render's own backdrop
+  (lit top `#143257`, field `#0A213B`, shadowed corners `#04152A`; the `ink`
+  and `ink2` tokens in `tailwind.config.js` and the section gradients in the
+  pages). Every dark section carries the `velvet` class (`src/index.css`),
+  which lays the backdrop's soft mottling over it as a few percent of noise.
+  The FAEMSE wordmark in the header and footer is set in the gold gradient
+  (`.gold-text`), matching the seal's ring.
 - Design philosophy lives in `brand/PHILOSOPHY.md`.
 - `src/pages/` — one file per route (Home, About, Board, Bylaws, Membership, Events,
   News, Resources, Programs, Sponsors, Contact, 404).
