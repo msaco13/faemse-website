@@ -12,8 +12,8 @@ export default function Footer() {
           <div>
             <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
               <Seal className="w-10 h-10" />
-              <span className="font-disp font-bold text-[26px] gold-text tracking-wide">
-                FAEMSE
+              <span className="font-disp font-bold text-[26px] text-white tracking-wide">
+                FA<b className="gold-text">EMS</b>E
               </span>
             </Link>
             <p className="mt-4 max-w-[300px] text-[#7C90B6]">
