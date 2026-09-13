@@ -544,9 +544,9 @@ export default function Home() {
           <div className="mb-11">
             <p className="eyebrow !text-brand-bluesoft"><T id="home.tiers.eyebrow">Membership</T></p>
             <h2 className="h-sec text-white">
-              <T id="home.tiers.h2a">The best $50 your</T>
+              <T id="home.tiers.h2a">The best $50 an</T>
               <br />
-              <T id="home.tiers.h2b">program spends this year</T>
+              <T id="home.tiers.h2b">educator spends this year</T>
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">

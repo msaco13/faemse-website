@@ -114,8 +114,19 @@ association's Supabase organization.
   setup instructions instead of failing).
 - `reminder_log` — service-role-only record of which renewal reminder
   (90/60/30 days) went to whom, so the daily job never double-sends.
+- `documents` — text documents members can read in the portal; today the
+  full bylaws (slug `bylaws`, plain text, one line per paragraph, rendered
+  with the document's own numbering as headings). Current members read,
+  admins manage, the public gets nothing (RLS). The public Bylaws page shows
+  an article-by-article outline instead. Schema and the bylaws text:
+  `supabase/migrations/20260913_bylaws_documents.sql` (paste once into the
+  dashboard SQL Editor; re-running refreshes the text).
 - Membership gate: `is_current_member()` — true for admins and for profiles
-  whose `expires_at` is today or later. One flag; tier stays a billing label.
+  whose `expires_at` plus a 90-day grace window is today or later (bylaws
+  2.05 allows revocation only once dues are 90 days past due; the same
+  migration installs the window). The portal shows "Renewal due" during the
+  grace window and "lapsed" after it. One flag; tier stays a billing label.
+  Membership runs twelve months from the last payment (board decision).
 - Schema for all of the above:
   `supabase/migrations/20260901_brief_features.sql` (already applied to the
   live project on 2026-09-01), then

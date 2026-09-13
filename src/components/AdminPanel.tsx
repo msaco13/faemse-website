@@ -48,7 +48,6 @@ function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }
           <option value="active">Active</option>
           <option value="institutional">Institutional</option>
           <option value="corporate">Corporate</option>
-          <option value="participant">Participant</option>
           <option value="honorary">Honorary</option>
         </select>
       </label>

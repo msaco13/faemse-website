@@ -5,101 +5,120 @@
 // sample sections are hidden or visibly labeled as previews on the public site.
 export const CONTENT_VERIFIED = false;
 
-// Role descriptions carried over verbatim from the previous faemse.org board
-// page (Sept 2026). Headshots and personal bios still to come from the board.
-export const board = [
+// Composition per bylaws 5.02: President, President-Elect, Immediate Past
+// President, Secretary, and three Members-at-Large (seven voting seats). The
+// EMS Educator representative to the state EMS Advisory Council sits ex
+// officio without a vote (5.02.01). The Executive Director is appointed staff
+// (9.05), not a director. Names confirmed current by the board, Sept 2026.
+// Headshots and personal bios still to come from the board.
+export type BoardMember = {
+  role: string;
+  name: string;
+  blurb: string;
+  kind: 'officer' | 'director' | 'staff';
+};
+
+const atLarge = 'One of three directors elected by the Active membership to represent it on the board.';
+
+export const board: BoardMember[] = [
   {
+    kind: 'officer',
     role: 'President',
     name: 'Jorge Anzardo',
-    blurb: 'Leads the association and presides over board meetings and general membership activities.',
+    blurb:
+      'Chief executive officer of the association. Presides at board and membership meetings, conducts its routine business with the Executive Director, and sits ex officio on every committee.',
   },
   {
+    kind: 'officer',
     role: 'President-Elect',
     name: 'Bryan Spangler',
-    blurb: 'Supports the President and prepares to assume the presidency at the end of the current term.',
+    blurb:
+      'Acts for the President whenever the President is absent, and succeeds to the presidency at the end of the term.',
   },
   {
+    kind: 'officer',
     role: 'Secretary',
     name: 'Rochelle Goldberg',
-    blurb: 'Maintains official records, meeting minutes, and correspondence of the association.',
+    blurb:
+      'Custodian of the association\'s records and minutes. Reviews membership applications, sends the notices the bylaws require, and oversees elections.',
   },
   {
-    role: 'Past President',
+    kind: 'director',
+    role: 'Immediate Past President',
     name: 'Melissa McNally',
-    blurb: 'Assists in the leadership of the association and assumes presidential duties when needed.',
+    blurb:
+      'Advisor to the board and chair of the Nominating Committee. Also the EMS Educator representative to the Florida EMS Advisory Council, an ex officio, non-voting seat under the bylaws.',
   },
+  { kind: 'director', role: 'Member-at-Large', name: 'Matt Keeler', blurb: atLarge },
+  { kind: 'director', role: 'Member-at-Large', name: 'Garth Richards', blurb: atLarge },
+  { kind: 'director', role: 'Member-at-Large', name: 'Carlos Tavarez', blurb: atLarge },
   {
+    kind: 'staff',
     role: 'Executive Director',
     name: 'James Dinsch',
-    blurb: 'Manages the day-to-day operations of the association and supports the Board of Directors.',
-  },
-  {
-    role: 'Director at Large',
-    name: 'Matt Keeler',
-    blurb: 'Represents the general membership and participates in board decisions and initiatives.',
-  },
-  {
-    role: 'Director at Large',
-    name: 'Garth Richards',
-    blurb: 'Represents the general membership and participates in board decisions and initiatives.',
-  },
-  {
-    role: 'Director at Large',
-    name: 'Carlos Tavarez',
-    blurb: 'Represents the general membership and participates in board decisions and initiatives.',
-  },
-  {
-    role: 'EMS Educator Rep, FL EMS Advisory Council',
-    name: 'Melissa McNally',
-    blurb: 'Provides expert guidance on EMS education matters and advises the board on curriculum and training standards.',
+    blurb:
+      'Appointed by the board as chief operating officer. Runs day-to-day operations: finances, records, dues, and this website. Attends board meetings; not a voting director.',
   },
 ];
 
+// Four classes of membership under bylaws 2.02. Dues are set by the board
+// (4.01); these amounts were confirmed by the board in Sept 2026. Honorary
+// carries no dues and is described separately below.
 export const tiers = [
   {
     name: 'Active',
-    who: 'Individual EMS educators & training officers',
+    who: 'Individuals who plan, supervise, teach, or practice out-of-hospital care',
     price: '$50',
     per: '/ year',
     featured: true,
     perks: [
-      'Vote in elections & hold office',
-      'Q&A archive, teaching videos & library',
-      'Member pricing on workshops',
-      'Educator of the Year eligibility',
+      'Vote in elections and hold office',
+      'Serve on and chair committees',
+      'Nominate and vote for EMS Educator of the Year',
+      'Q&A archive, teaching videos, and the member library',
     ],
   },
   {
     name: 'Institutional',
-    who: 'Colleges, academies & EMS programs',
+    who: 'Organizations that plan, supervise, teach, or practice out-of-hospital care: colleges, academies, EMS programs',
     price: '$250',
     per: '/ year',
     featured: false,
     perks: [
-      'Five Active seats included',
-      'Full privileges for every seat',
-      'Program listing in the directory',
-      'Best value per educator',
+      'Up to five named representatives',
+      'Each qualifying representative holds full Active privileges',
+      'Vote, hold office, and serve on committees',
+      'Archive, videos, and library for every representative',
     ],
   },
   {
     name: 'Corporate',
-    who: 'Vendors, publishers & partner organizations',
+    who: 'Companies, associations, and government agencies with an interest in EMS',
     price: '$200',
     per: '/ year',
     featured: false,
     perks: [
-      'Three named representatives',
-      'Archive, video & library access',
-      'Committee service (non-voting)',
-      'Direct line to Florida educators',
+      'Up to three named representatives',
+      'Serve on committees (non-voting)',
+      'Recognized as a corporate sponsor on this site',
+      'Archive, videos, and library access',
     ],
   },
 ];
 
-export const freeTiers = [
-  { name: 'Participant — Free', who: 'Resource access for state & regulatory agency staff' },
-  { name: 'Honorary — Lifetime', who: 'By board appointment, for distinguished service to EMS education' },
+// Bylaws 2.02.02. Not a tier anyone applies for.
+export const honorary = {
+  name: 'Honorary',
+  who: 'Elected by the Board of Directors for outstanding dedication to EMS and the association; members may nominate. A lifetime title with no dues. Honorary members do not vote, hold office, or chair committees.',
+};
+
+// Membership terms the site states in plain words. Sources: board decision
+// (12-month term), bylaws 4.01 (dues notice) and 2.05 (90-day revocation).
+export const membershipTerms = [
+  'Membership runs twelve months from your last dues payment.',
+  'Dues are set by the Board of Directors. Any change is announced to members 30 days before it takes effect.',
+  'If dues go unpaid, you keep member access for 90 days after your term ends. After that the bylaws allow the membership to be revoked.',
+  'Applications are reviewed by the Secretary under the bylaws. An applicant who is denied may appeal to the Board of Directors.',
 ];
 
 export const resourceCategories = [
@@ -141,25 +160,27 @@ export const resourceCategories = [
   },
 ];
 
-// Logos carried over from the previous faemse.org sponsors page (Sept 2026),
-// resized for the web into public/sponsors/. Sponsor website links still to
-// come from the board.
-export const sponsors = [
+// Corporate sponsors are the association's Corporate members (bylaws
+// 2.02.03). List confirmed by the board, Sept 2026. `logo` names a file in
+// public/sponsors/ (webp), or null until the company supplies one; the site
+// then shows the name in its place.
+export const sponsors: { name: string; logo: string | null }[] = [
+  { name: '3B Scientific', logo: null },
+  { name: 'American Medical Academy', logo: 'ama' },
+  { name: 'Braxton College', logo: null },
+  { name: 'Coral Springs Regional Institute of Public Safety', logo: 'csrips' },
+  { name: 'Dinsch Consulting Group', logo: null },
+  { name: 'Emergency Education Institute', logo: 'eei' },
+  { name: 'Emergency Educational Training Institute, Inc.', logo: 'eeti' },
+  { name: 'EMETSEEI Institute, Inc.', logo: 'emetseei' },
+  { name: 'First Response Training Group', logo: null },
   { name: 'Henry Schein', logo: 'henry-schein' },
-  { name: 'iSimulate', logo: 'isimulate' },
-  { name: 'CAE Healthcare', logo: 'cae-healthcare' },
-  { name: 'Platinum Ed', logo: 'platinum-ed' },
-  { name: 'AMA', logo: 'ama' },
-  { name: 'SEMA', logo: 'sema' },
-  { name: 'EEI', logo: 'eei' },
-  { name: 'EETI', logo: 'eeti' },
-  { name: 'CFEEC', logo: 'cfeec' },
-  { name: 'CMES', logo: 'cmes' },
-  { name: 'CSRIPS', logo: 'csrips' },
-  { name: 'MCA', logo: 'mca' },
-  { name: 'JBLPSG', logo: 'jblpsg' },
-  { name: 'The Rescco', logo: 'the-rescco' },
-  { name: 'EMETSEEI', logo: 'emetseei' },
+  { name: 'Limmer Education', logo: null },
+  { name: 'Medical Career Academy', logo: 'mca' },
+  { name: 'Platinum Education Group', logo: 'platinum-ed' },
+  { name: 'Public Safety Group', logo: 'jblpsg' },
+  { name: 'Southeastern Medical Academy', logo: 'sema' },
+  { name: 'The Rescue Company 1', logo: 'the-rescco' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -401,29 +422,118 @@ export const fallbackSpotlights = [
 export const faq = [
   {
     q: 'Who can become a member?',
-    a: 'Anyone involved in EMS education in Florida — instructors, program directors, training officers, agency educators, and the institutions and companies that support them. There is a classification for every role.',
+    a: 'Anyone involved or interested in the education and training of EMS and out-of-hospital personnel: instructors, program directors, training officers, preceptors, agency educators, and the institutions and companies that support them. Applicants are considered without regard to race, age, gender, creed, or color.',
   },
   {
     q: 'What does membership cost?',
-    a: 'Individual (Active) membership is $50/year. Institutions join for $250/year with five Active seats included, and corporate partners for $200/year with three representatives. Participant access is free for regulatory agency staff.',
+    a: 'Active (individual) membership is $50 a year. Institutional membership is $250 a year and covers up to five representatives with Active privileges. Corporate membership is $200 a year with up to three representatives. Honorary membership is by board election and carries no dues. Dues are set by the board, and any change is announced to members 30 days before it takes effect.',
+  },
+  {
+    q: 'How long does membership last?',
+    a: 'Twelve months from your last dues payment. If dues go unpaid, you keep member access for 90 days after your term ends; after that the bylaws allow the membership to be revoked.',
+  },
+  {
+    q: 'How are applications handled?',
+    a: 'The Secretary or a designee reviews each application under the bylaws. Approved members are invoiced for dues and set up with a portal account. An applicant who is denied may appeal to the Board of Directors.',
   },
   {
     q: 'When and where does the association meet?',
-    a: 'Statewide membership meetings held around Florida alongside the major state EMS conferences, with virtual options — plus workshops, webinars, and the annual student competition. Dates post to the calendar as the board confirms them.',
+    a: 'Regular membership meetings are held through the year, usually alongside Florida\'s statewide EMS conferences, and the annual meeting is held mid-year. Dates and locations post to the calendar as the board confirms them.',
   },
   {
     q: 'How do I get involved beyond attending?',
-    a: 'Run for the board (elections on a two-year cycle), serve on a committee, record a short teaching video, contribute to the program director guide, judge a student competition, or present at a workshop.',
+    a: 'Active members in good standing may run for the board. Members-at-Large are elected by ballot in odd-numbered years; the President-Elect and Secretary in even-numbered years, and the President-Elect succeeds to the presidency. You can also serve on a committee, record a short teaching video, contribute to the program director guide, judge a student competition, or present at a workshop.',
   },
 ];
 
-export const bylawsSummary = [
-  { article: 'Article I', title: 'Name & Purpose', text: 'The Florida Association of Emergency Medical Services Educators, Inc. — fostering excellence in EMS education and training across Florida.' },
-  { article: 'Article II', title: 'Membership', text: 'Five classifications: Active, Institutional, Corporate, Participant, and Honorary, each with defined rights and privileges.' },
-  { article: 'Article III', title: 'Board of Directors', text: 'Officers and directors elected by the Active membership on a two-year cycle; the board guides association business between membership meetings.' },
-  { article: 'Article IV', title: 'Meetings', text: 'Quarterly membership meetings held around the state and virtually; special meetings as called by the board.' },
-  { article: 'Article V', title: 'Committees', text: 'Standing and ad-hoc committees appointed to carry out the work of the association.' },
-  { article: 'Article VI', title: 'Amendments', text: 'Bylaws amended by vote of the Active membership.' },
+// The public outline of the bylaws, one entry per article of the current
+// revision (September 10, 2021). The full text is members-only, in the portal.
+export const bylawsOutline = [
+  {
+    article: 'Article 1',
+    title: 'Introduction and name',
+    text: 'The Florida Association of Emergency Medical Services Educators, a Florida not-for-profit 501(c)(6) corporation. Mission: to provide resources to individuals and organizations that will foster excellence in EMS education and training. Vision: to be the foremost resource within Florida\'s EMS educational community.',
+  },
+  {
+    article: 'Article 2',
+    title: 'Membership',
+    text: 'Open to anyone involved or interested in EMS and out-of-hospital education, without regard to race, age, gender, creed, or color. Four classes: Active, Honorary, Corporate, and Institutional. Applications are reviewed by the Secretary; a denial may be appealed to the board. Membership may be revoked once dues are 90 days past due.',
+  },
+  {
+    article: 'Article 3',
+    title: 'Meetings',
+    text: 'Regular meetings are usually held in conjunction with the Florida EMS Advisory Council and constituency group meetings. The annual meeting is held mid-year.',
+  },
+  {
+    article: 'Article 4',
+    title: 'Dues',
+    text: 'Set by the Board of Directors from the annual operating budget. Any change is communicated to the membership 30 days before it takes effect.',
+  },
+  {
+    article: 'Article 5',
+    title: 'Board of Directors',
+    text: 'Seven voting seats: President, President-Elect, Immediate Past President, Secretary, and three Members-at-Large. The EMS Educator representative to the state EMS Advisory Council sits ex officio without a vote. Directors must be Active members in good standing, serve two-year terms, and are elected by ballot in odd-numbered years. Half the board is a quorum; meetings follow Robert\'s Rules of Order.',
+  },
+  {
+    article: 'Article 6',
+    title: 'Officers',
+    text: 'President, President-Elect, and Secretary, elected by the membership in even-numbered years for two-year terms; the President-Elect succeeds to the presidency. The Secretary may serve two consecutive terms. No director or committee member is paid for serving.',
+  },
+  {
+    article: 'Article 7',
+    title: 'Committees',
+    text: 'Three standing committees, Primary Education, Continuing Education, and Preceptor / Training Officer, plus ad hoc committees. Chairs are Active members in good standing appointed by the President for two-year terms, and together form the President\'s Council.',
+  },
+  {
+    article: 'Article 8',
+    title: 'Liaisons and representatives',
+    text: 'The President appoints liaisons to organizations with similar goals. Outside organizations may send non-voting representatives to board meetings.',
+  },
+  {
+    article: 'Article 9',
+    title: 'Operations',
+    text: 'The Executive Director, appointed by the board as chief operating officer, runs day-to-day operations: finances, records, dues, and the website. The fiscal year is January 1 to December 31.',
+  },
+  {
+    article: 'Article 10',
+    title: 'Amendments',
+    text: 'Proposed amendments are submitted in writing and posted for review for 30 days before a vote. Adoption requires a two-thirds majority of the Active members voting.',
+  },
+  {
+    article: 'Article 11',
+    title: 'Prohibition of dividends',
+    text: 'No part of the association\'s net earnings may benefit any member, officer, or private person.',
+  },
+  {
+    article: 'Article 12',
+    title: 'Finances',
+    text: 'The board sets a budget for each fiscal year and operates under generally accepted accounting principles.',
+  },
+  {
+    article: 'Article 13',
+    title: 'Notice and waiver of notice',
+    text: 'Notice may be given by mail, telephone, email, or other written or electronic means, and may be waived in writing.',
+  },
+  {
+    article: 'Article 14',
+    title: 'Indemnification and liability',
+    text: 'The association indemnifies its directors, officers, and agents to the fullest extent of Florida law. Members are not liable for the association\'s debts.',
+  },
+  {
+    article: 'Article 15',
+    title: 'Termination',
+    text: 'The association may be dissolved by a three-fourths vote of the board. Remaining assets go to organizations exempt under Section 501(c)(3).',
+  },
+];
+
+export const bylawsHistory = [
+  { date: 'November 29, 1997', event: 'Initially prepared' },
+  { date: 'May 23, 1998', event: 'Adopted' },
+  { date: 'January 23, 2008', event: 'Revised' },
+  { date: 'June 29, 2009', event: 'Revised' },
+  { date: 'April 2010', event: 'Revised' },
+  { date: 'January 23, 2019', event: 'Revised' },
+  { date: 'September 10, 2021', event: 'Revised. Current edition.' },
 ];
 
 // DRAFT welcome message — for President Anzardo to approve or rewrite in his own words.

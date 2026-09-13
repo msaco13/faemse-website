@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import PageHead from '../components/PageHead';
-import { faq, freeTiers, tiers } from '../content/data';
+import { faq, honorary, membershipTerms, tiers } from '../content/data';
 import { supabase } from '../lib/supabase';
 import { slug, T, useText } from '../lib/text';
 
@@ -63,7 +63,7 @@ export default function Membership() {
         id="membership"
         eyebrow="Membership"
         title="Join FAEMSE"
-        sub="Five classifications, one community. Dues fund the workshops, the knowledge archive, and the advocacy that every Florida EMS program benefits from."
+        sub="Four classes of membership, one community. Dues fund the workshops, the knowledge archive, and the advocacy that every Florida EMS program benefits from."
       />
       <section className="py-20 bg-paper">
         <div className="wrap">
@@ -107,23 +107,36 @@ export default function Membership() {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mt-6">
-            {freeTiers.map((t) => (
-              <div key={t.name} className="flex justify-between items-center gap-4 border border-dashed border-line rounded-2xl p-6 bg-white">
-                <div>
-                  <b className="font-disp uppercase text-lg block">
-                    <T id={`membership.free.${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.name`}>{t.name}</T>
-                  </b>
-                  <span className="text-[13.5px] text-muted">
-                    <T id={`membership.free.${t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.who`}>{t.who}</T>
-                  </span>
-                </div>
-                <a href="mailto:info@faemse.org" className="font-bold text-brand-blue whitespace-nowrap hover:underline">
-                  <T id="membership.free.cta">Inquire →</T>
-                </a>
-              </div>
-            ))}
+          <div className="grid md:grid-cols-[1fr_1.4fr] gap-6 mt-6">
+            <div className="border border-dashed border-line rounded-2xl p-6 bg-white">
+              <b className="font-disp uppercase text-lg block">
+                <T id="membership.honorary.name">{honorary.name}</T>
+              </b>
+              <p className="text-[13.5px] text-muted mt-1.5">
+                <T id="membership.honorary.who">{honorary.who}</T>
+              </p>
+            </div>
+            <div className="card p-6">
+              <b className="font-disp uppercase text-lg block mb-2.5">
+                <T id="membership.terms.h3">Membership terms</T>
+              </b>
+              <ul className="space-y-2 text-[14px] text-muted">
+                {membershipTerms.map((t) => (
+                  <li key={t} className="flex gap-2.5">
+                    <span className="text-brand-gold flex-none">◆</span>
+                    <T id={`membership.terms.${slug(t)}`}>{t}</T>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+          <p className="text-muted text-[14px] mt-6 max-w-[80ch]">
+            <T id="membership.eligibility">
+              Membership is open to anyone involved or interested in the education and training of
+              EMS and out-of-hospital personnel. Applicants are considered without regard to race,
+              age, gender, creed, or color.
+            </T>
+          </p>
         </div>
       </section>
 
@@ -138,8 +151,9 @@ export default function Membership() {
           </h2>
           <p className="text-muted text-[16px] max-w-[62ch] mb-8">
             <T id="membership.apply.text">
-              Submit your application and the board follows up with dues payment and your portal
-              account. No payment is collected on this form.
+              Submit your application. The Secretary reviews it under the bylaws; once it is
+              approved, the board follows up with dues payment and your portal account. No payment
+              is collected on this form.
             </T>
           </p>
 
@@ -244,7 +258,8 @@ export default function Membership() {
             {status === 'sent' && (
               <p className="mt-4 text-[#0E7A4A] font-semibold" role="status">
                 <T id="membership.form.sent">
-                  Application received — the board will follow up at the email you provided with dues
+                  Application received. The Secretary reviews applications under the bylaws; once
+                  yours is approved, the board will follow up at the email you provided with dues
                   and account details.
                 </T>
               </p>

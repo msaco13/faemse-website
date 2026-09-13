@@ -45,11 +45,25 @@ export type ContactMessage = {
   handled: boolean;
 };
 
-export function membershipState(p: Profile | null): 'current' | 'lapsed' | 'pending' {
+// Bylaws 2.05: a membership may be revoked only once dues are 90 days past
+// due, so access continues for 90 days after the paid-through date ("grace").
+// The database gate (is_current_member) applies the same window.
+export const GRACE_DAYS = 90;
+
+export type MembershipState = 'current' | 'grace' | 'lapsed' | 'pending';
+
+export function graceEnd(iso: string): Date {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  d.setDate(d.getDate() + GRACE_DAYS);
+  return d;
+}
+
+export function membershipState(p: Profile | null): MembershipState {
   if (!p?.expires_at) return 'pending';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return new Date(`${p.expires_at}T00:00:00`) >= today ? 'current' : 'lapsed';
+  if (new Date(`${p.expires_at}T00:00:00`) >= today) return 'current';
+  return graceEnd(p.expires_at) >= today ? 'grace' : 'lapsed';
 }
 
 export function formatDate(iso: string): string {
