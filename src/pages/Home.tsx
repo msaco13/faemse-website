@@ -148,7 +148,7 @@ export default function Home() {
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} />
-        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-28">
+        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20">
           <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 
           {/* Florida: the network coming together. Steps aside when a
@@ -166,7 +166,7 @@ export default function Home() {
             className={`transition-opacity duration-700 ${mapFaded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
             <FloridaNetwork
-              className="w-full max-w-[600px] aspect-[700/683] justify-self-center mx-auto -translate-y-3.5 max-lg:max-w-[380px] max-lg:mt-9"
+              className="w-full max-w-[600px] justify-self-center mx-auto -translate-y-3.5 max-lg:max-w-[380px] max-lg:mt-9"
               chipTo="/programs"
             />
           </div>
