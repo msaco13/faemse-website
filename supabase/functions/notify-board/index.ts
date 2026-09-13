@@ -22,7 +22,7 @@
 
 const DEFAULT_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
 const FROM = 'FAEMSE website <notifications@faemse.org>';
-const PORTAL = 'https://msaco13.github.io/faemse-website/members';
+const PORTAL = 'https://faemse.org/members';
 
 type Payload = {
   type: 'INSERT' | 'UPDATE' | 'DELETE';

@@ -200,7 +200,7 @@ Two ready-made options in this repo:
 1. **GitHub Pages** (`.github/workflows/deploy.yml`, deploys on every push to
    main once activated): make the repo public (or use a plan with
    private-repo Pages) and enable Settings → Pages → Source "GitHub Actions".
-   Serves at https://msaco13.github.io/faemse-website/
+   Serves at https://faemse.org/
 
 2. **Supabase Edge Function** (`scripts/deploy-supabase.mjs`) — deploys the
    build as a `site` function on the association's Supabase project.
