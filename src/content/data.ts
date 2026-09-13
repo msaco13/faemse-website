@@ -163,24 +163,26 @@ export const resourceCategories = [
 // Corporate sponsors are the association's Corporate members (bylaws
 // 2.02.03). List confirmed by the board, Sept 2026. `logo` names a file in
 // public/sponsors/ (webp), or null until the company supplies one; the site
-// then shows the name in its place.
-export const sponsors: { name: string; logo: string | null }[] = [
-  { name: '3B Scientific', logo: null },
-  { name: 'American Medical Academy', logo: 'ama' },
-  { name: 'Braxton College', logo: null },
-  { name: 'Coral Springs Regional Institute of Public Safety', logo: 'csrips' },
-  { name: 'Dinsch Consulting Group', logo: null },
-  { name: 'Emergency Education Institute', logo: 'eei' },
-  { name: 'Emergency Educational Training Institute, Inc.', logo: 'eeti' },
-  { name: 'EMETSEEI Institute, Inc.', logo: 'emetseei' },
-  { name: 'First Response Training Group', logo: null },
-  { name: 'Henry Schein', logo: 'henry-schein' },
-  { name: 'Limmer Education', logo: null },
-  { name: 'Medical Career Academy', logo: 'mca' },
-  { name: 'Platinum Educational Group', logo: 'platinum-ed' },
-  { name: 'Public Safety Group', logo: 'jblpsg' },
-  { name: 'Southeastern Medical Academy', logo: 'sema' },
-  { name: 'The Rescue Company 1', logo: 'the-rescco' },
+// then shows the name in its place. `url` is the sponsor's website (found by
+// web search, Sept 2026; the board is checking them), or '' when none is on
+// file, in which case the name is shown without a link.
+export const sponsors: { name: string; logo: string | null; url: string }[] = [
+  { name: '3B Scientific', logo: null, url: 'https://www.3bscientific.com/' },
+  { name: 'American Medical Academy', logo: 'ama', url: 'https://ama.edu/' },
+  { name: 'Braxton College', logo: null, url: 'https://braxton.edu/' },
+  { name: 'Coral Springs Regional Institute of Public Safety', logo: 'csrips', url: 'https://www.csrips.org/' },
+  { name: 'Dinsch Consulting Group', logo: null, url: '' },
+  { name: 'Emergency Education Institute', logo: 'eei', url: 'https://eei.edu/' },
+  { name: 'Emergency Educational Training Institute, Inc.', logo: 'eeti', url: 'https://eeti.org/' },
+  { name: 'EMETSEEI Institute, Inc.', logo: 'emetseei', url: 'https://emetseei.edu/' },
+  { name: 'First Response Training Group', logo: null, url: 'https://www.frtg.edu/' },
+  { name: 'Henry Schein', logo: 'henry-schein', url: 'https://www.henryschein.com/' },
+  { name: 'Limmer Education', logo: null, url: 'https://limmereducation.com/' },
+  { name: 'Medical Career Academy', logo: 'mca', url: 'https://mcaedu.org/' },
+  { name: 'Platinum Educational Group', logo: 'platinum-ed', url: 'https://www.platinumed.com/' },
+  { name: 'Public Safety Group', logo: 'jblpsg', url: 'https://www.psglearning.com/' },
+  { name: 'Southeastern Medical Academy', logo: 'sema', url: 'https://www.southeasternmedicalacademy.edu/' },
+  { name: 'The Rescue Company 1', logo: 'the-rescco', url: 'https://www.therescuecompany1.com/' },
 ];
 
 // ---------------------------------------------------------------------------

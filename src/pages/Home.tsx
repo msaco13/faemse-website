@@ -206,8 +206,8 @@ export default function Home() {
               className="flex gap-4 items-center py-3.5 lg:px-6 lg:border-r border-white/10 max-lg:border-b max-lg:border-white/5 hover:bg-white/5"
             >
               <div className="flex-none w-[50px] text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
-                <b className="block text-[21px] text-white">{e.day}</b>
-                <span className="text-xs tracking-[0.14em] text-brand-bluesoft">{e.month}</span>
+                <b className="block text-[21px] gold-text">{e.day}</b>
+                <span className="text-xs tracking-[0.14em] text-brand-goldsoft">{e.month}</span>
               </div>
               <div className="min-w-0">
                 <b className="block text-[15px] leading-snug text-white">{e.title}</b>
@@ -259,19 +259,39 @@ export default function Home() {
         <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-5">
           <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
         </p>
-        <div className="flex w-max gap-16 pr-16 animate-[marq_38s_linear_infinite]">
-          {[...sponsors, ...sponsors].map((s, i) => (
-            <span
-              key={i}
-              // The second copy exists only to make the marquee loop seamless;
-              // hide it from screen readers so sponsors aren't announced twice.
-              aria-hidden={i >= sponsors.length || undefined}
-              className="font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap"
-            >
-              <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
-              {s.name}
-            </span>
-          ))}
+        {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
+            time) and it pauses under the pointer so a name can be clicked. */}
+        <div className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
+          {[...sponsors, ...sponsors].map((s, i) => {
+            // The second copy exists only to make the marquee loop seamless;
+            // hide it from screen readers and the tab order so sponsors aren't
+            // announced or tabbed through twice.
+            const dup = i >= sponsors.length;
+            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap';
+            const body = (
+              <>
+                <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
+                {s.name}
+              </>
+            );
+            return s.url ? (
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-hidden={dup || undefined}
+                tabIndex={dup ? -1 : undefined}
+                className={`${cls} hover:text-brand-goldsoft transition-colors`}
+              >
+                {body}
+              </a>
+            ) : (
+              <span key={i} aria-hidden={dup || undefined} className={cls}>
+                {body}
+              </span>
+            );
+          })}
         </div>
         <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
       </section>

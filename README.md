@@ -25,15 +25,14 @@ npm run build    # type-check + production build to dist/
 - `src/components/FloridaNetwork.tsx` — the Florida map on the homepage hero
   and the Programs page: a solid navy state with a gold coastline and one
   pulsing dot per city with an EMS program. Hover or tap a city to open its
-  programs with links. The comet links are a minimum spanning tree lit
-  outward from Orlando until the state is joined (geometry in
-  `src/lib/florida.ts`). The map zooms: click it (or a numbered city, or a
-  region button under it) and the wheel zooms toward the cursor up to 5×,
-  drag pans, pinch works on a phone; names grow as you go in and a city with
-  several schools folds open into one dot per campus. Until the map is
-  clicked the wheel scrolls the page as usual. Esc zooms out and releases it.
-  Steps aside when a spotlight brings a photo or clip; still for reduced
-  motion.
+  programs with links; click pins the card. The comet links are a minimum
+  spanning tree lit outward from Tallahassee until the state is joined
+  (geometry in `src/lib/florida.ts`). No zoom (removed by board decision,
+  Sept 2026): the map is a fixed picture and the wheel always scrolls the
+  page. Steps aside when a spotlight brings a photo or clip; still for
+  reduced motion. The homepage sponsor strip below it runs one pass every
+  90 seconds, pauses under the pointer, and each name links to the
+  sponsor's site (`url` in `src/content/data.ts`).
 - `src/lib/text.tsx` — admin-editable wording: the `<T id>` wrapper every
   static string sits in, the provider that loads overrides from `site_text`,
   and the in-page editor. `src/components/EditModeBar.tsx` is the admin toggle.
