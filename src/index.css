@@ -124,3 +124,17 @@
 @keyframes fl-land{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(5)}}
 @keyframes fl-pop{from{opacity:0;transform:translateY(6px) scale(.98)}}
 @media (prefers-reduced-motion:reduce){.fl-halo,.fl-core{animation:none}}
+
+/* Hero crest (src/components/HeroCrest.tsx): the seal ghosted behind the hero
+   copy, spinning on its vertical axis like a coin. Plain rules, not @layer, so
+   the opacity here is the one that wins; z-index -1 keeps it under the copy's
+   button shadows inside the hero grid's own stacking context (isolate). */
+.hero-crest{position:absolute;left:-45px;top:24px;width:560px;height:560px;z-index:-1;pointer-events:none;opacity:.08;mix-blend-mode:screen;filter:saturate(1.05) brightness(1.15);perspective:1300px;transition:opacity .7s ease}
+.hero-crest.is-faded{opacity:0}
+.hero-crest-coin{position:absolute;inset:0;transform-style:preserve-3d;animation:hero-crest-spin 20s linear infinite}
+.hero-crest-face{position:absolute;inset:0;backface-visibility:hidden}
+.hero-crest-face img{width:100%;height:100%;display:block}
+.hero-crest-face.back{transform:rotateY(180deg)}
+@keyframes hero-crest-spin{to{transform:rotateY(360deg)}}
+@media (max-width:767px){.hero-crest{display:none}}
+@media (prefers-reduced-motion:reduce){.hero-crest-coin{animation:none}}

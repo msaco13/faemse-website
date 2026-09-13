@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FloridaNetwork from '../components/FloridaNetwork';
+import HeroCrest from '../components/HeroCrest';
 import HeroSpotlight from '../components/HeroSpotlight';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
@@ -148,7 +149,10 @@ export default function Home() {
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} />
-        <div className="wrap relative grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20">
+        <div className="wrap relative isolate grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20">
+          {/* The seal, ghosted behind the copy and spinning like a coin; it
+              steps aside with the map when a spotlight brings a photo. */}
+          <HeroCrest faded={mapFaded} />
           <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 
           {/* Florida: the network coming together. Steps aside when a
