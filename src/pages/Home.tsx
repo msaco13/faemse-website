@@ -594,8 +594,8 @@ export default function Home() {
       {/* Final CTA */}
       <section className="relative overflow-hidden text-white text-center bg-[radial-gradient(900px_600px_at_50%_120%,#12315E_0%,#0A1B33_55%,#060F20_100%)]">
         <div className="wrap relative py-24 lg:py-28">
-          <img
-            src={`${import.meta.env.BASE_URL}seal.svg`}
+          <Seal
+            large
             alt={sealAlt}
             className="w-44 h-44 mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
           />

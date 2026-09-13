@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import Seal from '../components/Seal';
 import { slug, T, useText } from '../lib/text';
 
 export default function About() {
@@ -15,8 +16,8 @@ export default function About() {
       {/* Heritage — verified dates from the association's bylaws */}
       <section className="bg-ink2 text-white py-14 border-t border-white/5">
         <div className="wrap lg:grid lg:grid-cols-[240px_1fr] lg:gap-14 items-center">
-          <img
-            src={`${import.meta.env.BASE_URL}seal.svg`}
+          <Seal
+            large
             alt={sealAlt}
             className="hidden lg:block w-[240px] h-[240px] drop-shadow-[0_18px_44px_rgba(0,0,0,.5)]"
           />
