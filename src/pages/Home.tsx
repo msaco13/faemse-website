@@ -150,13 +150,12 @@ export default function Home() {
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} />
         <div className="wrap relative isolate grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20">
-          {/* The copy column. The seal sits centered behind it (this div is
-              the crest's containing block), spinning like a coin; it steps
-              aside with the map when a spotlight brings a photo. */}
-          <div className="relative">
-            <HeroCrest faded={mapFaded} />
-            <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
-          </div>
+          {/* The seal, ghosted at the center of the hero (this grid is its
+              containing block, so it sits midway between the page margins,
+              behind the gap between copy and map), spinning like a coin; it
+              steps aside with the map when a spotlight brings a photo. */}
+          <HeroCrest faded={mapFaded} />
+          <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
 
           {/* Florida: the network coming together. Steps aside when a
               spotlight brings its own photo or clip. The map is interactive

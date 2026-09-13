@@ -126,10 +126,10 @@
 @media (prefers-reduced-motion:reduce){.fl-halo,.fl-core{animation:none}}
 
 /* Hero crest (src/components/HeroCrest.tsx): the seal ghosted behind the hero
-   copy, spinning on its vertical axis like a coin. Centered on the copy column
-   (its containing block is the column's wrapper in Home.tsx); `translate`
-   rather than `transform` so the coin's own 3D transform underneath is left
-   alone. Plain rules, not @layer, so the opacity here is the one that wins;
+   spinning on its vertical axis like a coin. Centered on the hero grid (its
+   containing block in Home.tsx), so it sits midway between the page margins
+   and vertically midway through the hero; `translate` rather than `transform`
+   so the coin's own 3D transform underneath is left alone. Plain rules, not @layer, so the opacity here is the one that wins;
    z-index -1 keeps it under the copy's button shadows inside the hero grid's
    own stacking context (isolate). */
 .hero-crest{position:absolute;left:50%;top:50%;translate:-50% -50%;width:560px;height:560px;z-index:-1;pointer-events:none;opacity:.08;mix-blend-mode:screen;filter:saturate(1.05) brightness(1.15);perspective:1300px;transition:opacity .7s ease}
