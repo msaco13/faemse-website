@@ -8,7 +8,7 @@ import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
 import { splitEvents, useSiteEvents, useSiteNews } from '../lib/content';
 import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
-import { T, useText } from '../lib/text';
+import { slug, T, useText } from '../lib/text';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -287,7 +287,7 @@ export default function Home() {
                   <Count to={v.n} suffix={v.s} />
                 </b>
                 <span className="text-[12.5px] font-semibold tracking-[0.12em] uppercase text-[#7C90B6]">
-                  <T id={`home.vitals.${i + 1}.label`}>{v.label}</T>
+                  <T id={`home.vitals.${slug(v.label)}.label`}>{v.label}</T>
                 </span>
               </div>
             ))}
@@ -336,10 +336,10 @@ export default function Home() {
             ].map((c, i) => (
               <Reveal key={c.title} delay={i * 110}>
                 <div className="card h-full p-8 border-t-[3px] border-t-brand-gold/70 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]">
-                  <h3 className="font-disp font-bold uppercase text-2xl mb-2.5"><T id={`home.why.${i + 1}.title`}>{c.title}</T></h3>
-                  <p className="text-muted text-[15px] mb-5"><T id={`home.why.${i + 1}.text`}>{c.text}</T></p>
+                  <h3 className="font-disp font-bold uppercase text-2xl mb-2.5"><T id={`home.why.${slug(c.title)}.title`}>{c.title}</T></h3>
+                  <p className="text-muted text-[15px] mb-5"><T id={`home.why.${slug(c.title)}.text`}>{c.text}</T></p>
                   <Link to={c.to} className="font-bold text-brand-blue hover:underline">
-                    <T id={`home.why.${i + 1}.cta`}>{c.cta}</T> →
+                    <T id={`home.why.${slug(c.title)}.cta`}>{c.cta}</T> →
                   </Link>
                 </div>
               </Reveal>
@@ -403,10 +403,10 @@ export default function Home() {
                   to={c.to}
                   className="card p-7 flex flex-col border-t-[3px] border-t-brand-blue/60 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]"
                 >
-                  <p className="text-[11.5px] font-bold tracking-[0.14em] uppercase text-brand-blue mb-2"><T id={`home.between.${i + 1}.tag`}>{c.tag}</T></p>
-                  <h3 className="font-disp font-bold uppercase text-[21px] leading-tight mb-2"><T id={`home.between.${i + 1}.title`}>{c.title}</T></h3>
-                  <p className="text-muted text-[14px] flex-1 mb-4"><T id={`home.between.${i + 1}.text`}>{c.text}</T></p>
-                  <span className="font-bold text-brand-blue text-[14.5px]"><T id={`home.between.${i + 1}.cta`}>{c.cta}</T> →</span>
+                  <p className="text-[11.5px] font-bold tracking-[0.14em] uppercase text-brand-blue mb-2"><T id={`home.between.${slug(c.title)}.tag`}>{c.tag}</T></p>
+                  <h3 className="font-disp font-bold uppercase text-[21px] leading-tight mb-2"><T id={`home.between.${slug(c.title)}.title`}>{c.title}</T></h3>
+                  <p className="text-muted text-[14px] flex-1 mb-4"><T id={`home.between.${slug(c.title)}.text`}>{c.text}</T></p>
+                  <span className="font-bold text-brand-blue text-[14.5px]"><T id={`home.between.${slug(c.title)}.cta`}>{c.cta}</T> →</span>
                 </Link>
               </Reveal>
             ))}
@@ -555,20 +555,20 @@ export default function Home() {
                     <T id="home.tiers.popular">MOST POPULAR</T>
                   </span>
                 )}
-                <h3 className="font-disp font-bold uppercase text-2xl"><T id={`home.tiers.${t.name.toLowerCase()}.name`}>{t.name}</T></h3>
-                <p className={`text-[13.5px] mb-5 ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}><T id={`home.tiers.${t.name.toLowerCase()}.who`}>{t.who}</T></p>
+                <h3 className="font-disp font-bold uppercase text-2xl"><T id={`tiers.${slug(t.name)}.name`}>{t.name}</T></h3>
+                <p className={`text-[13.5px] mb-5 ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}><T id={`tiers.${slug(t.name)}.who`}>{t.who}</T></p>
                 <p className="font-disp font-bold text-[54px] leading-none [font-variant-numeric:tabular-nums]">
                   {t.price}
                   <small className={`text-[17px] font-body font-semibold ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}>
                     {' '}
-                    <T id={`home.tiers.${t.name.toLowerCase()}.per`}>{t.per}</T>
+                    <T id={`tiers.${slug(t.name)}.per`}>{t.per}</T>
                   </small>
                 </p>
                 <ul className={`my-6 space-y-3 text-[14.5px] ${t.featured ? '' : 'text-[#C4D1EA]'}`}>
                   {t.perks.map((p, i) => (
                     <li key={p} className="flex gap-2.5">
                       <span className="text-brand-green font-bold">✓</span>
-                      <T id={`home.tiers.${t.name.toLowerCase()}.perk.${i + 1}`}>{p}</T>
+                      <T id={`tiers.${slug(t.name)}.perk.${slug(p)}`}>{p}</T>
                     </li>
                   ))}
                 </ul>

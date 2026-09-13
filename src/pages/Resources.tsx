@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { mailto, resourceCategories } from '../content/data';
-import { T } from '../lib/text';
+import { slug, T } from '../lib/text';
 
 const faemseResources = [
   {
@@ -60,13 +60,13 @@ export default function Resources() {
                 className="card p-6 flex flex-col border-t-[3px] border-t-brand-blue/60 transition-all hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(47,107,255,.14)]"
               >
                 <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-brand-blue mb-1.5">
-                  <T id={`resources.faemse.${i + 1}.tag`}>{r.tag}</T>
+                  <T id={`resources.faemse.${slug(r.title)}.tag`}>{r.tag}</T>
                 </span>
                 <b className="font-disp font-bold uppercase text-[19px] leading-tight mb-1.5">
-                  <T id={`resources.faemse.${i + 1}.title`}>{r.title}</T>
+                  <T id={`resources.faemse.${slug(r.title)}.title`}>{r.title}</T>
                 </b>
                 <span className="text-muted text-[13.5px] flex-1">
-                  <T id={`resources.faemse.${i + 1}.text`}>{r.text}</T>
+                  <T id={`resources.faemse.${slug(r.title)}.text`}>{r.text}</T>
                 </span>
                 <span className="mt-3 font-bold text-brand-blue text-[13.5px]">
                   <T id="resources.faemse.cta">Open →</T>
@@ -82,7 +82,7 @@ export default function Resources() {
             {resourceCategories.map((cat, i) => (
               <div key={cat.category} className="card p-8">
                 <h2 className="font-disp font-bold uppercase text-xl mb-4">
-                  <T id={`resources.cat.${i + 1}.name`}>{cat.category}</T>
+                  <T id={`resources.cat.${slug(cat.category)}.name`}>{cat.category}</T>
                 </h2>
                 <ul className="space-y-3">
                   {cat.links.map((l) => (

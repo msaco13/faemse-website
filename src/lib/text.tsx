@@ -20,6 +20,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -59,10 +60,32 @@ function writeCache(map: TextMap): void {
 }
 
 function withTimeout<T>(p: PromiseLike<T>, ms = 5000): Promise<T> {
+  let timer = 0;
   return Promise.race([
     Promise.resolve(p),
-    new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)),
-  ]);
+    new Promise<never>((_, rej) => {
+      timer = window.setTimeout(() => rej(new Error('timeout')), ms);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * A stable key fragment for an item in a list. Ids built from an item's own
+ * wording survive the list being reordered or a new item being inserted;
+ * ids built from the array index would silently show an override on the
+ * wrong card.
+ */
+export function slug(text: string): string {
+  return (
+    text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48)
+      .replace(/-+$/, '') || 'item'
+  );
 }
 
 type Active = { id: string; fallback: string };
@@ -95,6 +118,10 @@ export function SiteTextProvider({ children }: PropsWithChildren) {
   const [editing, setEditingState] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [active, setActive] = useState<Active | null>(null);
+  // Set by save/reset. If the initial fetch resolves after an admin has
+  // already written, its snapshot is older than what is on screen and must
+  // not replace it.
+  const dirty = useRef(false);
 
   useEffect(() => {
     let on = true;
@@ -105,7 +132,7 @@ export function SiteTextProvider({ children }: PropsWithChildren) {
           if (error.code === MISSING_TABLE && on) setNeedsSetup(true);
           return;
         }
-        if (!data || !on) return;
+        if (!data || !on || dirty.current) return;
         const map: TextMap = {};
         for (const row of data as { key: string; value: string }[]) map[row.key] = row.value;
         setOverrides(map);
@@ -138,7 +165,19 @@ export function SiteTextProvider({ children }: PropsWithChildren) {
     [overrides],
   );
 
-  const openEditor = useCallback((id: string, fallback: string) => setActive({ id, fallback }), []);
+  // Remember what had focus so closing the editor puts the keyboard back on
+  // the phrase that opened it instead of dropping it on <body>.
+  const opener = useRef<HTMLElement | null>(null);
+  const openEditor = useCallback((id: string, fallback: string) => {
+    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setActive({ id, fallback });
+  }, []);
+  const closeEditor = useCallback(() => {
+    setActive(null);
+    const back = opener.current;
+    opener.current = null;
+    if (back && back.isConnected) back.focus({ preventScroll: true });
+  }, []);
 
   const save = useCallback(async (id: string, value: string): Promise<string | null> => {
     const { data: auth } = await supabase.auth.getSession();
@@ -147,6 +186,7 @@ export function SiteTextProvider({ children }: PropsWithChildren) {
       { onConflict: 'key' },
     );
     if (error) return error.code === MISSING_TABLE ? 'The site_text table has not been created yet.' : error.message;
+    dirty.current = true;
     setOverrides((m) => {
       const next = { ...m, [id]: value };
       writeCache(next);
@@ -158,6 +198,7 @@ export function SiteTextProvider({ children }: PropsWithChildren) {
   const reset = useCallback(async (id: string): Promise<string | null> => {
     const { error } = await supabase.from('site_text').delete().eq('key', id);
     if (error) return error.message;
+    dirty.current = true;
     setOverrides((m) => {
       const next = { ...m };
       delete next[id];
@@ -175,7 +216,7 @@ export function SiteTextProvider({ children }: PropsWithChildren) {
   return (
     <SiteTextContext.Provider value={value}>
       {children}
-      {active && <EditorPanel active={active} onClose={() => setActive(null)} />}
+      {active && <EditorPanel active={active} onClose={closeEditor} />}
     </SiteTextContext.Provider>
   );
 }
@@ -239,14 +280,6 @@ function EditorPanel({ active, onClose }: { active: Active; onClose: () => void 
   const [err, setErr] = useState('');
   const custom = typeof overrides[active.id] === 'string';
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
   async function onSave() {
     const next = draft.trim();
     if (next === '') {
@@ -271,7 +304,16 @@ function EditorPanel({ active, onClose }: { active: Active; onClose: () => void 
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-ink2/45 p-4 sm:items-center">
+    <div
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-ink2/45 p-4 sm:items-center"
+      // Escape is handled here, on the dialog itself, and stopped so it never
+      // reaches the mobile menu's window-level Escape handler and closes both.
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape') return;
+        e.stopPropagation();
+        onClose();
+      }}
+    >
       {/* Click-away layer. Keyboard users close with Escape or the Cancel button. */}
       <div className="absolute inset-0" onClick={onClose} aria-hidden />
       <div

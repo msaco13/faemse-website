@@ -1,6 +1,6 @@
 import PageHead from '../components/PageHead';
 import { board } from '../content/data';
-import { T } from '../lib/text';
+import { slug, T } from '../lib/text';
 
 export default function Board() {
   return (
@@ -53,7 +53,7 @@ export default function Board() {
                   </div>
                   {m.blurb && (
                     <p className="text-[13.5px] text-muted mt-4 leading-relaxed">
-                      <T id={`board.${roleKey}.${index}.blurb`}>{m.blurb}</T>
+                      <T id={`board.${slug(m.name)}.blurb`}>{m.blurb}</T>
                     </p>
                   )}
                 </div>

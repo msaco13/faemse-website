@@ -10,7 +10,7 @@ import type { DirectoryEntry, Profile } from '../lib/portal';
 import { formatDate, membershipState } from '../lib/portal';
 import { useLibrary } from '../lib/postings';
 import { supabase } from '../lib/supabase';
-import { T, useText } from '../lib/text';
+import { slug, T, useText } from '../lib/text';
 
 const stateBadge = {
   current: { text: 'Current member', cls: 'text-[#0E7A4A] bg-[#E2F7EC]' },
@@ -210,10 +210,10 @@ export default function Members() {
               },
             ].map((c, i) => (
               <div key={c.title} className="card p-7 border-t-[3px] border-t-brand-gold/70">
-                <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id={`members.card.${i + 1}.title`}>{c.title}</T></h2>
-                <p className="text-muted text-[14.5px] mb-4"><T id={`members.card.${i + 1}.text`}>{c.text}</T></p>
+                <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id={`members.card.${slug(c.title)}.title`}>{c.title}</T></h2>
+                <p className="text-muted text-[14.5px] mb-4"><T id={`members.card.${slug(c.title)}.text`}>{c.text}</T></p>
                 <Link to={c.cta.to} className="font-bold text-brand-blue hover:underline text-[14.5px]">
-                  <T id={`members.card.${i + 1}.cta`}>{c.cta.label}</T>
+                  <T id={`members.card.${slug(c.title)}.cta`}>{c.cta.label}</T>
                 </Link>
               </div>
             ))}

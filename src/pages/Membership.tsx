@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import PageHead from '../components/PageHead';
 import { faq, freeTiers, tiers } from '../content/data';
 import { supabase } from '../lib/supabase';
-import { T, useText } from '../lib/text';
+import { slug, T, useText } from '../lib/text';
 
 const tierValue: Record<string, string> = {
   Active: 'active',
@@ -83,10 +83,10 @@ export default function Membership() {
                   </span>
                 )}
                 <h2 className="font-disp font-bold uppercase text-2xl">
-                  <T id={`membership.tier.${t.name.toLowerCase()}.name`}>{t.name}</T>
+                  <T id={`tiers.${slug(t.name)}.name`}>{t.name}</T>
                 </h2>
                 <p className="text-[13.5px] text-muted mb-5">
-                  <T id={`membership.tier.${t.name.toLowerCase()}.who`}>{t.who}</T>
+                  <T id={`tiers.${slug(t.name)}.who`}>{t.who}</T>
                 </p>
                 <p className="font-disp font-bold text-[54px] leading-none [font-variant-numeric:tabular-nums]">
                   {t.price}
@@ -96,12 +96,12 @@ export default function Membership() {
                   {t.perks.map((p, i) => (
                     <li key={p} className="flex gap-2.5">
                       <span className="text-[#17A76A] font-bold">✓</span>
-                      <T id={`membership.tier.${t.name.toLowerCase()}.perk.${i + 1}`}>{p}</T>
+                      <T id={`tiers.${slug(t.name)}.perk.${slug(p)}`}>{p}</T>
                     </li>
                   ))}
                 </ul>
                 <button onClick={() => pickTier(t.name)} className={t.featured ? 'btn-red w-full' : 'btn-outline w-full'}>
-                  <T id={`membership.tier.${t.name.toLowerCase()}.cta`}>{`Apply as ${t.name}`}</T>
+                  <T id={`tiers.${slug(t.name)}.cta`}>{`Apply as ${t.name}`}</T>
                 </button>
               </div>
             ))}
@@ -272,13 +272,13 @@ export default function Membership() {
             {faq.map((f, i) => (
               <details key={f.q} className="card overflow-hidden group">
                 <summary className="cursor-pointer list-none flex justify-between items-center gap-4 px-7 py-5 font-bold text-[16.5px]">
-                  <T id={`membership.faq.${i + 1}.q`}>{f.q}</T>
+                  <T id={`membership.faq.${slug(f.q)}.q`}>{f.q}</T>
                   <span className="flex-none w-7 h-7 rounded-full bg-[#E7EEFF] grid place-items-center font-bold text-[#1A47B8] transition-transform group-open:rotate-45">
                     +
                   </span>
                 </summary>
                 <p className="px-7 pb-6 text-muted text-[15px] max-w-[65ch]">
-                  <T id={`membership.faq.${i + 1}.a`}>{f.a}</T>
+                  <T id={`membership.faq.${slug(f.q)}.a`}>{f.a}</T>
                 </p>
               </details>
             ))}
