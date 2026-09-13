@@ -442,18 +442,15 @@ export default function Home() {
             <p className="text-[#BCCBE7] text-[17px] max-w-[58ch] mx-auto mt-6 mb-9">
               <T id="home.honors.blurb">{honors.blurb}</T>
             </p>
-            <div className="flex flex-wrap justify-center gap-2.5 mb-10">
-              {Array.from({ length: honors.categories }, (_, i) => (
-                <span
-                  key={i}
-                  className="w-9 h-9 grid place-items-center rounded-full border border-brand-gold/40 bg-brand-gold/10 font-disp font-bold text-brand-goldsoft"
-                  aria-hidden
-                >
-                  ★
-                </span>
-              ))}
-              <span className="self-center ml-2 text-[13px] font-semibold tracking-[0.14em] uppercase text-brand-goldsoft/80">
-                <T id="home.honors.count">Seven categories, honored annually</T>
+            <div className="flex flex-wrap justify-center items-center gap-2.5 mb-10">
+              <span
+                className="w-9 h-9 grid place-items-center rounded-full border border-brand-gold/40 bg-brand-gold/10 font-disp font-bold text-brand-goldsoft"
+                aria-hidden
+              >
+                ★
+              </span>
+              <span className="text-[13px] font-semibold tracking-[0.14em] uppercase text-brand-goldsoft/80">
+                <T id="home.honors.count">Honored annually</T>
               </span>
             </div>
             <Link to="/about" className="btn-gold">

@@ -86,9 +86,9 @@ export default function About() {
               </h3>
               <p className="text-muted text-[15px]">
                 <T id="about.award.text">
-                  Every year FAEMSE honors outstanding EMS educators across seven categories —
-                  recognizing the people whose students are measurably better for having been in
-                  their classroom.
+                  Every year FAEMSE honors outstanding EMS educators: the people whose students are
+                  measurably better for having been in their classroom. Active members nominate and
+                  vote, and anyone may be nominated.
                 </T>
               </p>
             </div>

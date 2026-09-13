@@ -177,7 +177,7 @@ export const sponsors: { name: string; logo: string | null }[] = [
   { name: 'Henry Schein', logo: 'henry-schein' },
   { name: 'Limmer Education', logo: null },
   { name: 'Medical Career Academy', logo: 'mca' },
-  { name: 'Platinum Education Group', logo: 'platinum-ed' },
+  { name: 'Platinum Educational Group', logo: 'platinum-ed' },
   { name: 'Public Safety Group', logo: 'jblpsg' },
   { name: 'Southeastern Medical Academy', logo: 'sema' },
   { name: 'The Rescue Company 1', logo: 'the-rescco' },
@@ -270,7 +270,7 @@ export const news = [
     tag: 'Awards',
     title: 'EMS Educator of the Year nominations open',
     excerpt:
-      'Seven categories, one standard: educators whose students are measurably better for having been in their classroom.',
+      'One standard: educators whose students are measurably better for having been in their classroom.',
     body: '',
   },
   {
@@ -392,7 +392,7 @@ export const sampleVideos: { topic: string; title: string; presenter: string; mi
 export const fallbackSpotlights = [
   {
     kicker: 'EMS Educator of the Year',
-    title: 'Seven categories. One standard.',
+    title: 'Honoring the educators who raise the standard.',
     body: 'Every year FAEMSE honors the educators whose students are measurably better for having been in their classroom. Nominations are open to Active members.',
     imageUrl: '',
     videoUrl: '',
@@ -544,13 +544,13 @@ export const presidentMessage = {
     'Every EMT and paramedic in Florida can be traced back to an educator who refused to accept ‘good enough.’ This association exists so that none of those educators ever has to raise the standard alone.',
 };
 
-// The Educator of the Year program — seven categories honored annually.
-// (Category names to be confirmed with the association before publishing.)
+// The Educator of the Year program. Active members nominate and vote; the
+// nominee need not be a member (board, Sept 2026). The number of categories
+// is deliberately not stated until the board confirms it.
 export const honors = {
   title: 'EMS Educator of the Year',
-  categories: 7,
   blurb:
-    'Seven categories, one standard: educators whose students are measurably better for having been in their classroom. Nominated by peers, honored by the association, announced each year.',
+    'One standard: educators whose students are measurably better for having been in their classroom. Nominated and chosen by Active members, honored by the association, announced each year.',
 };
 
 export const contact = {
