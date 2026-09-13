@@ -33,7 +33,11 @@ export default function Programs() {
       {/* The map at full size. It draws its own caption 56px below itself
           (absolutely positioned), so the deep bottom padding is what keeps
           the caption inside the dark stage instead of over the directory. */}
-      <section className="bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)] py-20 pb-32">
+      {/* overflow-hidden: the map's drawing area bleeds 9% past its box on
+          purpose (comets and halos near the coast), which on a phone is a few
+          pixels past the viewport and a sideways scroll. The deep bottom
+          padding keeps the caption inside the clip. */}
+      <section className="overflow-hidden bg-[radial-gradient(1000px_620px_at_50%_-20%,#14284C_0%,#0A1B33_55%,#060F20_100%)] py-20 pb-32">
         <div className="wrap">
           <FloridaNetwork className="w-full max-w-[900px] aspect-[700/683] mx-auto" labels="dense" />
         </div>
