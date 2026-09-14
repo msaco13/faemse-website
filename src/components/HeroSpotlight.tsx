@@ -71,13 +71,13 @@ export default function HeroSpotlight({
 
   const go = (i: number) => setIndex(((i % total) + total) % total);
 
-  // Slides stack in one grid cell. On desktop the cell keeps the height of
-  // the tallest slide so the events board beside it never jumps; on phones
-  // (board below, not beside) inactive slides go absolute so the hero hugs
-  // whichever slide is showing instead of leaving a gap above the controls.
+  // Slides stack in one grid cell, which keeps the height of the tallest
+  // slide at every width, so nothing below the hero moves when the slide
+  // changes. (Phones used to let the cell hug the showing slide; the map and
+  // the events board under it then jumped 150–250px every 8 seconds.)
   const stack = 'col-start-1 row-start-1 transition-all duration-700 ease-out motion-reduce:transition-none';
   const shown = 'opacity-100 translate-y-0';
-  const hidden = 'opacity-0 translate-y-3 pointer-events-none max-lg:absolute max-lg:inset-x-0 max-lg:top-0';
+  const hidden = 'opacity-0 translate-y-3 pointer-events-none';
 
   return (
     <div
@@ -182,9 +182,13 @@ export default function HeroSpotlight({
         })}
       </div>
 
-      {/* Controls: one progress bar per slide, arrows, and a live counter. */}
+      {/* Controls: one progress bar per slide, arrows, and a live counter.
+          The row's space is reserved even before the spotlights arrive from
+          the database, so the hero doesn't grow (and shove the map and the
+          page) a moment after first paint. */}
+      <div className="mt-10 min-h-[40px]">
       {total > 1 && (
-        <div className="flex items-center gap-4 mt-10">
+        <div className="flex items-center gap-4">
           <div className="flex gap-2 flex-1 max-w-[360px]" role="tablist" aria-label={tabsLabel}>
             {Array.from({ length: total }, (_, i) => (
               <button
@@ -232,6 +236,7 @@ export default function HeroSpotlight({
           <style>{`@keyframes spot{from{width:0}to{width:100%}}`}</style>
         </div>
       )}
+      </div>
     </div>
   );
 }

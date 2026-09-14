@@ -149,7 +149,11 @@ export default function Home() {
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} />
-        <div className="wrap relative isolate grid lg:grid-cols-[1.2fr_.8fr] gap-14 items-center pt-16 lg:pt-20 pb-20">
+        {/* minmax(0, …): the columns split the width by ratio only. With plain
+            fr tracks, anything nowrap inside a column (the map's status chip
+            as its wording changed) could widen that column, and the map,
+            and the hero, every few seconds. */}
+        <div className="wrap relative isolate grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] gap-14 items-center pt-16 lg:pt-20 pb-20">
           {/* The seal, ghosted at the center of the hero (this grid is its
               containing block, so it sits midway between the page margins,
               behind the gap between copy and map), spinning like a coin; it
@@ -186,7 +190,9 @@ export default function Home() {
       {/* On the board — the next three dates, straight from the calendar the
           board edits. */}
       <section className="velvet bg-[#071A32] border-t border-white/10 text-white" aria-label={boardAria}>
-        <div className="wrap grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] items-stretch">
+        {/* min-h: the row is this tall once the dates arrive; holding it from
+            the start keeps the page from stepping down when they do. */}
+        <div className="wrap grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] items-stretch lg:min-h-[82px]">
           <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
             <T id="home.board.label">On the board</T>
@@ -261,11 +267,15 @@ export default function Home() {
         </p>
         {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
             time) and it pauses under the pointer so a name can be clicked. */}
+        {/* Four copies, scrolled by a quarter (one copy's width, so the speed
+            is unchanged): the loop is seamless as long as three copies span
+            the viewport, about 7,500px with today's list. Two copies ran dry
+            on a 2,560px screen and showed an empty strip once per loop. */}
         <div className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
-          {[...sponsors, ...sponsors].map((s, i) => {
-            // The second copy exists only to make the marquee loop seamless;
-            // hide it from screen readers and the tab order so sponsors aren't
-            // announced or tabbed through twice.
+          {[...sponsors, ...sponsors, ...sponsors, ...sponsors].map((s, i) => {
+            // The extra copies exist only to make the marquee loop seamless;
+            // hide them from screen readers and the tab order so sponsors aren't
+            // announced or tabbed through repeatedly.
             const dup = i >= sponsors.length;
             const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap';
             const body = (
@@ -293,7 +303,7 @@ export default function Home() {
             );
           })}
         </div>
-        <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
+        <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-25%)}}`}</style>
       </section>
 
       {/* Vitals — hidden until the association confirms the real numbers. */}

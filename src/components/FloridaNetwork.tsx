@@ -465,15 +465,24 @@ export default function FloridaNetwork({
   const chip =
     'inline-flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.2em] uppercase border bg-white/5 px-3 py-1.5 rounded-full backdrop-blur tabular-nums whitespace-nowrap transition-colors max-sm:text-[11px] max-sm:tracking-[0.14em] ' +
     (done ? 'border-brand-goldsoft/45 text-brand-goldsoft' : 'border-white/15 text-[#C9D6EE]');
+  // The chip's wording changes every few seconds, so its width must not: in a
+  // grid column sized by content, a wider chip widened the column, the map
+  // grew with it, and the whole page lurched 80px every cycle. The widest
+  // wordings sit invisibly in the same cell to hold the size.
+  const doneText = `${programs.length} ${doneWording}`;
   const chipBody = (
     <>
       <i className="w-[7px] h-[7px] rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse motion-reduce:animate-none" aria-hidden />
-      {done ? `${programs.length} ${doneWording}` : phase}
+      <span className="grid">
+        <span className="col-start-1 row-start-1 invisible" aria-hidden>{doneText}</span>
+        <span className="col-start-1 row-start-1 invisible" aria-hidden>{`Connecting · 39 of 39`}</span>
+        <span className="col-start-1 row-start-1">{done ? doneText : phase}</span>
+      </span>
     </>
   );
 
   return (
-    <div ref={outer} className={className}>
+    <div ref={outer} className={`min-w-0 ${className}`}>
       <div ref={root} className="fl-stage relative w-full aspect-[700/683]" role="group" aria-label={ariaLabel}>
         <div ref={host} className="fl-host absolute -inset-[9%] [&>svg]:w-full [&>svg]:h-full [&>svg]:overflow-visible" />
         {active && (
@@ -481,7 +490,10 @@ export default function FloridaNetwork({
             ref={card}
             role="dialog"
             aria-label={`Programs in ${active.name}`}
-            className="fl-pop absolute z-[5] min-w-[230px] max-w-[320px] px-4 pt-3.5 pb-3 rounded-2xl bg-ink2/[.97] border border-white/15 shadow-[0_24px_60px_rgba(4,10,22,.6)] text-white before:content-[''] before:absolute before:inset-x-4 before:top-0 before:h-[2px] before:rounded-sm before:bg-gradient-to-r before:from-brand-goldsoft before:to-brand-golddeep"
+            // on a phone the 230px card would run off a 340px map, so there it
+            // spans the frame instead of hanging off its dot (the ! beats the
+            // inline left/right that placeCard sets)
+            className="fl-pop absolute z-[5] min-w-[230px] max-w-[320px] max-sm:!left-3 max-sm:!right-3 max-sm:min-w-0 max-sm:max-w-none px-4 pt-3.5 pb-3 rounded-2xl bg-ink2/[.97] border border-white/15 shadow-[0_24px_60px_rgba(4,10,22,.6)] text-white before:content-[''] before:absolute before:inset-x-4 before:top-0 before:h-[2px] before:rounded-sm before:bg-gradient-to-r before:from-brand-goldsoft before:to-brand-golddeep"
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => { if (e.key === 'Escape') ctl.current?.close(); }}
@@ -521,7 +533,7 @@ export default function FloridaNetwork({
           </div>
         )}
       </div>
-      <div className="mt-5 flex items-center justify-between gap-3.5 max-sm:flex-col max-sm:items-start">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-3.5 gap-y-2 max-sm:flex-col max-sm:items-start">
         <span className="font-disp font-semibold text-[13px] tracking-[0.24em] uppercase text-[#D2A445] whitespace-nowrap max-sm:text-[11.5px] max-sm:tracking-[0.18em]">
           <T id="map.caption">Florida&apos;s EMS educators</T>
         </span>
