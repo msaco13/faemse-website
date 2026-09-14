@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { faq, honorary, membershipTerms, tiers } from '../content/data';
+import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { slug, T, useText } from '../lib/text';
 
@@ -56,6 +58,7 @@ export default function Membership() {
   const label = 'text-[13px] font-bold uppercase tracking-wide text-muted';
   const typeAria = useText('membership.form.type.aria', 'Application type');
   const certPlaceholder = useText('membership.form.cert.placeholder', 'e.g. Paramedic, EMT, RN');
+  const { online_dues: onlineDues } = useSettings();
 
   return (
     <>
@@ -155,6 +158,16 @@ export default function Membership() {
               approved, the board follows up with dues payment and your portal account. No payment
               is collected on this form.
             </T>
+            {onlineDues && (
+              <>
+                {' '}
+                <T id="membership.apply.online">Already a member? Renew in two minutes by paying your dues online in the</T>{' '}
+                <Link to="/login" className="font-semibold text-brand-blue hover:underline">
+                  <T id="membership.apply.online.link">member portal</T>
+                </Link>
+                .
+              </>
+            )}
           </p>
 
           <form onSubmit={onSubmit} className="card p-8">

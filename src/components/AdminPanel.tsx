@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { Application, ContactMessage, Profile } from '../lib/portal';
-import { formatDate } from '../lib/portal';
+import type { Application, ContactMessage, Payment, Profile } from '../lib/portal';
+import { dollars, duesCents, formatDate, PAYMENT_METHODS } from '../lib/portal';
 import { supabase } from '../lib/supabase';
+import { DuesLedger, MemberImport, OnlineDuesSwitch } from './DuesAdmin';
 
 const statusChip: Record<Application['status'], string> = {
   new: 'text-[#1A47B8] bg-[#E7EEFF]',
@@ -15,6 +16,10 @@ function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }
   const [role, setRole] = useState<'member' | 'admin'>(member.role ?? 'member');
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
+  // A recorded payment moves the date server-side; show the new one.
+  useEffect(() => {
+    setExpires(member.expires_at ?? '');
+  }, [member.expires_at]);
 
   async function save() {
     setSaving(true);
@@ -30,10 +35,38 @@ function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }
     else onSaved();
   }
 
+  // "Record payment": one click extends the term twelve months from the later
+  // of today and the current paid-through date, and writes the ledger row.
+  const [method, setMethod] = useState<Payment['method']>('check');
+  const [note, setNote] = useState('');
+  const [paying, setPaying] = useState(false);
+  const [payMsg, setPayMsg] = useState('');
+
+  async function recordPayment() {
+    setPaying(true);
+    setPayMsg('');
+    const { data, error } = await supabase.rpc('admin_record_payment', {
+      p_target: member.id,
+      p_method: method,
+      // Priced from the tier on file, not an unsaved change in the dropdown.
+      p_amount_cents: method === 'waived' ? 0 : duesCents(member.tier),
+      p_note: note.trim(),
+      p_months: 12,
+    });
+    setPaying(false);
+    if (error) setPayMsg(error.message);
+    else {
+      setPayMsg(`Recorded — paid through ${formatDate(String(data))}.`);
+      setNote('');
+      onSaved();
+    }
+  }
+
   const small = 'rounded-lg border border-line px-2.5 py-1.5 text-[13.5px] outline-none focus:border-brand-blue';
 
   return (
-    <div className="grid md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 items-center px-5 py-4 border-b border-line last:border-b-0">
+    <div className="px-5 py-4 border-b border-line last:border-b-0">
+    <div className="grid md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-3 items-center">
       <div className="min-w-0">
         <b className="block text-[14.5px] truncate">{member.full_name ?? '—'}</b>
         <span className="text-[13px] text-muted truncate block">{member.email}</span>
@@ -69,6 +102,33 @@ function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }
         )}
       </div>
     </div>
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]">
+      <span className="text-muted font-semibold">Record a payment:</span>
+      <select value={method} onChange={(e) => setMethod(e.target.value as Payment['method'])} className={small} aria-label="Payment method">
+        {PAYMENT_METHODS.map((m) => (
+          <option key={m.value} value={m.value}>
+            {m.label}
+          </option>
+        ))}
+      </select>
+      <input
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Note (check #, date received…)"
+        maxLength={200}
+        className={`${small} w-[220px]`}
+        aria-label="Payment note"
+      />
+      <button onClick={recordPayment} disabled={paying} className="btn-outline !py-1.5 !px-3.5 text-[12.5px] disabled:opacity-60">
+        {paying ? 'Recording…' : `Record ${method === 'waived' ? 'waiver' : dollars(duesCents(member.tier))} · +1 year`}
+      </button>
+      {payMsg && (
+        <span className={`font-semibold ${payMsg.startsWith('Recorded') ? 'text-[#0E7A4A]' : 'text-brand-red'}`} role="status">
+          {payMsg}
+        </span>
+      )}
+    </div>
+    </div>
   );
 }
 
@@ -78,6 +138,8 @@ export default function AdminPanel() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [showHandled, setShowHandled] = useState(false);
   const [loadError, setLoadError] = useState('');
+  // Bumped after any payment or import so the ledger and member list refetch.
+  const [ledgerKey, setLedgerKey] = useState(0);
 
   async function load() {
     const [apps, mems, msgs] = await Promise.all([
@@ -93,6 +155,29 @@ export default function AdminPanel() {
     setMembers((mems.data ?? []) as Profile[]);
     // Messages need the Sept 2026 migration; until it runs, just show none.
     if (!msgs.error) setMessages((msgs.data ?? []) as ContactMessage[]);
+    setLedgerKey((k) => k + 1);
+  }
+
+  // A renewal form from someone who already has a member record: one button
+  // approves it and records the payment (the board clicks it once the check
+  // or transfer is in hand).
+  const memberByEmail = new Map(members.map((m) => [String(m.email ?? '').toLowerCase(), m]));
+  async function approvePaid(a: Application) {
+    const m = memberByEmail.get(a.email.toLowerCase());
+    if (!m) return;
+    const { error } = await supabase.rpc('admin_record_payment', {
+      p_target: m.id,
+      p_method: 'other',
+      p_amount_cents: duesCents(m.tier),
+      p_note: `Renewal form ${formatDate(a.created_at)}`,
+      p_months: 12,
+    });
+    if (error) {
+      setLoadError(error.message);
+      return;
+    }
+    await setAppStatus(a.id, 'approved');
+    load();
   }
 
   useEffect(() => {
@@ -118,9 +203,10 @@ export default function AdminPanel() {
         </span>
       </div>
       <p className="text-muted text-[14px] mb-6">
-        Review applications and manage member records. Approving an application does not create the
-        member&apos;s login — add their account under Authentication → Users in Supabase, then set
-        their record here.
+        Review applications, manage member records, and record dues. Approving a new application does
+        not create the member&apos;s login — add them with the roster import below (one row is fine)
+        or under Authentication → Users in Supabase, then record their payment here. Membership runs
+        twelve months from the later of today and the current paid-through date.
       </p>
       {loadError && (
         <p className="text-brand-red font-semibold text-[14px] mb-4" role="alert">
@@ -209,6 +295,15 @@ export default function AdminPanel() {
                 </span>
                 {a.status === 'new' && (
                   <>
+                    {a.kind === 'renew' && memberByEmail.has(a.email.toLowerCase()) && (
+                      <button
+                        onClick={() => approvePaid(a)}
+                        className="btn-outline !py-1.5 !px-3.5 text-[12.5px]"
+                        title="Records the dues payment and extends their membership a year"
+                      >
+                        Paid · +1 year
+                      </button>
+                    )}
                     <button onClick={() => setAppStatus(a.id, 'approved')} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
                       Approve
                     </button>
@@ -227,14 +322,20 @@ export default function AdminPanel() {
         Members
       </h3>
       {members.length === 0 ? (
-        <p className="text-muted text-[14.5px]">No member records yet.</p>
+        <p className="text-muted text-[14.5px] mb-8">No member records yet.</p>
       ) : (
-        <div className="border border-line rounded-2xl overflow-hidden">
+        <div className="border border-line rounded-2xl overflow-hidden mb-8">
           {members.map((m) => (
             <MemberRow key={m.id} member={m} onSaved={load} />
           ))}
         </div>
       )}
+
+      <MemberImport onImported={load} />
+
+      <DuesLedger refreshKey={ledgerKey} />
+
+      <OnlineDuesSwitch />
     </div>
   );
 }
