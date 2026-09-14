@@ -35,6 +35,48 @@ export type Application = {
   status: 'new' | 'approved' | 'declined';
 };
 
+// One dues payment (membership_payments). Written only by the Stripe webhook
+// and the admin "Record payment" button; the paid-through date moves with it.
+export type Payment = {
+  id: string;
+  profile_id: string;
+  full_name?: string | null;
+  email?: string | null;
+  amount_cents: number;
+  method: 'stripe' | 'check' | 'cash' | 'other' | 'waived';
+  paid_on: string;
+  term_months: number;
+  previous_expires: string | null;
+  new_expires: string;
+  note: string;
+  created_at: string;
+};
+
+export const PAYMENT_METHODS: { value: Payment['method']; label: string }[] = [
+  { value: 'check', label: 'Check' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'other', label: 'Other (Zelle, PO, …)' },
+  { value: 'waived', label: 'Waived' },
+];
+
+export function dollars(cents: number): string {
+  return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: cents % 100 ? 2 : 0 });
+}
+
+// Dues by tier, in cents. Mirrors public.dues_cents() in the database.
+export function duesCents(tier: string | null | undefined): number {
+  switch ((tier ?? 'active').toLowerCase()) {
+    case 'institutional':
+      return 25000;
+    case 'corporate':
+      return 20000;
+    case 'honorary':
+      return 0;
+    default:
+      return 5000;
+  }
+}
+
 export type ContactMessage = {
   id: string;
   created_at: string;

@@ -112,7 +112,13 @@ association's Supabase organization.
   (paste it once into the dashboard SQL Editor; until then the edit bar shows
   setup instructions instead of failing).
 - `reminder_log` — service-role-only record of which renewal reminder
-  (90/60/30 days) went to whom, so the daily job never double-sends.
+  (90/60/30/7 days) went to whom, so the daily job never double-sends.
+- `membership_payments` — the dues ledger: one row per payment with method,
+  amount, and the paid-through date before and after. Members read their own
+  rows, admins read all; writes only through `extend_membership()` (Stripe
+  webhook) and `admin_record_payment()`. See "Membership renewals" below.
+- `site_settings.settings.online_dues` — the board's switch for the
+  Pay-dues-online button (portal → Board admin → Online dues).
 - `documents` — text documents members can read in the portal; today the
   full bylaws (slug `bylaws`, plain text, one line per paragraph, rendered
   with the document's own numbering as headings). Current members read,
@@ -157,14 +163,76 @@ account with the renewal reminders, so one setup unlocks both. Until then,
 messages and applications are still visible in the portal's Board admin
 panel — nothing is lost, it just isn't pushed.
 
-### Renewal reminder emails (90/60/30 days)
+### Membership renewals
+
+How a membership stays current (schema: `supabase/migrations/20260914_renewals.sql`,
+applied 2026-09-14):
+
+- **The paid-through date** (`profiles.expires_at`) is the one flag. Access
+  continues 90 days past it (bylaws 2.05), then the portal shows "lapsed".
+- **Every renewal is a payment row** in `membership_payments` (who, how much,
+  check/cash/online/waived, the date before and after). The only writers are
+  `extend_membership()` (service role: the Stripe webhook) and
+  `admin_record_payment()` (the portal's Record-payment button). Both add
+  twelve months to the *later* of today and the current paid-through date, so
+  paying early never costs a member time.
+- **Board side (portal → Board admin):** each member row has *Record a
+  payment* (method + note → "Record $50 · +1 year"); a renewal form from an
+  existing member shows *Paid · +1 year*, which records the payment and
+  approves the form in one click; the *Dues ledger* lists every payment; the
+  *Online dues* switch shows or hides the Pay-online button for members; and
+  *Import the member roster* takes the old system's CSV (headers matched
+  automatically: email, name, tier, paid-through, county, organization,
+  certification), creates logins for anyone new, updates the rest by email,
+  and never touches admin roles. "Check" runs it without writing anything.
+- **Member side (portal):** a *Membership dues* card shows their tier, paid-
+  through date, and recent payments. With online dues on, *Pay dues online*
+  opens Stripe Checkout; the webhook extends their date and the portal shows
+  it within seconds of returning. With it off, the card and the
+  renewal-due/lapsed banners point to the renewal form instead.
+
+#### Renewal reminder emails (90/60/30/7 days)
 
 `supabase/functions/renewal-reminders/` emails members before their
-expiration date. It is idempotent and safe to run daily. **One manual step
-remains:** create a Resend account, verify the faemse.org sending domain, and
-set `RESEND_API_KEY` as a function secret — full instructions are at the top
-of the function file. Until the key is set the function only logs what it
-would send.
+expiration date; a `pg_cron` job (`renewal-reminders-daily`, 12:00 UTC)
+calls it every day. Idempotent: `reminder_log` guarantees one email per
+member per window per expiration date. **One manual step remains:** in
+Supabase → Edge Functions → Secrets add `RESEND_API_KEY` (Resend account with
+the faemse.org sending domain verified — Resend lists the DNS records to add
+at GoDaddy). Until then the job runs daily and sends nothing. To test after
+the key is in: Supabase → Edge Functions → renewal-reminders → Invoke, or
+temporarily set a test member's paid-through date to today + 30.
+
+#### Online dues (Stripe)
+
+Functions `create-checkout` (starts a Stripe Checkout session for the
+signed-in member, priced from their tier) and `stripe-webhook` (Stripe calls
+it when a payment succeeds; it extends the member and writes the ledger row)
+are deployed and inert until configured. One-time setup:
+
+1. Stripe → Developers → API keys → copy the **secret key** into Supabase →
+   Edge Functions → Secrets as `STRIPE_SECRET_KEY`.
+2. Stripe → Developers → Webhooks → Add endpoint
+   `https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/stripe-webhook`
+   with events `checkout.session.completed` and
+   `checkout.session.async_payment_succeeded`; copy its **signing secret**
+   into Secrets as `STRIPE_WEBHOOK_SECRET`.
+3. In the portal's Board admin panel, switch **Online dues** on.
+
+Test with Stripe's test keys first (card 4242 4242 4242 4242): the payment
+shows in the ledger with method "Online (Stripe)". Stripe's fee is 2.9% +
+30¢ per card payment (about $1.75 on $50). The site never sees card numbers.
+
+#### Importing the roster
+
+Export the old system's members to Excel, save as CSV, and use *Import the
+member roster* in the Board admin panel (or hand the file to a Claude session
+to run through the same `import-members` function). New members receive no
+email from the import; they set a password with *Forgot password* on the
+sign-in page. That email goes out through Supabase Auth, whose built-in
+mailer is limited to a few messages an hour — before inviting the whole
+roster, set Supabase → Authentication → SMTP to the Resend account (host
+`smtp.resend.com`, user `resend`, password = the API key).
 
 ## Updating the site (board admins — no GitHub needed)
 

@@ -6,10 +6,11 @@ import ContentManager from '../components/ContentManager';
 import PostingsManager from '../components/PostingsManager';
 import PageHead from '../components/PageHead';
 import { resourceCategories } from '../content/data';
-import type { DirectoryEntry, Profile } from '../lib/portal';
-import { formatDate, graceEnd, membershipState } from '../lib/portal';
+import type { DirectoryEntry, Payment, Profile } from '../lib/portal';
+import { dollars, duesCents, formatDate, graceEnd, membershipState } from '../lib/portal';
 import { parseDocument, useDocument } from '../lib/documents';
 import { useLibrary } from '../lib/postings';
+import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { slug, T, useText } from '../lib/text';
 
@@ -33,6 +34,36 @@ export default function Members() {
   const library = useLibrary(!!session);
   const pwPlaceholder = useText('members.password.placeholder', 'New password (8+ characters)');
   const pwAria = useText('members.password.aria', 'New password, at least 8 characters');
+  const { online_dues: onlineDues } = useSettings();
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [paying, setPaying] = useState(false);
+  const [payErr, setPayErr] = useState('');
+  // Back from Stripe: ?paid=1 (success) or ?paid=0 (cancelled).
+  const [paidNotice, setPaidNotice] = useState<'' | 'success' | 'cancelled'>('');
+
+  // Hand the member to Stripe's hosted checkout; the webhook does the rest.
+  async function payOnline() {
+    setPaying(true);
+    setPayErr('');
+    const { data, error } = await supabase.functions.invoke('create-checkout', { body: {} });
+    if (error) {
+      let msg = error.message;
+      try {
+        const body = await (error as { context?: Response }).context?.json();
+        if (body?.error) msg = body.error;
+      } catch {
+        /* keep the generic message */
+      }
+      setPayErr(msg);
+      setPaying(false);
+      return;
+    }
+    if (data?.url) window.location.assign(data.url);
+    else {
+      setPayErr('Stripe did not return a checkout page. Try again in a moment.');
+      setPaying(false);
+    }
+  }
 
   async function onSignOut() {
     try {
@@ -108,12 +139,14 @@ export default function Members() {
     if (!uid) return;
     // ensure_profile creates the row on first visit; harmless afterwards.
     await supabase.rpc('ensure_profile').then(() => undefined, () => undefined);
-    const [{ data: prof }, { data: dir }] = await Promise.all([
+    const [{ data: prof }, { data: dir }, { data: pays }] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
       supabase.rpc('get_directory'),
+      supabase.from('membership_payments').select('*').eq('profile_id', uid).order('created_at', { ascending: false }).limit(5),
     ]);
     if (prof) setProfile(prof as Profile);
     setDirectory((dir ?? []) as DirectoryEntry[]);
+    if (pays) setPayments(pays as Payment[]);
   }
 
   useEffect(() => {
@@ -125,6 +158,17 @@ export default function Members() {
       if (!data.session) navigate('/login', { replace: true });
       else loadPortalData();
     });
+    // Returning from Stripe. The webhook usually lands within a second or
+    // two; re-read the profile a few times so the new date shows without a
+    // manual refresh, then drop the query string.
+    const paid = new URLSearchParams(window.location.search).get('paid');
+    const timers: number[] = [];
+    if (paid === '1') {
+      setPaidNotice('success');
+      for (const ms of [1500, 4000, 8000, 14000]) timers.push(window.setTimeout(loadPortalData, ms));
+    } else if (paid === '0') setPaidNotice('cancelled');
+    if (paid !== null) window.history.replaceState(null, '', window.location.pathname);
+    return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
@@ -140,6 +184,13 @@ export default function Members() {
   // says the same); never show them a "pending verification" badge.
   const mState = profile?.role === 'admin' ? 'current' : membershipState(profile);
   const badge = stateBadge[mState];
+  const dues = duesCents(profile?.tier);
+  const canPayOnline = Boolean(onlineDues) && dues > 0;
+  const payButton = canPayOnline && (
+    <button onClick={payOnline} disabled={paying} className="btn-red !py-2.5 !px-5 text-[14px] disabled:opacity-60">
+      {paying ? <T id="members.dues.paying">Opening checkout…</T> : <><T id="members.dues.pay">Pay dues online</T> — {dollars(dues)}</>}
+    </button>
+  );
   const input =
     'mt-1.5 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-blue';
   const label = 'text-[13px] font-bold uppercase tracking-wide text-muted';
@@ -175,25 +226,58 @@ export default function Members() {
             </button>
           </div>
 
-          {mState === 'grace' && profile?.expires_at && (
-            <p className="mb-8 rounded-2xl border border-brand-gold/40 bg-[#FBF3D9] px-6 py-4 text-[14.5px] font-semibold text-brand-goldink">
-              <T id="members.grace.a">Your membership term ended on</T> {formatDate(profile.expires_at)}.{' '}
-              <T id="members.grace.b">Under the bylaws you keep member access for 90 days, until</T>{' '}
-              {graceEnd(profile.expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.{' '}
-              <Link to="/membership" className="underline">
-                <T id="members.grace.link">Renew now</T>
-              </Link>{' '}
-              <T id="members.grace.c">to stay in good standing.</T>
+          {paidNotice === 'success' && (
+            <p className="mb-8 rounded-2xl border border-[#0E7A4A]/30 bg-[#E2F7EC] px-6 py-4 text-[14.5px] font-semibold text-[#0E7A4A]" role="status">
+              <T id="members.paid.success">Thank you — your payment went through. Your new paid-through date appears below within a few seconds; a receipt is on its way from Stripe.</T>
+            </p>
+          )}
+          {paidNotice === 'cancelled' && (
+            <p className="mb-8 rounded-2xl border border-line bg-white px-6 py-4 text-[14.5px] font-semibold text-muted" role="status">
+              <T id="members.paid.cancelled">Checkout was cancelled — nothing was charged. You can pay whenever you're ready.</T>
             </p>
           )}
 
+          {mState === 'grace' && profile?.expires_at && (
+            <div className="mb-8 rounded-2xl border border-brand-gold/40 bg-[#FBF3D9] px-6 py-4 text-[14.5px] font-semibold text-brand-goldink flex flex-wrap items-center gap-x-2 gap-y-3">
+              <p className="flex-1 min-w-[260px]">
+              <T id="members.grace.a">Your membership term ended on</T> {formatDate(profile.expires_at)}.{' '}
+              <T id="members.grace.b">Under the bylaws you keep member access for 90 days, until</T>{' '}
+              {graceEnd(profile.expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.{' '}
+              {!canPayOnline && (
+                <>
+                  <Link to="/membership" className="underline">
+                    <T id="members.grace.link">Renew now</T>
+                  </Link>{' '}
+                  <T id="members.grace.c">to stay in good standing.</T>
+                </>
+              )}
+              </p>
+              {payButton}
+            </div>
+          )}
+
           {mState === 'lapsed' && (
-            <p className="mb-8 rounded-2xl border border-brand-red/30 bg-[#FDEAEB] px-6 py-4 text-[14.5px] font-semibold text-brand-red">
-              <T id="members.lapsed.a">Your membership lapsed</T>{profile?.expires_at ? ` on ${formatDate(profile.expires_at)}` : ''} —{' '}
-              <Link to="/membership" className="underline">
-                <T id="members.lapsed.link">renew here</T>
-              </Link>{' '}
-              <T id="members.lapsed.b">to keep your benefits.</T>
+            <div className="mb-8 rounded-2xl border border-brand-red/30 bg-[#FDEAEB] px-6 py-4 text-[14.5px] font-semibold text-brand-red flex flex-wrap items-center gap-x-2 gap-y-3">
+              <p className="flex-1 min-w-[260px]">
+              <T id="members.lapsed.a">Your membership lapsed</T>{profile?.expires_at ? ` on ${formatDate(profile.expires_at)}` : ''}
+              {canPayOnline ? (
+                <>. <T id="members.lapsed.pay">Pay your dues to pick up right where you left off.</T></>
+              ) : (
+                <>
+                  {' '}—{' '}
+                  <Link to="/membership" className="underline">
+                    <T id="members.lapsed.link">renew here</T>
+                  </Link>{' '}
+                  <T id="members.lapsed.b">to keep your benefits.</T>
+                </>
+              )}
+              </p>
+              {payButton}
+            </div>
+          )}
+          {payErr && (
+            <p className="mb-8 -mt-4 text-brand-red font-semibold text-[14px]" role="alert">
+              {payErr}
             </p>
           )}
 
@@ -234,6 +318,53 @@ export default function Members() {
           </div>
 
           <BylawsCard enabled={mState === 'current' || mState === 'grace'} admin={profile?.role === 'admin'} />
+
+          {/* Dues: where the member stands, what they last paid, and how to renew. */}
+          {dues > 0 && (
+            <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
+              <div className="flex flex-wrap items-start justify-between gap-6">
+                <div className="flex-1 min-w-[260px]">
+                  <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.dues.title">Membership dues</T></h2>
+                  <p className="text-[15px] mb-2">
+                    <T id="members.dues.tier">Your tier:</T> <b className="capitalize">{profile?.tier ?? 'active'}</b> · {dollars(dues)}
+                    <T id="members.dues.peryear"> a year</T>
+                    {profile?.expires_at && (
+                      <>
+                        {' · '}
+                        <T id="members.dues.through">paid through</T> <b>{formatDate(profile.expires_at)}</b>
+                      </>
+                    )}
+                  </p>
+                  <p className="text-muted text-[14px] max-w-[62ch]">
+                    <T id="members.dues.text">
+                      Renewing extends your membership twelve months from your current paid-through date, so renewing
+                      early never costs you time.
+                    </T>{' '}
+                    {!canPayOnline && (
+                      <>
+                        <T id="members.dues.offline">To renew, submit the renewal form and the board will follow up with payment details:</T>{' '}
+                        <Link to="/membership#apply" className="font-semibold text-brand-blue hover:underline">
+                          <T id="members.dues.offline.link">renewal form</T>
+                        </Link>
+                        .
+                      </>
+                    )}
+                  </p>
+                  {payments.length > 0 && (
+                    <ul className="mt-4 text-[13.5px] text-muted space-y-1">
+                      {payments.slice(0, 3).map((p) => (
+                        <li key={p.id}>
+                          {formatDate(p.paid_on)} · {dollars(p.amount_cents)} · {p.method === 'stripe' ? 'online' : p.method} →{' '}
+                          <T id="members.dues.paidthrough">paid through</T> {formatDate(p.new_expires)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                {payButton && <div>{payButton}</div>}
+              </div>
+            </div>
+          )}
 
           <div className="grid lg:grid-cols-2 gap-6 mb-10">
             {/* Profile */}
