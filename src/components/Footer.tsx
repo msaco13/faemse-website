@@ -11,7 +11,7 @@ export default function Footer() {
         <div className="grid gap-9 pb-11 border-b border-white/10 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.4fr]">
           <div>
             <Link to="/" className="flex items-center gap-3" aria-label="FAEMSE home">
-              <Seal className="w-10 h-10" />
+              <Seal slot="footer" label="Footer logo" size={40} />
               <span className="font-disp font-bold text-[26px] text-white tracking-wide">
                 FA<b className="gold-text">EMS</b>E
               </span>

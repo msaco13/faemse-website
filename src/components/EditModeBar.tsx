@@ -41,7 +41,7 @@ export default function EditModeBar() {
                 : 'border border-white/20 bg-white/10 text-white hover:bg-white/20'
             }`}
           >
-            {editing ? 'Editing text' : 'Edit text'}
+            {editing ? 'Editing page' : 'Edit page'}
           </button>
           {ids.length > 0 && (
             <button
@@ -64,8 +64,9 @@ export default function EditModeBar() {
 
         {editing && !needsSetup && (
           <p className="border-t border-white/10 px-4 py-3 text-[12.5px] leading-relaxed text-[#AFC1E2]">
-            Highlighted words are editable — click one to change it. Gold is the original wording,
-            green has already been changed. Saving publishes it for everyone.
+            Highlighted words are editable — click one to change it. Logos and pictures with a
+            dashed frame are too — click one to resize it or upload a new image. Gold is the
+            original, green has already been changed. Saving publishes it for everyone.
           </p>
         )}
 

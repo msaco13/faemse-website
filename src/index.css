@@ -122,7 +122,7 @@
    rules, not @layer, so the opacity here is the one that wins; z-index -1
    keeps it under the copy's button shadows inside the hero grid's own
    stacking context (isolate). */
-.hero-crest{position:absolute;left:50%;top:50%;translate:-50% -50%;width:560px;height:560px;z-index:-1;pointer-events:none;opacity:.08;mix-blend-mode:screen;filter:saturate(1.05) brightness(1.15);perspective:1300px;transition:opacity .7s ease}
+.hero-crest{position:absolute;left:50%;top:50%;translate:-50% -50%;width:560px;height:560px;max-width:none;z-index:-1;pointer-events:none;opacity:.08;mix-blend-mode:screen;filter:saturate(1.05) brightness(1.15);perspective:1300px;transition:opacity .7s ease}
 .hero-crest.is-faded{opacity:0}
 .hero-crest-coin{position:absolute;inset:0;transform-style:preserve-3d;animation:hero-crest-spin 20s linear infinite}
 .hero-crest-face{position:absolute;inset:0;backface-visibility:hidden}

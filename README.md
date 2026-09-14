@@ -184,12 +184,24 @@ Day-to-day content changes happen inside the website itself:
 ### Editing the words on the site (admins)
 
 Any signed-in admin sees a small **Board tools** bar at the bottom-left of
-every page. Turn on **Edit text** and every piece of site wording lights up:
+every page. Turn on **Edit page** and every piece of site wording lights up:
 gold means the original words from the code, green means the board has
 already changed it. Click a phrase, change it in the panel, **Save** — it is
 live for everyone on their next page load. **Restore original** puts the
 code's words back. The "N edited" button lists everything the board has
 changed, with a Restore next to each.
+
+Logos and pictures work the same way. In edit mode every seal placement
+(header, footer, sign-in page, honors band, final CTA, About page, 404) gets a
+dashed frame; the spinning hero crest shows an **Edit hero crest** button at
+its center. Click one to open the picture editor: a size slider (with the
+default marked), an **Upload new image** button that stores the file in the
+public `media` bucket, **Use the original image**, and **Restore original**.
+Each placement is its own slot, so the header logo can be 56px while the
+footer stays at 40px. Under the hood: `src/lib/media.tsx` — a `<Pic id=...>`
+renders a plain `<img>` for visitors, and an override is one `site_text` row
+(key `media.<slot>`, value `{"src": ..., "size": ...}`), so pictures ride on
+the same table, cache, and permissions as the wording.
 
 What it covers: headlines, paragraphs, buttons, card copy, page banners,
 navigation labels, footer text, form labels, and empty-state messages on the
