@@ -146,14 +146,20 @@ export default function HeroSpotlight({
           </div>
         </div>
 
-        {/* Spotlight slides — from the board's Spotlights panel. */}
+        {/* Spotlight slides — from the board's Spotlights panel. They sit
+            absolutely over the mission slide, so the mission alone sets the
+            hero's height: the hero measures the same before and after the
+            spotlights arrive from the database, and a long headline or body
+            (clamped to four lines each) can never push the map and the rest
+            of the page down. On a phone the mission runs ~800px tall, on a
+            desktop ~540px; a clamped spotlight fits under both. */}
         {spotlights.map((s, i) => {
           const n = i + 1;
           const active = index === n;
           return (
             <div
               key={s.id ?? s.title}
-              className={`${stack} ${active ? shown : hidden}`}
+              className={`${stack} absolute inset-0 ${active ? shown : hidden}`}
               aria-hidden={!active}
               aria-roledescription="slide"
               aria-label={`${n + 1} of ${total}`}
@@ -162,10 +168,10 @@ export default function HeroSpotlight({
                 <i className="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_12px_rgba(58,219,143,.9)]" aria-hidden />
                 {s.kicker || <T id="home.hero.spot.kicker">Spotlight</T>}
               </p>
-              <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,68px)] max-w-[14ch] [text-wrap:balance]">
+              <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,68px)] max-w-[18ch] [text-wrap:balance] line-clamp-4">
                 {s.title}
               </h2>
-              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8">{s.body}</p>}
+              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 line-clamp-4">{s.body}</p>}
               <div className="flex flex-wrap gap-3.5 mb-8">
                 {s.linkUrl && (
                   <SlideLink to={s.linkUrl} className="btn-gold">

@@ -460,7 +460,7 @@ export default function Home() {
         </div>
         <div className="wrap relative py-24 text-center">
           <Reveal>
-            <Seal className="w-[88px] h-[88px] mx-auto mb-7 drop-shadow-[0_8px_30px_rgba(223,175,55,.45)]" />
+            <Seal slot="honors" label="Gold Standard seal" size={88} className="mx-auto mb-7 drop-shadow-[0_8px_30px_rgba(223,175,55,.45)]" />
             <p className="font-disp font-semibold text-[15px] tracking-[0.3em] uppercase text-brand-goldsoft mb-4">
               <T id="home.honors.title">{honors.title}</T>
             </p>
@@ -621,9 +621,11 @@ export default function Home() {
       <section className="velvet relative overflow-hidden text-white text-center bg-[radial-gradient(900px_600px_at_50%_120%,#143257_0%,#0A213B_55%,#04152A_100%)]">
         <div className="wrap relative py-24 lg:py-28">
           <Seal
-            large
+            slot="cta"
+            label="Raise the standard seal"
+            size={176}
             alt={sealAlt}
-            className="w-44 h-44 mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
+            className="mx-auto mb-7 drop-shadow-[0_16px_44px_rgba(0,0,0,.55)]"
           />
           <h2 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,7vw,96px)]">
             <T id="home.cta.h2a">Raise the</T>

@@ -60,7 +60,7 @@ export default function Header() {
             under the nav. The full name lives in the hero, footer, and titles. */}
         <Link to="/" className="flex items-center gap-3 shrink-0" aria-label="FAEMSE home">
           {/* The seal is the one logo, here at 40px next to the wordmark. */}
-          <Seal className="w-10 h-10 drop-shadow-[0_3px_10px_rgba(0,0,0,.45)]" />
+          <Seal slot="header" label="Header logo" size={40} className="drop-shadow-[0_3px_10px_rgba(0,0,0,.45)]" />
           <span className="font-disp font-bold text-[26px] leading-none text-white tracking-wide whitespace-nowrap">
             FA<b className="gold-text">EMS</b>E
           </span>

@@ -78,7 +78,7 @@ export default function Login() {
       </div>
       <div className="relative w-full max-w-[440px] px-6">
         <div className="text-center mb-8">
-          <Seal className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,.55)]" />
+          <Seal slot="login" label="Sign-in page seal" size={96} className="mx-auto mb-4 drop-shadow-[0_10px_30px_rgba(0,0,0,.55)]" />
           <p className="font-disp font-semibold text-[14px] tracking-[0.28em] uppercase text-brand-goldsoft">
             <T id="login.eyebrow">Member portal</T>
           </p>

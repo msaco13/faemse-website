@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { SiteTextProvider } from './lib/text';
+import { MediaProvider } from './lib/media';
 import EditModeBar from './components/EditModeBar';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -97,6 +98,7 @@ function CanonicalUrl() {
 export default function App() {
   return (
     <SiteTextProvider>
+    <MediaProvider>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-white focus:text-ink focus:font-bold focus:px-5 focus:py-3 focus:rounded-xl focus:shadow-xl"
@@ -137,6 +139,7 @@ export default function App() {
       <Footer />
       {/* Admin-only; renders nothing for everyone else. */}
       <EditModeBar />
+    </MediaProvider>
     </SiteTextProvider>
   );
 }

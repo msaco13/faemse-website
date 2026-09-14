@@ -49,7 +49,7 @@ const SECTIONS: Section[] = [
       { name: 'kicker', label: 'Kicker (small gold line above the headline)', type: 'text', placeholder: 'Educator of the Year · Next meeting · Program spotlight' },
       { name: 'sort_order', label: 'Order (lower shows first)', type: 'number' },
       { name: 'title', label: 'Headline (keep it under ~60 characters)', type: 'text', required: true, span: true },
-      { name: 'body', label: 'One or two sentences', type: 'textarea', span: true },
+      { name: 'body', label: 'One or two sentences (the homepage shows at most four lines)', type: 'textarea', span: true },
       {
         name: 'image_url',
         label: 'Photo (optional — becomes the backdrop, and the still frame behind a video)',
