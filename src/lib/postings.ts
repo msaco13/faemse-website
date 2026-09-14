@@ -93,11 +93,35 @@ function monthYear(iso: string): string {
   });
 }
 
-function useLoaded<T>(fetcher: () => Promise<{ items: T[]; live: boolean }>): Loaded<T> {
-  const [state, setState] = useState<Loaded<T>>({ items: [], live: false, loaded: false });
+// `cacheKey` keeps the last live answer in localStorage and renders it on the
+// next visit before the fetch returns, so content that sits in the first
+// screen (the hero spotlights) doesn't pop in and shove the page a moment
+// after first paint. The fresh answer still replaces it when it arrives.
+function useLoaded<T>(fetcher: () => Promise<{ items: T[]; live: boolean }>, cacheKey?: string): Loaded<T> {
+  const [state, setState] = useState<Loaded<T>>(() => {
+    if (cacheKey) {
+      try {
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) return { items: JSON.parse(raw) as T[], live: true, loaded: false };
+      } catch {
+        /* storage blocked: start empty, as before */
+      }
+    }
+    return { items: [], live: false, loaded: false };
+  });
   useEffect(() => {
     let on = true;
-    fetcher().then((r) => on && setState({ ...r, loaded: true }));
+    fetcher().then((r) => {
+      if (!on) return;
+      setState({ ...r, loaded: true });
+      if (cacheKey && r.live) {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(r.items));
+        } catch {
+          /* storage full or blocked: nothing to do */
+        }
+      }
+    });
     return () => {
       on = false;
     };
@@ -142,7 +166,7 @@ export function useSpotlights(): Loaded<Spotlight> {
       /* fall back below */
     }
     return { live: false, items: fallbackSpotlights };
-  });
+  }, 'faemse:spotlights');
 }
 
 // --- Jobs (public; RLS hides expired rows from the public site) -------------

@@ -44,9 +44,18 @@ export function useMemberStatus(): MemberStatus {
         on && setStatus(SIGNED_OUT);
       }
     };
-    supabase.auth.getSession().then(({ data }) => evaluate(data.session?.user.id), () => evaluate(undefined));
+    // supabase-js also fires SIGNED_IN when a tab regains focus; the same
+    // user doesn't need their profile fetched again for that.
+    let lastUid: string | undefined;
+    const check = (uid: string | undefined, force = false) => {
+      if (!force && uid && uid === lastUid) return;
+      lastUid = uid;
+      evaluate(uid);
+    };
+    supabase.auth.getSession().then(({ data }) => check(data.session?.user.id), () => check(undefined));
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') evaluate(session?.user.id);
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') check(session?.user.id);
+      else if (event === 'USER_UPDATED') check(session?.user.id, true);
     });
     return () => {
       on = false;
