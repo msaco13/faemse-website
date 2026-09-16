@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Payment } from '../lib/portal';
 import { dollars, formatDate } from '../lib/portal';
+import { toRows } from '../lib/roster';
 import { fetchSettings, saveSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 
@@ -124,111 +125,10 @@ export function OnlineDuesSwitch() {
 }
 
 // --- Roster import -----------------------------------------------------------
+// Reading the paste is in lib/roster.ts (pure, and unit-tested there); this is
+// just the panel around it.
 
-type ImportRow = { email: string; full_name: string; tier: string; expires_at: string; county: string; agency: string; cert_level: string };
 type ImportResult = { email: string; status: 'created' | 'updated' | 'skipped' | 'error'; message?: string };
-
-// A small CSV reader: quoted fields, embedded commas and quotes, CRLF.
-function parseCsv(text: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = '';
-  let quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted) {
-      if (c === '"') {
-        if (text[i + 1] === '"') {
-          cell += '"';
-          i++;
-        } else quoted = false;
-      } else cell += c;
-    } else if (c === '"') quoted = true;
-    else if (c === ',' || c === '\t') {
-      row.push(cell);
-      cell = '';
-    } else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = '';
-    } else cell += c;
-  }
-  if (cell !== '' || row.length) {
-    row.push(cell);
-    rows.push(row);
-  }
-  return rows.filter((r) => r.some((v) => v.trim() !== ''));
-}
-
-function findCol(headers: string[], ...patterns: RegExp[]): number {
-  for (const p of patterns) {
-    const i = headers.findIndex((h) => p.test(h));
-    if (i >= 0) return i;
-  }
-  return -1;
-}
-
-function normTier(v: string): string {
-  const s = v.toLowerCase();
-  if (!s.trim()) return '';
-  if (s.includes('instit')) return 'institutional';
-  if (s.includes('corp') || s.includes('sponsor')) return 'corporate';
-  if (s.includes('honor') || s.includes('life')) return 'honorary';
-  return 'active';
-}
-
-function normDate(v: string): string {
-  const s = v.trim();
-  if (!s) return '';
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-  const m = s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
-  if (m) {
-    const y = m[3].length === 2 ? `20${m[3]}` : m[3];
-    return `${y}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
-  }
-  const d = new Date(s);
-  return Number.isNaN(d.getTime()) ? s : d.toISOString().slice(0, 10);
-}
-
-function toRows(text: string): { rows: ImportRow[]; columns: string[]; problems: string[] } {
-  const table = parseCsv(text);
-  if (table.length < 2) return { rows: [], columns: [], problems: ['Paste at least a header row and one member.'] };
-  const headers = table[0].map((h) => h.trim().toLowerCase());
-  const email = findCol(headers, /^e-?mail/, /e-?mail/);
-  const full = findCol(headers, /^(full )?name$/, /^member name/, /^contact/);
-  const first = findCol(headers, /first/);
-  const last = findCol(headers, /last|surname/);
-  const tier = findCol(headers, /tier|level|membership (type|class)|^type$|category/);
-  const exp = findCol(headers, /expir/, /renewal due|renew/, /paid.?through|through/, /valid until|end date|due/);
-  const county = findCol(headers, /county/);
-  const agency = findCol(headers, /agency|organi[sz]ation|employer|program|school|college|company/);
-  const cert = findCol(headers, /cert|credential|license/);
-  const problems: string[] = [];
-  if (email < 0) problems.push('No email column found (a header containing "email").');
-  if (full < 0 && first < 0) problems.push('No name column found ("Name", or "First"/"Last").');
-  if (exp < 0) problems.push('No paid-through column found ("Expires", "Renewal due", "Paid through"). Members will import without a date.');
-  const rows: ImportRow[] = table.slice(1).map((r) => ({
-    email: (r[email] ?? '').trim(),
-    full_name: full >= 0 ? (r[full] ?? '').trim() : [r[first], r[last]].filter(Boolean).join(' ').trim(),
-    tier: tier >= 0 ? normTier(r[tier] ?? '') : '',
-    expires_at: exp >= 0 ? normDate(r[exp] ?? '') : '',
-    county: county >= 0 ? (r[county] ?? '').trim() : '',
-    agency: agency >= 0 ? (r[agency] ?? '').trim() : '',
-    cert_level: cert >= 0 ? (r[cert] ?? '').trim() : '',
-  }));
-  const columns = [
-    email >= 0 && `email ← "${table[0][email]}"`,
-    full >= 0 ? `name ← "${table[0][full]}"` : first >= 0 && `name ← "${table[0][first]}" + "${table[0][last] ?? ''}"`,
-    tier >= 0 && `tier ← "${table[0][tier]}"`,
-    exp >= 0 && `paid through ← "${table[0][exp]}"`,
-    county >= 0 && `county ← "${table[0][county]}"`,
-    agency >= 0 && `agency ← "${table[0][agency]}"`,
-    cert >= 0 && `certification ← "${table[0][cert]}"`,
-  ].filter(Boolean) as string[];
-  return { rows, columns, problems };
-}
 
 export function MemberImport({ onImported }: { onImported: () => void }) {
   const [text, setText] = useState('');
@@ -263,12 +163,14 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
   return (
     <details className="border border-line rounded-2xl p-5 mb-8 group">
       <summary className="cursor-pointer list-none">
-        <b className="text-[14.5px]">Import the member roster</b>
+        <b className="text-[14.5px]">Import a whole roster from a spreadsheet</b>
         <span className="block text-muted text-[13.5px] mt-1 max-w-[76ch]">
-          Paste the old system&apos;s export (Excel → File → Save As → CSV, then open it and copy everything, or drop
-          the .csv file below). Columns are matched by their headers: email, name, tier, paid-through date, county,
-          organization, certification. Existing members are updated by email; new ones get a login and set their
-          own password with &ldquo;Forgot password&rdquo; on the sign-in page. Admin roles are never changed.
+          For many people at once. Paste the old system&apos;s export (Excel → File → Save As → CSV, then open it and
+          copy everything, or drop the .csv file below). A header row is matched by its column names; without one,
+          each value is matched by what it looks like, so an email, a name and a date on one line work fine.
+          Existing members are updated by email; new ones get a login and set their own password with
+          &ldquo;Forgot password&rdquo; on the sign-in page. Board access is never granted here — add that with
+          &ldquo;Add a person&rdquo; above, or the Role dropdown on their row.
         </span>
       </summary>
       <div className="mt-4">
@@ -292,7 +194,7 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={6}
-          placeholder={'Email,Name,Membership level,Renewal due\njane@example.org,Jane Doe,Active,2027-03-01'}
+          placeholder={'jane@example.org  Jane Doe  Active  June 30, 2027\n\n…or with a header row:\nEmail,Name,Membership level,Renewal due\njane@example.org,Jane Doe,Active,2027-03-01'}
           className="w-full rounded-xl border border-line px-4 py-3 font-mono text-[12.5px] outline-none focus:border-brand-blue"
         />
         {parsed && (
