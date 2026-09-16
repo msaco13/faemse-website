@@ -223,16 +223,34 @@ Test with Stripe's test keys first (card 4242 4242 4242 4242): the payment
 shows in the ledger with method "Online (Stripe)". Stripe's fee is 2.9% +
 30¢ per card payment (about $1.75 on $50). The site never sees card numbers.
 
-#### Importing the roster
+#### Adding people
 
-Export the old system's members to Excel, save as CSV, and use *Import the
-member roster* in the Board admin panel (or hand the file to a Claude session
-to run through the same `import-members` function). New members receive no
-email from the import; they set a password with *Forgot password* on the
-sign-in page. That email goes out through Supabase Auth, whose built-in
-mailer is limited to a few messages an hour — before inviting the whole
-roster, set Supabase → Authentication → SMTP to the Resend account (host
-`smtp.resend.com`, user `resend`, password = the API key).
+**One person:** Board admin → **Add a person**. Name, email, membership type,
+paid-through date, and access level (Member or Board admin). No password is
+set here by design: the account is created without one and the person chooses
+their own with *Forgot password* on the sign-in page, so a password is never
+typed by one person and emailed to another. Choosing Board admin runs a second
+call to `admin_set_member`, the same database-gated route as the Role dropdown
+on a member's row; the import path never grants access on its own.
+
+**A whole roster:** *Import a whole roster from a spreadsheet*, below the
+member list. Export the old system's members to Excel, save as CSV, and paste
+it or drop the file in. A header row is matched by its column names (email,
+name, tier, paid-through, county, organization, certification). **Without a
+header row each value is matched by what it looks like**, so
+`someone@example.org  Melissa  June 30, 2027` on one line is read correctly,
+which is what a person types by hand. *Check (no changes)* reports what would
+happen without writing anything. Existing people are matched by email and
+updated, never duplicated.
+
+The parsing is `src/lib/roster.ts`, kept free of React and network calls so it
+can be exercised directly; `toRows()` is the entry point.
+
+New members receive no email from either path; they set a password with
+*Forgot password* on the sign-in page. That email goes out through Supabase
+Auth, whose built-in mailer is limited to a few messages an hour — before
+inviting the whole roster, set Supabase → Authentication → SMTP to the Resend
+account (host `smtp.resend.com`, user `resend`, password = the API key).
 
 ## Updating the site (board admins — no GitHub needed)
 

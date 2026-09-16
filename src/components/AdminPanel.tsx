@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Application, ContactMessage, Payment, Profile } from '../lib/portal';
 import { dollars, duesCents, formatDate, PAYMENT_METHODS } from '../lib/portal';
 import { supabase } from '../lib/supabase';
+import AddPerson from './AddPerson';
 import { DuesLedger, MemberImport, OnlineDuesSwitch } from './DuesAdmin';
 
 const statusChip: Record<Application['status'], string> = {
@@ -203,10 +204,10 @@ export default function AdminPanel() {
         </span>
       </div>
       <p className="text-muted text-[14px] mb-6">
-        Review applications, manage member records, and record dues. Approving a new application does
-        not create the member&apos;s login — add them with the roster import below (one row is fine)
-        or under Authentication → Users in Supabase, then record their payment here. Membership runs
-        twelve months from the later of today and the current paid-through date.
+        Review applications, manage member records, and record dues. Approving an application does not
+        create the member&apos;s login on its own — use &ldquo;Add a person&rdquo; below for that, then record
+        their payment here. Membership runs twelve months from the later of today and the current
+        paid-through date.
       </p>
       {loadError && (
         <p className="text-brand-red font-semibold text-[14px] mb-4" role="alert">
@@ -317,6 +318,8 @@ export default function AdminPanel() {
           ))}
         </div>
       )}
+
+      <AddPerson onAdded={load} />
 
       <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-3">
         Members
