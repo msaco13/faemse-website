@@ -399,7 +399,7 @@ export default function Members() {
                     type="checkbox"
                     name="show_in_directory"
                     defaultChecked={profile?.show_in_directory ?? true}
-                    className="w-4 h-4 accent-[#2F6BFF]"
+                    className="w-4 h-4 accent-brand-blue"
                   />
                   <T id="members.profile.listme">List me in the member directory</T>
                 </label>

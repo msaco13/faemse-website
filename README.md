@@ -313,6 +313,37 @@ After that, further admins are granted from the Board admin panel.
 Everything else (page copy, board roster, dues amounts, design) lives in
 `src/content/data.ts` and the codebase — edit via GitHub or a Claude session.
 
+## Accessibility
+
+The target is **WCAG 2.1 Level AA**, the checklist courts, settlements, and the
+Justice Department's 2024 rule all point at when they say "ADA compliant
+website". There is no certificate to obtain; there is only the checklist.
+
+As of Sept 2026 the site reports **zero violations** under axe-core (WCAG 2.0/2.1
+A and AA rules) across all 19 routes at 1366px and 390px, with every page
+scrolled first so lazy sections mount. Already in place: a skip-to-content
+link, a visible focus ring on every control, labeled form fields, alt text,
+correct heading order, and `prefers-reduced-motion` handling on every
+animation.
+
+Two colors were darkened in Sept 2026 to clear contrast, and both are worth
+leaving alone:
+
+| Token | Was | Now | Ratio |
+|---|---|---|---|
+| `brand.blue` (links, eyebrows) | `#2F6BFF` | `#2560E8` | 4.49 → 5.36 on white, 4.15 → 4.95 on paper |
+| Videos track numerals | `brand-gold/70` | `brand-golddeep` | 1.63 → 3.37 (large text needs 3.0) |
+
+Re-check after any color or type change. Serve `dist/` and run axe against
+each route; the quickest route is a Claude session, which has done exactly
+this twice.
+
+Two known items automated tools cannot catch, both currently **unaddressed**:
+the sponsor marquee scrolls continuously and only pauses on mouse hover, so a
+keyboard-only visitor cannot stop it (WCAG 2.2.2), and the hero slideshow
+auto-advances every 8 s, though it does pause on focus. Both stop entirely
+under `prefers-reduced-motion`. A pause button on the marquee would close it.
+
 ## Deploying
 
 `npm run build` outputs a static site to `dist/`; deploy it to any static host
