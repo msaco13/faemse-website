@@ -210,14 +210,31 @@ signed-in member, priced from their tier) and `stripe-webhook` (Stripe calls
 it when a payment succeeds; it extends the member and writes the ledger row)
 are deployed and inert until configured. One-time setup:
 
-1. Stripe → Developers → API keys → copy the **secret key** into Supabase →
-   Edge Functions → Secrets as `STRIPE_SECRET_KEY`.
-2. Stripe → Developers → Webhooks → Add endpoint
-   `https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/stripe-webhook`
-   with events `checkout.session.completed` and
-   `checkout.session.async_payment_succeeded`; copy its **signing secret**
-   into Secrets as `STRIPE_WEBHOOK_SECRET`.
+1. Stripe → Developers → API keys → copy the **secret key** (`sk_`) into
+   Supabase → Edge Functions → Secrets as `STRIPE_SECRET_KEY`.
+2. Stripe → Developers → Webhooks, now called **Event destinations** → Add
+   destination. Scope **Your account**, payload style **snapshot** (a thin
+   payload carries only an id and the function rejects it), events
+   `checkout.session.completed` and `checkout.session.async_payment_succeeded`,
+   URL `https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/stripe-webhook`.
+   Then open the destination and copy **its own signing secret**, the value
+   starting `whsec_`, into Secrets as `STRIPE_WEBHOOK_SECRET`.
+
+   > The one that bites: `STRIPE_WEBHOOK_SECRET` is **not** an API key. An
+   > `sk_` or `rk_` pasted here makes every delivery fail signature
+   > verification with a 400, and Stripe's dashboard shows a 100% error rate
+   > on the destination. Each destination has its own `whsec_`, shown on that
+   > destination's page, and it is not interchangeable with the one on the
+   > API keys page. The function logs the reason for any rejection, including
+   > the length and prefix of whatever it was given, so check the Supabase
+   > edge function logs first.
+
 3. In the portal's Board admin panel, switch **Online dues** on.
+
+Quickest way to shortcut Stripe's moving dashboard: `dashboard.stripe.com/test/apikeys`
+and `dashboard.stripe.com/test/webhooks` jump straight to the test-mode pages.
+A failed delivery can be replayed from Workbench → Events → the event →
+**Resend**, so debugging costs no further payments.
 
 Test with Stripe's test keys first (card 4242 4242 4242 4242): the payment
 shows in the ledger with method "Online (Stripe)". Stripe's fee is 2.9% +
