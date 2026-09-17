@@ -337,7 +337,7 @@ function RowForm({
                 type="checkbox"
                 name={f.name}
                 defaultChecked={initial ? initial[f.name] !== false : true}
-                className="w-4 h-4 accent-[#2F6BFF]"
+                className="w-4 h-4 accent-brand-blue"
               />
               {f.label}
             </label>

@@ -81,7 +81,10 @@ export default function Videos() {
               <div className="grid md:grid-cols-3 gap-5 mb-10">
                 {tracks.map((t, i) => (
                   <div key={t.name} className="card p-7">
-                    <span className="font-disp font-bold text-[34px] text-brand-gold/70 leading-none">0{i + 1}</span>
+                    {/* golddeep, not a faded brand-gold: at 70% over a white
+                        card the numeral measured 1.63:1, well under the 3:1
+                        WCAG asks of large text. */}
+                    <span className="font-disp font-bold text-[34px] text-brand-golddeep leading-none">0{i + 1}</span>
                     <h3 className="font-disp font-bold uppercase text-xl mt-2 mb-2"><T id={`videos.tracks.${slug(t.name)}.name`}>{t.name}</T></h3>
                     <p className="text-muted text-[14.5px]"><T id={`videos.tracks.${slug(t.name)}.text`}>{t.text}</T></p>
                   </div>

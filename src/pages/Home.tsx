@@ -582,7 +582,7 @@ export default function Home() {
                 key={t.name}
                 className={
                   t.featured
-                    ? 'relative rounded-[20px] p-8 text-body bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2F6BFF)_border-box] shadow-[0_40px_90px_rgba(4,10,22,.5)]'
+                    ? 'relative rounded-[20px] p-8 text-body bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2560E8)_border-box] shadow-[0_40px_90px_rgba(4,10,22,.5)]'
                     : 'rounded-[20px] p-8 bg-white/5 border border-white/10 backdrop-blur'
                 }
               >
