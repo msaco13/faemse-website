@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toISODate } from '../lib/dates';
 import type { Profile } from '../lib/portal';
 import { formatDate } from '../lib/portal';
 import { supabase } from '../lib/supabase';
@@ -34,7 +35,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function oneYearOut(): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().slice(0, 10);
+  return toISODate(d);
 }
 
 function pill(on: boolean): string {
