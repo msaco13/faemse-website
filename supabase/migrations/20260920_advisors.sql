@@ -52,6 +52,11 @@ $$;
 -- the portal reads settings, patches one key, and writes back, so a write
 -- would otherwise drop every key the reader could not see. Saving one setting
 -- must never silently delete another.
+--
+-- Objects only: jsonb || jsonb is concatenation, not just a merge. An object
+-- || an array yields an array, and settings -> 'online_dues' on an array is
+-- null, so a stray array or scalar would silently turn the settings row into
+-- something the switch can never read again.
 create or replace function public.admin_set_settings(p_settings jsonb)
 returns void
 language plpgsql
@@ -60,8 +65,11 @@ set search_path = public
 as $$
 begin
   if not public.is_admin() then raise exception 'Admins only'; end if;
+  if p_settings is null or jsonb_typeof(p_settings) <> 'object' then
+    raise exception 'Settings must be a JSON object';
+  end if;
   update site_settings
-  set settings = coalesce(settings, '{}'::jsonb) || coalesce(p_settings, '{}'::jsonb),
+  set settings = coalesce(settings, '{}'::jsonb) || p_settings,
       updated_at = now()
   where id = 1;
 end $$;
