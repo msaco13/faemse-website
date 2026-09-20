@@ -12,6 +12,11 @@
 // instructions instead of the button. The board also flips "Online dues" on
 // in the portal's admin panel so the button appears.
 //
+// That switch is enforced here as well as in the portal. Hiding a button only
+// hides it: the endpoint is reachable by anyone signed in who knows the URL.
+// When the board turns online dues off, nobody gets charged — the function
+// refuses before it ever talks to Stripe, and no Stripe setting has to change.
+//
 // Deploy: supabase functions deploy create-checkout --project-ref iybsnqcffrhzhdpyoaqt
 // (verify_jwt stays on: only signed-in members can start a checkout.)
 
@@ -46,6 +51,20 @@ Deno.serve(async (req) => {
   const { data: userData, error: userErr } = await supabase.auth.getUser();
   if (userErr || !userData.user) return json({ error: 'Please sign in first.' }, 401);
   const user = userData.user;
+
+  // The board's "Online dues" switch, checked server-side. get_settings() is a
+  // security-definer read of site_settings, so the member's own session can
+  // ask. If the read itself fails we refuse rather than charge: a payment the
+  // board has switched off is the worse mistake.
+  const { data: settings, error: settingsErr } = await supabase.rpc('get_settings');
+  const onlineDues = (settings as { online_dues?: boolean } | null)?.online_dues === true;
+  if (settingsErr || !onlineDues) {
+    if (settingsErr) console.error(`settings read failed: ${settingsErr.message}`);
+    return json(
+      { error: 'Online dues payment is paused right now. Email info@faemse.org and the board will take your dues directly.' },
+      503,
+    );
+  }
 
   const { data: profile } = await supabase.from('profiles').select('tier, full_name, email, expires_at').eq('id', user.id).maybeSingle();
   const tier = String(profile?.tier ?? 'active').toLowerCase();
