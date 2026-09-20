@@ -65,3 +65,29 @@ begin
       updated_at = now()
   where id = 1;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Membership gate: the 90-day grace window, for real this time.
+--
+-- 20260913_bylaws_documents.sql was a "paste into the SQL Editor" file, and
+-- its function half never reached the live project: the database still ran
+-- the 2026-09-01 gate (expires_at >= current_date). So the portal told a
+-- member whose date had passed "you keep member access for 90 days" while
+-- the database had already cut them off from the Q&A archive, videos, library,
+-- directory and bylaws text. Bylaws 2.05 allow revocation only once dues are
+-- 90 days past due; the gate now matches the bylaws, the portal, the README,
+-- and the client-side mirror in src/lib/useMemberStatus.ts.
+create or replace function public.is_current_member()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid()
+      and (p.role = 'admin'
+           or (p.expires_at is not null and p.expires_at + 90 >= current_date))
+  );
+$$;

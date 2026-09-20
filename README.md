@@ -124,8 +124,11 @@ association's Supabase organization.
   with the document's own numbering as headings). Current members read,
   admins manage, the public gets nothing (RLS). The public Bylaws page shows
   an article-by-article outline instead. Schema and the bylaws text:
-  `supabase/migrations/20260913_bylaws_documents.sql` (paste once into the
-  dashboard SQL Editor; re-running refreshes the text).
+  `supabase/migrations/20260913_bylaws_documents.sql`. That file was written
+  to be pasted into the SQL Editor and sat unapplied for a week — the portal's
+  Bylaws card errored for every member, and the 90-day grace gate below never
+  took effect — until the 2026-09-20 review applied both halves through the
+  migration tool. Re-running it refreshes the text.
 - Membership gate: `is_current_member()` — true for admins and for profiles
   whose `expires_at` plus a 90-day grace window is today or later (bylaws
   2.05 allows revocation only once dues are 90 days past due; the same
