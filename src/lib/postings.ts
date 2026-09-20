@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { fallbackSpotlights, sampleClasses, sampleJobs, sampleQa, sampleVideos } from '../content/data';
+import { todayISO } from './dates';
 import { supabase } from './supabase';
 
 export type JobItem = {
@@ -137,7 +138,7 @@ function useLoaded<T>(fetcher: () => Promise<{ items: T[]; live: boolean }>, cac
 export function useSpotlights(): Loaded<Spotlight> {
   return useLoaded<Spotlight>(async () => {
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayISO();
       const { data, error } = await withTimeout(
         supabase
           .from('spotlights')
@@ -175,7 +176,7 @@ export function useJobs(): Loaded<JobItem> {
   return useLoaded<JobItem>(async () => {
     try {
       const { data, error } = await withTimeout(
-        supabase.from('jobs').select('*').gte('expires_on', new Date().toISOString().slice(0, 10)).order('posted_on', { ascending: false }),
+        supabase.from('jobs').select('*').gte('expires_on', todayISO()).order('posted_on', { ascending: false }),
       );
       if (!error && data && data.length > 0) {
         return {
@@ -208,7 +209,7 @@ export function useClasses(): Loaded<ClassItem> {
   return useLoaded<ClassItem>(async () => {
     try {
       const { data, error } = await withTimeout(
-        supabase.from('class_listings').select('*').gte('expires_on', new Date().toISOString().slice(0, 10)).order('starts_on', { ascending: true, nullsFirst: false }),
+        supabase.from('class_listings').select('*').gte('expires_on', todayISO()).order('starts_on', { ascending: true, nullsFirst: false }),
       );
       if (!error && data && data.length > 0) {
         return {

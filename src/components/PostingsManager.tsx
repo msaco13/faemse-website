@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { todayISO } from '../lib/dates';
 import { supabase } from '../lib/supabase';
 
 // Admin CRUD for the brief's posting types: jobs, classes, Q&A entries,
@@ -432,7 +433,7 @@ function SectionBlock({ section }: { section: Section }) {
     load();
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   if (needsSetup) return null; // one shared notice is rendered by the parent
 

@@ -102,7 +102,12 @@ export function OnlineDuesSwitch() {
         <p className="text-muted text-[13.5px] mt-1 max-w-[70ch]">
           When on, members see a <b>Pay dues online</b> button in the portal; a successful payment extends their
           paid-through date by a year and lands in the ledger above. Switch it on only after the Stripe keys are in
-          place (README → &ldquo;Online dues&rdquo;); until then the button would show an error.
+          place (README → &ldquo;Online dues&rdquo;).
+        </p>
+        <p className="text-muted text-[13.5px] mt-2 max-w-[70ch]">
+          <b>Off means nobody can be charged.</b> The button disappears and the server refuses any checkout, so a
+          stale page or a saved link cannot take a payment either. Nothing in Stripe changes — the keys stay set and
+          past payments stay in the ledger. Flip this back to On whenever the board is ready to collect again.
         </p>
         {err && (
           <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">

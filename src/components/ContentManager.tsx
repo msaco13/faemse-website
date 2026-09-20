@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { todayISO } from '../lib/dates';
 import { supabase } from '../lib/supabase';
 
 // Admin CRUD for the public site's events and news. Rendered inside the
@@ -272,7 +273,7 @@ export default function ContentManager() {
     load();
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   return (
     <div className="card p-8 mb-10 border-t-[3px] border-t-brand-blue/60">

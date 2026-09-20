@@ -124,8 +124,11 @@ association's Supabase organization.
   with the document's own numbering as headings). Current members read,
   admins manage, the public gets nothing (RLS). The public Bylaws page shows
   an article-by-article outline instead. Schema and the bylaws text:
-  `supabase/migrations/20260913_bylaws_documents.sql` (paste once into the
-  dashboard SQL Editor; re-running refreshes the text).
+  `supabase/migrations/20260913_bylaws_documents.sql`. That file was written
+  to be pasted into the SQL Editor and sat unapplied for a week — the portal's
+  Bylaws card errored for every member, and the 90-day grace gate below never
+  took effect — until the 2026-09-20 review applied both halves through the
+  migration tool. Re-running it refreshes the text.
 - Membership gate: `is_current_member()` — true for admins and for profiles
   whose `expires_at` plus a 90-day grace window is today or later (bylaws
   2.05 allows revocation only once dues are 90 days past due; the same
@@ -230,6 +233,22 @@ are deployed and inert until configured. One-time setup:
    > edge function logs first.
 
 3. In the portal's Board admin panel, switch **Online dues** on.
+
+**Pausing payments (currently paused, 2026-09-20).** Online dues is switched
+**off** at the board's request. Turning it back on is one click: portal →
+Board admin → **Online dues** → On. Nothing in Stripe was changed — the keys,
+the destination, and the past payments are all still there, so there is no
+Stripe work to redo either way.
+
+Off is enforced in two places, not one. The portal hides the button, and
+`create-checkout` reads the same switch through `get_settings()` and refuses
+before it ever calls Stripe. That second check is the one that matters: hiding
+a button only hides it, and a member sitting on a page loaded before the
+switch was flipped would otherwise still reach a live checkout. With the
+switch off, a stale page gets a plain "payment is paused" message and no card
+is charged. While it is off, the portal's renewal-due and lapsed banners point
+members at the application form, and the Membership page drops its "renew
+online in two minutes" line.
 
 Quickest way to shortcut Stripe's moving dashboard: `dashboard.stripe.com/test/apikeys`
 and `dashboard.stripe.com/test/webhooks` jump straight to the test-mode pages.

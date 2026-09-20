@@ -37,7 +37,10 @@ export function useMemberStatus(): MemberStatus {
           setStatus({
             checked: true,
             signedIn: true,
-            current: p?.role === 'admin' || membershipState(p) === 'current',
+            // 'grace' counts: bylaws 2.05 keep access for 90 days past the
+            // paid-through date, and is_current_member() applies the same
+            // window, so the paywall must not appear before the server's does.
+            current: p?.role === 'admin' || ['current', 'grace'].includes(membershipState(p)),
             admin: p?.role === 'admin',
           });
       } catch {

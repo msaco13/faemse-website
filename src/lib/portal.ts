@@ -104,7 +104,10 @@ export function membershipState(p: Profile | null): MembershipState {
   if (!p?.expires_at) return 'pending';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  if (new Date(`${p.expires_at}T00:00:00`) >= today) return 'current';
+  // slice(0, 10) like graceEnd and formatDate: expires_at is a `date` column
+  // so it arrives as YYYY-MM-DD today, but a full timestamp here would parse
+  // as Invalid Date and silently read as lapsed.
+  if (new Date(`${p.expires_at.slice(0, 10)}T00:00:00`) >= today) return 'current';
   return graceEnd(p.expires_at) >= today ? 'grace' : 'lapsed';
 }
 
