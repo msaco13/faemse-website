@@ -134,6 +134,12 @@ export const resourceCategories = [
     category: 'State & Federal',
     links: [
       { name: 'Florida DOH — EMS Section', url: 'https://www.floridahealth.gov/licensing-and-regulation/ems-system/index.html' },
+      // The Bureau's program page: approved-program map, program applications,
+      // and the NREMT pass/fail rates by school (board request, Sept 2026).
+      {
+        name: 'Florida DOH — EMS training programs & NREMT pass rates by school',
+        url: 'https://www.floridahealth.gov/licensing-regulations/regulated-professions/emergency-medical-technicians-and-paramedics/ems-training-and-education-programs/',
+      },
       { name: 'NHTSA Office of EMS', url: 'https://www.ems.gov' },
       { name: 'FICEMS', url: 'https://www.ems.gov/ficems.html' },
     ],

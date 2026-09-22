@@ -175,6 +175,15 @@ export default function DirectorGuide() {
                 >
                   <T id="directors.deeper.src3">Florida DoH EMS ↗</T>
                 </a>
+                {' · '}
+                <a
+                  href="https://www.floridahealth.gov/licensing-regulations/regulated-professions/emergency-medical-technicians-and-paramedics/ems-training-and-education-programs/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand-blue font-semibold hover:underline"
+                >
+                  <T id="directors.deeper.src4">NREMT pass rates by school ↗</T>
+                </a>
               </p>
             </div>
             <div className="card p-8 border-t-[3px] border-t-brand-blue/60">
