@@ -71,7 +71,14 @@ association's Supabase organization.
 - `membership_applications` — join/renew form submissions. Admins review them
   from the portal's Board admin panel.
 - `profiles` — member portal profiles (tier, expiration, directory listing,
-  role). `role = 'admin'` unlocks the admin panels on the Members page.
+  role, and since Sept 2026 phone, job title, organization type, alternate
+  email, website, listserv opt-out and special listserv email). `role =
+  'admin'` unlocks the admin panels on the Members page. A person's *own*
+  membership lives here; institutional and corporate ones live on
+  `organizations` (see "Organizations, contacts, and the listserv").
+- `organizations`, `organization_members`, `contacts` — institutional and
+  corporate memberships with their seated representatives (cap enforced by
+  trigger), and the listserv-only people without a login.
 - `events`, `news_posts` — the public calendar and news, editable from the
   portal's **Site content** panel (admins only). Schema:
   `supabase/migrations/20260830_editable_content.sql` — paste it once into the
@@ -118,7 +125,9 @@ association's Supabase organization.
   rows, admins read all; writes only through `extend_membership()` (Stripe
   webhook) and `admin_record_payment()`. See "Membership renewals" below.
 - `site_settings.settings.online_dues` — the board's switch for the
-  Pay-dues-online button (portal → Board admin → Online dues).
+  Pay-dues-online button (portal → Board admin → Online dues), enforced
+  server-side. `reminders_paused` beside it holds the daily renewal
+  reminder emails (portal → Board admin → Renewal reminder emails).
 - `documents` — text documents members can read in the portal; today the
   full bylaws (slug `bylaws`, plain text, one line per paragraph, rendered
   with the document's own numbering as headings). Current members read,
