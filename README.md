@@ -206,6 +206,64 @@ at GoDaddy). Until then the job runs daily and sends nothing. To test after
 the key is in: Supabase → Edge Functions → renewal-reminders → Invoke, or
 temporarily set a test member's paid-through date to today + 30.
 
+#### Organizations, contacts, and the listserv (added 2026-09-22)
+
+The old membership system tied everything to an email address, so a person
+holding two membership types (an individual member who is also the corporate
+contact for their company) could only be managed for one of them; the
+Executive Director tracked the other by hand. The site had the same limit.
+It now keeps **one login per person** and puts institutional and corporate
+memberships on the **organization** that holds them:
+
+- `profiles` carries the person's *own* membership (individual or honorary)
+  as before, plus the contact fields the old export tracked: phone, job
+  title, organization type, alternate email, website, **listserv opt-out**,
+  and a **special listserv email** used in place of the login address.
+- `organizations` is an institutional or corporate membership: name, kind,
+  paid-through date, coordinator, billing contact. `organization_members`
+  seats its representatives — up to five for institutional, three for
+  corporate (bylaws 2.02.03/.04); the cap is a database trigger, so the
+  admin panel and the import cannot disagree. A person can sit on several
+  organizations and hold a membership of their own too.
+- `contacts` is the listserv without a login: the state EMS office
+  regulators (listserv only, by board decision) and members whose email the
+  board is still tracking down.
+
+`is_current_member()` — every RLS gate, the directory, and the portal — is
+now: own membership current (90-day grace) **or** any organization they
+represent is current **or** board admin. `membership_payments` and
+`reminder_log` rows can belong to an organization; the ledger names it.
+
+**Board admin panel:** an *Organizations* section (seat and unseat
+representatives, name the coordinator, set the paid-through date and
+billing contact, record a payment · +1 year), a *Listserv-only contacts*
+list, a **Download listserv CSV** button (Gaggle Mail imports it as-is:
+Members → Add members → upload; opt-outs left off, special addresses
+honoured), and a **Renewal reminder emails** switch (Held / Running) next
+to the online-dues one. Member rows show job title, organization, phone,
+which organizations they represent, and an "On the listserv" checkbox.
+
+**Importing the old system's export.** Save the spreadsheet as CSV and drop
+it on the roster importer; it recognises the export by its header row
+(`Membership level`, `Member bundle ID or email`, `Bundle role`) and shows
+what it will become before anything is written: one person per email, one
+organization per bundle with its coordinator and representatives, regulators
+and email-less rows as contacts, and notes on anyone holding two memberships
+or missing a date. **Check** runs it without writing; **Import** creates the
+logins (no passwords: people use *Forgot password*), then the organizations,
+then the contacts. Reading the file is `src/lib/legacyExport.ts`, tested
+against the real 2026-09-19 export (176 rows → 162 people, 28 organizations,
+7 contacts, zero problems).
+
+Renewal reminders (`renewal-reminders`) now also email an organization's
+coordinator and billing contact at 90/60/30/7 days, and honour the
+**reminders_paused** switch. It is **held** as of 2026-09-22 at the board's
+request until they decide how the first renewal cycle should run; the
+October 31 cohort (47 memberships) is the reason to decide before October 1.
+
+Schema and functions: `supabase/migrations/20260922_organizations.sql`
+(applied 2026-09-22).
+
 #### Online dues (Stripe)
 
 Functions `create-checkout` (starts a Stripe Checkout session for the

@@ -11,7 +11,66 @@ export type Profile = {
   role: 'member' | 'admin' | null;
   expires_at: string | null; // ISO date
   show_in_directory: boolean | null;
+  // The old system tracked these; the profile carries them since Sept 2026.
+  phone?: string | null;
+  job_title?: string | null;
+  org_type?: string | null;
+  alt_email?: string | null;
+  website?: string | null;
+  listserv_opt_out?: boolean | null;
+  listserv_email?: string | null;
 };
+
+// An institutional or corporate membership, held by the organization rather
+// than a person. Its representatives are current members while it is.
+export type Organization = {
+  id: string;
+  name: string;
+  kind: 'institutional' | 'corporate';
+  expires_at: string | null;
+  coordinator_id: string | null;
+  contact_email: string | null;
+  website: string | null;
+  notes: string;
+  created_at: string;
+};
+
+export type OrganizationMember = {
+  id: string;
+  organization_id: string;
+  profile_id: string;
+  role: 'coordinator' | 'representative';
+};
+
+// my_organizations(): what a member sees about the organizations they represent.
+export type MyOrganization = {
+  id: string;
+  name: string;
+  kind: 'institutional' | 'corporate';
+  expires_at: string | null;
+  role: 'coordinator' | 'representative';
+  coordinator_name: string | null;
+  seats_used: number;
+  seat_cap: number;
+};
+
+// Someone on the listserv without a login: the state regulators who are not
+// members, and members whose email the board is still tracking down.
+export type Contact = {
+  id: string;
+  full_name: string;
+  email: string | null;
+  organization: string | null;
+  job_title: string | null;
+  kind: 'regulatory' | 'honorary' | 'other';
+  listserv_opt_out: boolean;
+  notes: string;
+  created_at: string;
+};
+
+export function seatCap(kind: Organization['kind']): number {
+  return kind === 'institutional' ? 5 : 3;
+}
 
 export type DirectoryEntry = {
   full_name: string | null;
@@ -39,9 +98,11 @@ export type Application = {
 // and the admin "Record payment" button; the paid-through date moves with it.
 export type Payment = {
   id: string;
-  profile_id: string;
+  profile_id: string | null;
+  organization_id?: string | null;
   full_name?: string | null;
   email?: string | null;
+  organization_name?: string | null;
   amount_cents: number;
   method: 'stripe' | 'check' | 'cash' | 'other' | 'waived';
   paid_on: string;
@@ -100,15 +161,27 @@ export function graceEnd(iso: string): Date {
   return d;
 }
 
-export function membershipState(p: Profile | null): MembershipState {
-  if (!p?.expires_at) return 'pending';
+// The state of one paid-through date: a person's own, or an organization's.
+export function dateState(expires: string | null | undefined): MembershipState {
+  if (!expires) return 'pending';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   // slice(0, 10) like graceEnd and formatDate: expires_at is a `date` column
   // so it arrives as YYYY-MM-DD today, but a full timestamp here would parse
   // as Invalid Date and silently read as lapsed.
-  if (new Date(`${p.expires_at.slice(0, 10)}T00:00:00`) >= today) return 'current';
-  return graceEnd(p.expires_at) >= today ? 'grace' : 'lapsed';
+  if (new Date(`${expires.slice(0, 10)}T00:00:00`) >= today) return 'current';
+  return graceEnd(expires) >= today ? 'grace' : 'lapsed';
+}
+
+export function membershipState(p: Profile | null): MembershipState {
+  return dateState(p?.expires_at);
+}
+
+// A person is as current as the best of their memberships: their own, or any
+// organization they represent. Mirrors is_current_member() in the database.
+const RANK: Record<MembershipState, number> = { current: 3, grace: 2, lapsed: 1, pending: 0 };
+export function overallState(p: Profile | null, orgs: MyOrganization[]): MembershipState {
+  return [membershipState(p), ...orgs.map((o) => dateState(o.expires_at))].sort((a, b) => RANK[b] - RANK[a])[0];
 }
 
 export function formatDate(iso: string): string {

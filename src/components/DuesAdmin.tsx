@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { todayISO } from '../lib/dates';
+import { isLegacyExport, parseLegacyExport, type LegacyPlan } from '../lib/legacyExport';
 import type { Payment } from '../lib/portal';
 import { dollars, formatDate } from '../lib/portal';
 import { toRows } from '../lib/roster';
@@ -6,8 +8,9 @@ import { fetchSettings, saveSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 
 // The dues side of the Board admin panel: the payment ledger, the "Online
-// dues" switch, and the roster import. Every write is gated server-side
-// (admin_* RPCs check is_admin(); the import function checks it too).
+// dues" and "Renewal reminders" switches, the listserv export, and the
+// roster import. Every write is gated server-side (admin_* RPCs check
+// is_admin(); the import function checks it too).
 
 const methodLabel: Record<Payment['method'], string> = {
   stripe: 'Online (Stripe)',
@@ -57,8 +60,8 @@ export function DuesLedger({ refreshKey }: { refreshKey: number }) {
                 <tr key={p.id} className="border-t border-line">
                   <td className="px-4 py-2.5 whitespace-nowrap">{formatDate(p.paid_on)}</td>
                   <td className="px-4 py-2.5">
-                    <b>{p.full_name ?? '—'}</b>
-                    <span className="block text-muted text-[12.5px]">{p.email}</span>
+                    <b>{p.organization_name ?? p.full_name ?? '—'}</b>
+                    <span className="block text-muted text-[12.5px]">{p.organization_name ? 'organization' : p.email}</span>
                   </td>
                   <td className="px-4 py-2.5 text-right tabular-nums">{dollars(p.amount_cents)}</td>
                   <td className="px-4 py-2.5 whitespace-nowrap">{methodLabel[p.method] ?? p.method}</td>
@@ -129,26 +132,164 @@ export function OnlineDuesSwitch() {
   );
 }
 
+// The daily renewal-reminder emails, held or running. The board asked to hold
+// them until it decides how the first renewal cycle on the new site should go.
+export function RemindersSwitch() {
+  const [paused, setPaused] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  useEffect(() => {
+    fetchSettings().then((s) => setPaused(Boolean(s.reminders_paused)));
+  }, []);
+  async function toggle() {
+    if (paused === null) return;
+    setBusy(true);
+    setErr('');
+    const error = await saveSettings({ reminders_paused: !paused });
+    setBusy(false);
+    if (error) setErr(error);
+    else setPaused(!paused);
+  }
+  return (
+    <div className="border border-line rounded-2xl p-5 mb-8 flex flex-wrap items-start gap-4">
+      <div className="flex-1 min-w-[260px]">
+        <b className="block text-[14.5px]">Renewal reminder emails</b>
+        <p className="text-muted text-[13.5px] mt-1 max-w-[70ch]">
+          When running, members get an email 90, 60, 30, and 7 days before their paid-through date; for an
+          organization the email goes to its coordinator and billing contact. Each reminder is sent at most once.
+          While held, nothing goes out, and a held reminder is not sent later — someone 30 days out when this is
+          switched back on gets the 30-day email that day and the 7-day one on time.
+        </p>
+        {err && (
+          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+            {err}
+          </p>
+        )}
+      </div>
+      <button
+        onClick={toggle}
+        disabled={busy || paused === null}
+        aria-pressed={paused === false}
+        className={`rounded-full px-5 py-2 text-[13px] font-bold border transition-colors disabled:opacity-60 ${
+          paused === false ? 'bg-[#0E7A4A] border-[#0E7A4A] text-white' : 'bg-white border-line text-muted hover:border-ink'
+        }`}
+      >
+        {paused === null ? '…' : paused ? 'Held' : 'Running'}
+      </button>
+    </div>
+  );
+}
+
+// The listserv, as a CSV Gaggle Mail accepts as-is (an email column and a
+// name column; Gaggle matches by header). Current members, the board, and the
+// listserv-only contacts; opt-outs left off; a member's "special listserv
+// email" used in place of their login email.
+export function ListservExport() {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [err, setErr] = useState('');
+  async function download() {
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    const { data, error } = await supabase.rpc('get_listserv');
+    setBusy(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    const rows = (data ?? []) as { email: string; full_name: string | null; source: string }[];
+    const q = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const csv = ['Email,Name', ...rows.map((r) => `${q(r.email)},${q(r.full_name ?? '')}`)].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `faemse-listserv-${todayISO()}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const by = (s: string) => rows.filter((r) => r.source === s).length;
+    setMsg(`${rows.length} addresses: ${by('member')} members, ${by('board')} board, ${by('regulatory')} regulatory, ${by('honorary') + by('other')} other contacts.`);
+  }
+  return (
+    <div className="border border-line rounded-2xl p-5 mb-8 flex flex-wrap items-start gap-4">
+      <div className="flex-1 min-w-[260px]">
+        <b className="block text-[14.5px]">Listserv export</b>
+        <p className="text-muted text-[13.5px] mt-1 max-w-[70ch]">
+          Downloads the current listserv as a CSV that Gaggle Mail imports directly (Members → Add members → upload).
+          Everyone current in any membership, the board, and the listserv-only contacts; anyone who opted out is left
+          off, and a member&apos;s special listserv address is used when they have one.
+        </p>
+        {msg && (
+          <p className="text-[#0E7A4A] font-semibold text-[13px] mt-2" role="status">
+            {msg}
+          </p>
+        )}
+        {err && (
+          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+            {err}
+          </p>
+        )}
+      </div>
+      <button onClick={download} disabled={busy} className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60">
+        {busy ? 'Building…' : 'Download listserv CSV'}
+      </button>
+    </div>
+  );
+}
+
 // --- Roster import -----------------------------------------------------------
-// Reading the paste is in lib/roster.ts (pure, and unit-tested there); this is
-// just the panel around it.
+// Reading the paste is in lib/roster.ts and lib/legacyExport.ts (pure, and
+// unit-tested there); this is just the panel around them. The old system's
+// full export is recognised by its header row and imported as people,
+// organizations, and contacts; anything simpler is a plain list of people.
 
 type ImportResult = { email: string; status: 'created' | 'updated' | 'skipped' | 'error'; message?: string };
+type Tally = Record<string, number>;
+type ImportResponse = {
+  dry_run: boolean;
+  summary: Tally;
+  results: ImportResult[];
+  organizations?: { summary: Tally; results: ImportResult[] };
+  contacts?: { summary: Tally; results: ImportResult[] };
+};
+
+function tallyText(t: Tally, dry: boolean): string {
+  return `${dry ? 'would create' : 'created'} ${t.created}, ${dry ? 'would update' : 'updated'} ${t.updated}, skipped ${t.skipped}, errors ${t.errors}`;
+}
+
+function Problems({ rows }: { rows: ImportResult[] }) {
+  const bad = rows.filter((r) => r.status === 'error' || r.status === 'skipped');
+  if (bad.length === 0) return null;
+  return (
+    <ul className="mt-1 space-y-0.5 text-brand-red">
+      {bad.map((r, i) => (
+        <li key={i}>
+          {r.email}: {r.message}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function MemberImport({ onImported }: { onImported: () => void }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState<'' | 'check' | 'import'>('');
-  const [result, setResult] = useState<{ dry_run: boolean; summary: Record<string, number>; results: ImportResult[] } | null>(null);
+  const [result, setResult] = useState<ImportResponse | null>(null);
   const [err, setErr] = useState('');
-  const parsed = useMemo(() => (text.trim() ? toRows(text) : null), [text]);
+  const legacy = useMemo(() => (text.trim() && isLegacyExport(text) ? parseLegacyExport(text) : null), [text]);
+  const parsed = useMemo(() => (text.trim() && !legacy ? toRows(text) : null), [text, legacy]);
   const valid = parsed?.rows.filter((r) => r.email) ?? [];
+  const ready = legacy ? legacy.people.length + legacy.organizations.length + legacy.contacts.length > 0 : valid.length > 0;
 
   async function run(dryRun: boolean) {
-    if (!parsed || valid.length === 0) return;
+    if (!ready) return;
     setBusy(dryRun ? 'check' : 'import');
     setErr('');
     setResult(null);
-    const { data, error } = await supabase.functions.invoke('import-members', { body: { rows: valid, dry_run: dryRun } });
+    const body = legacy
+      ? { people: legacy.people, organizations: legacy.organizations, contacts: legacy.contacts, dry_run: dryRun }
+      : { rows: valid, dry_run: dryRun };
+    const { data, error } = await supabase.functions.invoke('import-members', { body });
     setBusy('');
     if (error) {
       let msg = error.message;
@@ -164,6 +305,8 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
     setResult(data);
     if (!dryRun) onImported();
   }
+
+  const count = legacy ? legacy.people.length : valid.length;
 
   return (
     <details className="border border-line rounded-2xl p-5 mb-8 group">
@@ -202,6 +345,7 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
           placeholder={'jane@example.org  Jane Doe  Active  June 30, 2027\n\n…or with a header row:\nEmail,Name,Membership level,Renewal due\njane@example.org,Jane Doe,Active,2027-03-01'}
           className="w-full rounded-xl border border-line px-4 py-3 font-mono text-[12.5px] outline-none focus:border-brand-blue"
         />
+        {legacy && <LegacyPlanPreview plan={legacy} />}
         {parsed && (
           <div className="mt-3 text-[13.5px]">
             <p className="text-muted">
@@ -248,11 +392,11 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
           </div>
         )}
         <div className="flex flex-wrap items-center gap-3 mt-4">
-          <button onClick={() => run(true)} disabled={busy !== '' || valid.length === 0} className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60">
+          <button onClick={() => run(true)} disabled={busy !== '' || !ready} className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60">
             {busy === 'check' ? 'Checking…' : 'Check (no changes)'}
           </button>
-          <button onClick={() => run(false)} disabled={busy !== '' || valid.length === 0} className="btn-red !py-2 !px-4 text-[13px] disabled:opacity-60">
-            {busy === 'import' ? 'Importing…' : `Import ${valid.length || ''} member${valid.length === 1 ? '' : 's'}`}
+          <button onClick={() => run(false)} disabled={busy !== '' || !ready} className="btn-red !py-2 !px-4 text-[13px] disabled:opacity-60">
+            {busy === 'import' ? 'Importing…' : `Import ${count || ''} ${legacy ? 'people + organizations' : `member${count === 1 ? '' : 's'}`}`}
           </button>
           <span className="text-[12.5px] text-muted">Check first: it reports what would be created or updated without writing anything.</span>
         </div>
@@ -262,25 +406,84 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
           </p>
         )}
         {result && (
-          <div className="mt-4 text-[13.5px]">
-            <p className="font-semibold">
-              {result.dry_run ? 'Would create' : 'Created'} {result.summary.created}, {result.dry_run ? 'would update' : 'updated'}{' '}
-              {result.summary.updated}, skipped {result.summary.skipped}, errors {result.summary.errors}.
-            </p>
-            {result.results.filter((r) => r.status === 'error' || r.status === 'skipped').length > 0 && (
-              <ul className="mt-2 space-y-1 text-brand-red">
-                {result.results
-                  .filter((r) => r.status === 'error' || r.status === 'skipped')
-                  .map((r, i) => (
-                    <li key={i}>
-                      {r.email}: {r.message}
-                    </li>
-                  ))}
-              </ul>
+          <div className="mt-4 text-[13.5px] space-y-2">
+            <div>
+              <p className="font-semibold">People: {tallyText(result.summary, result.dry_run)}.</p>
+              <Problems rows={result.results} />
+            </div>
+            {result.organizations && (
+              <div>
+                <p className="font-semibold">Organizations: {tallyText(result.organizations.summary, result.dry_run)}.</p>
+                <Problems rows={result.organizations.results} />
+              </div>
+            )}
+            {result.contacts && (
+              <div>
+                <p className="font-semibold">Contacts: {tallyText(result.contacts.summary, result.dry_run)}.</p>
+                <Problems rows={result.contacts.results} />
+              </div>
+            )}
+            {!result.dry_run && (
+              <p className="text-muted">
+                New logins have no password yet: tell people to use &ldquo;Forgot password&rdquo; on the sign-in page.
+              </p>
             )}
           </div>
         )}
       </div>
     </details>
+  );
+}
+
+// What the old system's export will become, before anything is written.
+function LegacyPlanPreview({ plan }: { plan: LegacyPlan }) {
+  const own = plan.people.filter((p) => p.tier).length;
+  const orgOnly = plan.people.length - own;
+  return (
+    <div className="mt-3 text-[13.5px] space-y-3">
+      <p className="font-semibold">
+        Recognised as the old system&apos;s export. It becomes {plan.people.length} people ({own} with a membership of their own,{' '}
+        {orgOnly} through an organization only), {plan.organizations.length} organizations, and {plan.contacts.length} listserv-only
+        contacts.
+      </p>
+      {plan.problems.map((p) => (
+        <p key={p} className="text-brand-red font-semibold">
+          {p}
+        </p>
+      ))}
+      {plan.notes.length > 0 && (
+        <ul className="list-disc pl-5 text-muted space-y-0.5">
+          {plan.notes.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
+      )}
+      <div className="border border-line rounded-xl overflow-x-auto">
+        <table className="w-full text-[12.5px]">
+          <thead className="bg-paper text-[11px] font-bold uppercase tracking-wide text-muted">
+            <tr>
+              <th className="text-left px-3 py-2">Organization</th>
+              <th className="text-left px-3 py-2">Kind</th>
+              <th className="text-left px-3 py-2">Paid through</th>
+              <th className="text-left px-3 py-2">Coordinator</th>
+              <th className="text-left px-3 py-2">Seats</th>
+            </tr>
+          </thead>
+          <tbody>
+            {plan.organizations.map((o) => (
+              <tr key={`${o.kind}:${o.name}`} className="border-t border-line">
+                <td className="px-3 py-1.5">{o.name}</td>
+                <td className="px-3 py-1.5 capitalize">{o.kind}</td>
+                <td className="px-3 py-1.5">{o.expires_at || <span className="text-muted">—</span>}</td>
+                <td className="px-3 py-1.5 text-muted">{o.coordinator_email}</td>
+                <td className="px-3 py-1.5">
+                  {o.member_emails.length} of {o.kind === 'institutional' ? 5 : 3}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

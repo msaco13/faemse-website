@@ -1,13 +1,15 @@
 // Site-wide switches the board flips in the portal (site_settings.settings).
-// Public and non-sensitive by design — today only `online_dues`, which shows
-// or hides the "Pay dues online" button. Cached per browser so the button
-// doesn't pop in after first paint.
+// Public and non-sensitive by design: `online_dues` shows or hides the "Pay
+// dues online" button (and the server refuses checkout when it is off), and
+// `reminders_paused` holds the daily renewal-reminder emails. Cached per
+// browser so the button doesn't pop in after first paint.
 
 import { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 
 export type SiteSettings = {
   online_dues?: boolean;
+  reminders_paused?: boolean;
 };
 
 const CACHE_KEY = 'faemse:settings';
