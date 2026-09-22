@@ -6,8 +6,8 @@ import ContentManager from '../components/ContentManager';
 import PostingsManager from '../components/PostingsManager';
 import PageHead from '../components/PageHead';
 import { resourceCategories } from '../content/data';
-import type { DirectoryEntry, Payment, Profile } from '../lib/portal';
-import { dollars, duesCents, formatDate, graceEnd, membershipState } from '../lib/portal';
+import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
+import { dateState, dollars, duesCents, formatDate, graceEnd, overallState } from '../lib/portal';
 import { parseDocument, useDocument } from '../lib/documents';
 import { useLibrary } from '../lib/postings';
 import { useSettings } from '../lib/settings';
@@ -27,6 +27,8 @@ export default function Members() {
   const [checked, setChecked] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [directory, setDirectory] = useState<DirectoryEntry[]>([]);
+  // Organizations this person represents; a current one makes them current.
+  const [myOrgs, setMyOrgs] = useState<MyOrganization[]>([]);
   const [profileStatus, setProfileStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
   const [profileMsg, setProfileMsg] = useState('');
   const [pwStatus, setPwStatus] = useState<'idle' | 'working' | 'done' | 'error'>('idle');
@@ -139,14 +141,16 @@ export default function Members() {
     if (!uid) return;
     // ensure_profile creates the row on first visit; harmless afterwards.
     await supabase.rpc('ensure_profile').then(() => undefined, () => undefined);
-    const [{ data: prof }, { data: dir }, { data: pays }] = await Promise.all([
+    const [{ data: prof }, { data: dir }, { data: pays }, { data: orgs }] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
       supabase.rpc('get_directory'),
       supabase.from('membership_payments').select('*').eq('profile_id', uid).order('created_at', { ascending: false }).limit(5),
+      supabase.rpc('my_organizations'),
     ]);
     if (prof) setProfile(prof as Profile);
     setDirectory((dir ?? []) as DirectoryEntry[]);
     if (pays) setPayments(pays as Payment[]);
+    if (orgs) setMyOrgs(orgs as MyOrganization[]);
   }
 
   useEffect(() => {
@@ -182,10 +186,13 @@ export default function Members() {
 
   // Board admins are members by definition (the database's is_current_member
   // says the same); never show them a "pending verification" badge.
-  const mState = profile?.role === 'admin' ? 'current' : membershipState(profile);
+  const mState = profile?.role === 'admin' ? 'current' : overallState(profile, myOrgs);
   const badge = stateBadge[mState];
   const dues = duesCents(profile?.tier);
-  const canPayOnline = Boolean(onlineDues) && dues > 0;
+  // Someone whose only membership is through an organization has no dues of
+  // their own to show or pay; the organization's card covers them.
+  const ownDues = dues > 0 && (Boolean(profile?.expires_at) || myOrgs.length === 0);
+  const canPayOnline = Boolean(onlineDues) && ownDues;
   const payButton = canPayOnline && (
     <button onClick={payOnline} disabled={paying} className="btn-red !py-2.5 !px-5 text-[14px] disabled:opacity-60">
       {paying ? <T id="members.dues.paying">Opening checkout…</T> : <><T id="members.dues.pay">Pay dues online</T> — {dollars(dues)}</>}
@@ -319,8 +326,43 @@ export default function Members() {
 
           <BylawsCard enabled={mState === 'current' || mState === 'grace'} admin={profile?.role === 'admin'} />
 
+          {/* Organizations this person represents: the membership is theirs, not the person's. */}
+          {myOrgs.length > 0 && (
+            <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
+              <h2 className="font-disp font-bold uppercase text-xl mb-2">
+                <T id="members.orgs.title">{myOrgs.length === 1 ? 'Your organization' : 'Your organizations'}</T>
+              </h2>
+              <p className="text-muted text-[14px] mb-4 max-w-[62ch]">
+                <T id="members.orgs.text">
+                  You are a member through your organization&apos;s membership. Its coordinator renews it for everyone
+                  it covers.
+                </T>
+              </p>
+              <ul className="space-y-3">
+                {myOrgs.map((o) => {
+                  const s = dateState(o.expires_at);
+                  return (
+                    <li key={o.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px]">
+                      <b>{o.name}</b>
+                      <span className="text-[11px] font-bold tracking-[0.09em] uppercase px-2 py-0.5 rounded-full text-[#1A47B8] bg-[#E7EEFF]">
+                        {o.kind}
+                      </span>
+                      <span className={`text-[11px] font-bold tracking-[0.09em] uppercase px-2 py-0.5 rounded-full ${stateBadge[s].cls}`}>
+                        {s === 'current' ? 'current' : s === 'grace' ? 'renewal due' : s === 'lapsed' ? 'lapsed' : 'no date'}
+                      </span>
+                      <span className="text-muted text-[14px]">
+                        {o.expires_at ? `paid through ${formatDate(o.expires_at)}` : 'no paid-through date yet'} · {o.seats_used} of {o.seat_cap} seats
+                        {o.role === 'coordinator' ? ' · you are the coordinator' : o.coordinator_name ? ` · coordinator ${o.coordinator_name}` : ''}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
           {/* Dues: where the member stands, what they last paid, and how to renew. */}
-          {dues > 0 && (
+          {ownDues && (
             <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
               <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="flex-1 min-w-[260px]">

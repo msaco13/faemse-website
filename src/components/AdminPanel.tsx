@@ -3,7 +3,9 @@ import type { Application, ContactMessage, Payment, Profile } from '../lib/porta
 import { dollars, duesCents, formatDate, PAYMENT_METHODS } from '../lib/portal';
 import { supabase } from '../lib/supabase';
 import AddPerson from './AddPerson';
-import { DuesLedger, MemberImport, OnlineDuesSwitch } from './DuesAdmin';
+import ContactsAdmin from './ContactsAdmin';
+import { DuesLedger, ListservExport, MemberImport, OnlineDuesSwitch, RemindersSwitch } from './DuesAdmin';
+import OrganizationsAdmin from './OrganizationsAdmin';
 
 const statusChip: Record<Application['status'], string> = {
   new: 'text-[#1A47B8] bg-[#E7EEFF]',
@@ -11,16 +13,20 @@ const statusChip: Record<Application['status'], string> = {
   declined: 'text-muted bg-paper',
 };
 
-function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }) {
+function MemberRow({ member, orgs, onSaved }: { member: Profile; orgs: string[]; onSaved: () => void }) {
   const [expires, setExpires] = useState(member.expires_at ?? '');
   const [tier, setTier] = useState(member.tier ?? 'active');
   const [role, setRole] = useState<'member' | 'admin'>(member.role ?? 'member');
+  const [onList, setOnList] = useState(!member.listserv_opt_out);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   // A recorded payment moves the date server-side; show the new one.
   useEffect(() => {
     setExpires(member.expires_at ?? '');
   }, [member.expires_at]);
+  useEffect(() => {
+    setOnList(!member.listserv_opt_out);
+  }, [member.listserv_opt_out]);
 
   async function save() {
     setSaving(true);
@@ -31,8 +37,11 @@ function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }
       p_tier: tier,
       p_role: role,
     });
+    const { error: extraErr } = error
+      ? { error }
+      : await supabase.rpc('admin_update_profile', { p_target: member.id, p_patch: { listserv_opt_out: !onList } });
     setSaving(false);
-    if (error) setErr(error.message);
+    if (error || extraErr) setErr((error ?? extraErr)?.message ?? 'Could not save');
     else onSaved();
   }
 
@@ -71,6 +80,20 @@ function MemberRow({ member, onSaved }: { member: Profile; onSaved: () => void }
       <div className="min-w-0">
         <b className="block text-[14.5px] truncate">{member.full_name ?? '—'}</b>
         <span className="text-[13px] text-muted truncate block">{member.email}</span>
+        {(member.job_title || member.agency || member.phone) && (
+          <span className="text-[12px] text-muted truncate block">
+            {[member.job_title, member.agency, member.phone].filter(Boolean).join(' · ')}
+          </span>
+        )}
+        {orgs.length > 0 && (
+          <span className="text-[12px] text-[#1A47B8] truncate block" title={orgs.join(', ')}>
+            Represents {orgs.join(', ')}
+          </span>
+        )}
+        <label className="flex items-center gap-1.5 text-[12px] text-muted mt-1">
+          <input type="checkbox" checked={onList} onChange={(e) => setOnList(e.target.checked)} className="w-3.5 h-3.5 accent-brand-blue" />
+          On the listserv{member.listserv_email ? ` (as ${member.listserv_email})` : ''}
+        </label>
       </div>
       <label className="block">
         <span className="block text-[11px] font-bold uppercase tracking-wide text-muted mb-1">Paid through</span>
@@ -137,27 +160,45 @@ export default function AdminPanel() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [members, setMembers] = useState<Profile[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  // Which organizations each member represents, for the badge on their row.
+  const [orgsByProfile, setOrgsByProfile] = useState<Map<string, string[]>>(new Map());
   const [showHandled, setShowHandled] = useState(false);
+  const [memberFilter, setMemberFilter] = useState('');
   const [loadError, setLoadError] = useState('');
   // Bumped after any payment or import so the ledger and member list refetch.
   const [ledgerKey, setLedgerKey] = useState(0);
 
   async function load() {
-    const [apps, mems, msgs] = await Promise.all([
+    const [apps, mems, msgs, seats] = await Promise.all([
       supabase.from('membership_applications').select('*').order('created_at', { ascending: false }).limit(100),
       supabase.rpc('admin_list_members'),
       supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(100),
+      supabase.from('organization_members').select('profile_id, organizations(name)'),
     ]);
     if (apps.error || mems.error) {
       setLoadError((apps.error ?? mems.error)?.message ?? 'Could not load admin data.');
       return;
     }
     setApplications((apps.data ?? []) as Application[]);
-    setMembers((mems.data ?? []) as Profile[]);
+    setMembers(((mems.data ?? []) as Profile[]).slice().sort((a, b) => (a.full_name ?? '').localeCompare(b.full_name ?? '')));
     // Messages need the Sept 2026 migration; until it runs, just show none.
     if (!msgs.error) setMessages((msgs.data ?? []) as ContactMessage[]);
+    if (!seats.error) {
+      const map = new Map<string, string[]>();
+      for (const s of (seats.data ?? []) as { profile_id: string; organizations: { name: string } | { name: string }[] | null }[]) {
+        const o = Array.isArray(s.organizations) ? s.organizations[0] : s.organizations;
+        if (o?.name) map.set(s.profile_id, [...(map.get(s.profile_id) ?? []), o.name]);
+      }
+      setOrgsByProfile(map);
+    }
     setLedgerKey((k) => k + 1);
   }
+
+  const visibleMembers = members.filter((m) => {
+    const q = memberFilter.trim().toLowerCase();
+    if (!q) return true;
+    return [m.full_name, m.email, m.agency, m.job_title, ...(orgsByProfile.get(m.id) ?? [])].some((v) => (v ?? '').toLowerCase().includes(q));
+  });
 
   // A renewal form from someone who already has a member record: one button
   // approves it and records the payment (the board clicks it once the check
@@ -321,22 +362,44 @@ export default function AdminPanel() {
 
       <AddPerson onAdded={load} />
 
-      <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-3">
-        Members
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted">
+          Members
+          {members.length > 0 && <span className="ml-2 font-body normal-case tracking-normal text-[12.5px] font-normal">{members.length} logins</span>}
+        </h3>
+        {members.length > 8 && (
+          <input
+            value={memberFilter}
+            onChange={(e) => setMemberFilter(e.target.value)}
+            placeholder="Find by name, email, organization…"
+            className="rounded-lg border border-line px-3 py-1.5 text-[13.5px] outline-none focus:border-brand-blue w-[280px]"
+            aria-label="Filter members"
+          />
+        )}
+      </div>
       {members.length === 0 ? (
         <p className="text-muted text-[14.5px] mb-8">No member records yet.</p>
+      ) : visibleMembers.length === 0 ? (
+        <p className="text-muted text-[14.5px] mb-8">Nobody matches &ldquo;{memberFilter}&rdquo;.</p>
       ) : (
         <div className="border border-line rounded-2xl overflow-hidden mb-8">
-          {members.map((m) => (
-            <MemberRow key={m.id} member={m} onSaved={load} />
+          {visibleMembers.map((m) => (
+            <MemberRow key={m.id} member={m} orgs={orgsByProfile.get(m.id) ?? []} onSaved={load} />
           ))}
         </div>
       )}
 
+      <OrganizationsAdmin members={members} refreshKey={ledgerKey} onChanged={load} />
+
+      <ContactsAdmin refreshKey={ledgerKey} />
+
       <MemberImport onImported={load} />
 
       <DuesLedger refreshKey={ledgerKey} />
+
+      <ListservExport />
+
+      <RemindersSwitch />
 
       <OnlineDuesSwitch />
     </div>
