@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Spotlight } from '../lib/postings';
-import { slug, T, useText } from '../lib/text';
+import { slug, T, useSiteText, useText } from '../lib/text';
 
 // The homepage's "one main screen that flips through": the mission statement
 // leads, then board-editable spotlights (next meeting, awards, schools,
@@ -41,6 +41,11 @@ export default function HeroSpotlight({
   const tabsLabel = useText('home.hero.aria.tabs', 'Choose a slide');
   const prevLabel = useText('home.hero.aria.prev', 'Previous slide');
   const nextLabel = useText('home.hero.aria.next', 'Next slide');
+  // In edit mode the mission slide's words highlight, but the spotlight
+  // slides come from the Spotlights panel, not the text editor. Say so on
+  // the slide itself, otherwise an admin reasonably concludes slides 2+ are
+  // stuck (the board hit exactly this on launch day).
+  const { editing } = useSiteText();
 
   useEffect(() => {
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
@@ -183,6 +188,15 @@ export default function HeroSpotlight({
                   <T id="home.hero.spot.join">Become a member</T>
                 </Link>
               </div>
+              {editing && (
+                <p className="text-[13px] font-semibold text-brand-goldsoft bg-black/40 border border-brand-goldsoft/40 rounded-xl px-4 py-2.5 max-w-[52ch]">
+                  This slide is a homepage spotlight. Its words are changed in{' '}
+                  <Link to="/members#boards" className="underline text-white">
+                    Members → Boards &amp; library → Homepage spotlights
+                  </Link>
+                  , with the Edit button on this spotlight.
+                </p>
+              )}
             </div>
           );
         })}
