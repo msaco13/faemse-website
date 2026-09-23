@@ -1,0 +1,31 @@
+name: Smoke check (signed-out visitor)
+
+# Every hour, load faemse.org and every public read the pages make, exactly
+# as a visitor who is not signed in, and fail if anything is refused, slow,
+# missing, or leaking. The site fails soft (samples instead of errors), so
+# this is the only thing that notices a public-side outage. A failed run
+# emails the repository owner; the daily maintenance routine reads these
+# runs too. See scripts/smoke.mjs.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check the live site as a signed-out visitor
+        run: node scripts/smoke.mjs
