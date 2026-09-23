@@ -359,7 +359,8 @@ account (host `smtp.resend.com`, user `resend`, password = the API key).
 
 ## Updating the site (board admins — no GitHub needed)
 
-Day-to-day content changes happen inside the website itself:
+Day-to-day content changes happen inside the website itself. A walkthrough
+with screenshots is in [docs/admin-guide](docs/admin-guide/README.md).
 
 1. Sign in at `/login` with an account whose profile role is `admin`.
 2. The Members page shows three admin panels:
