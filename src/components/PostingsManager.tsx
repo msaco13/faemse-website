@@ -515,8 +515,10 @@ export default function PostingsManager() {
       });
   }, []);
 
+  // id="boards": the homepage hero links here from edit mode ("this slide is
+  // a spotlight").
   return (
-    <div className="card p-8 mb-10 border-t-[3px] border-t-brand-blue/60">
+    <div id="boards" className="card p-8 mb-10 border-t-[3px] border-t-brand-blue/60 scroll-mt-24">
       <div className="flex items-baseline gap-3 mb-1">
         <h2 className="font-disp font-bold uppercase text-2xl">Boards &amp; library</h2>
         <span className="text-[11px] font-bold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full text-[#1A47B8] bg-[#E7EEFF]">

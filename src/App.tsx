@@ -40,7 +40,7 @@ function RouteFallback() {
 }
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const firstRender = useRef(true);
   useEffect(() => {
     // Braced body on purpose: a concise arrow would return scrollTo's result,
@@ -50,16 +50,27 @@ function ScrollToTop() {
     window.scrollTo(0, 0);
     // Move keyboard focus to the new page's content (skip the initial load so
     // the browser's default focus behavior is preserved).
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
+    if (!firstRender.current) {
+      try {
+        document.getElementById('main')?.focus({ preventScroll: true });
+      } catch {
+        /* focus is an enhancement; never let it break navigation */
+      }
     }
-    try {
-      document.getElementById('main')?.focus({ preventScroll: true });
-    } catch {
-      /* focus is an enhancement; never let it break navigation */
-    }
-  }, [pathname]);
+    firstRender.current = false;
+    // A hash names a section (e.g. /members#boards from the homepage's edit
+    // mode). The admin panels render only after the session check, so keep
+    // looking for the target for a few seconds rather than only once.
+    if (hash.length < 2) return;
+    const id = decodeURIComponent(hash.slice(1));
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ block: 'start' });
+      if (el || ++tries > 40) window.clearInterval(timer);
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [pathname, hash]);
   return null;
 }
 

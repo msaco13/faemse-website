@@ -115,6 +115,26 @@ spotlights carry end dates and drop off the public site by themselves when the
 date passes. Q&A entries save as drafts; tick the **Published** box when the
 board is happy with one, otherwise members never see it.
 
+### The rotating homepage slides
+
+The first slide on the homepage is the mission statement and its words are
+edited with **Edit page** (section 5). Every slide after it is a **homepage
+spotlight**, and those are changed here, not with Edit page. Click **Edit** on
+the spotlight, change the kicker, headline, sentences, button or dates, and
+click **Save changes**. The homepage updates right away. **+ Add spotlight**
+adds a new slide, **Delete** removes one, and the **Order** number sets the
+sequence. A spotlight with a "Stop showing after" date leaves the homepage on
+its own when the date passes.
+
+![Homepage spotlights](14-spotlights-list.jpg)
+
+![Editing a spotlight](15-spotlight-edit.jpg)
+
+While Edit page is on, each spotlight slide shows a note pointing back here,
+so nobody has to remember the difference.
+
+![Spotlight slide in edit mode](16-hero-edit-hint.jpg)
+
 ## 5. Editing the wording on any page
 
 The dark **Board tools** bar in the bottom-left corner appears on every page
