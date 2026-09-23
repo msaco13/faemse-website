@@ -1,11 +1,11 @@
-import { Link } from 'react-router-dom';
+import BylawsText from '../components/BylawsText';
 import PageHead from '../components/PageHead';
 import { bylawsHistory, bylawsOutline } from '../content/data';
 import { T } from '../lib/text';
 
-// The public face of the bylaws: one card per article of the current
-// revision, the revision history, and how amendments work. The full text is
-// members-only and lives in the portal (Members page), by board decision.
+// The bylaws: the complete current text first (public since the board's
+// 2026-09-23 decision), then a one-card-per-article summary, the revision
+// history, and how amendments work.
 export default function Bylaws() {
   return (
     <>
@@ -13,30 +13,29 @@ export default function Bylaws() {
         id="bylaws"
         eyebrow="Governance"
         title="Bylaws"
-        sub="How the association is organized and governed, article by article. Members can read the full text in the member portal."
+        sub="How the association is organized and governed. The complete current text, and a summary article by article."
       />
       <section className="py-20 bg-white">
         <div className="wrap max-w-[860px]">
-          <div className="card p-7 mb-8 flex flex-wrap items-center justify-between gap-4 bg-paper">
-            <div>
-              <p className="font-disp font-semibold text-[13px] tracking-[0.22em] uppercase text-brand-blue mb-1">
-                <T id="bylaws.edition.label">Current edition</T>
-              </p>
-              <p className="font-bold text-[17px]">
-                <T id="bylaws.edition.text">Revised September 10, 2021</T>
-              </p>
-              <p className="text-muted text-[14px] mt-1">
-                <T id="bylaws.edition.note">
-                  Fifteen articles. Adopted May 23, 1998; revised five times since. The wording below
-                  is a summary; where it and the bylaws differ, the bylaws control.
-                </T>
-              </p>
-            </div>
-            <Link to="/members" className="btn-outline whitespace-nowrap">
-              <T id="bylaws.edition.cta">Read the full text (members)</T>
-            </Link>
+          <div className="card p-7 mb-8 bg-paper">
+            <p className="font-disp font-semibold text-[13px] tracking-[0.22em] uppercase text-brand-blue mb-1">
+              <T id="bylaws.edition.label">Current edition</T>
+            </p>
+            <p className="font-bold text-[17px]">
+              <T id="bylaws.edition.text">Revised September 10, 2021</T>
+            </p>
+            <p className="text-muted text-[14px] mt-1 mb-5">
+              <T id="bylaws.edition.note">
+                Fifteen articles. Adopted May 23, 1998; revised five times since. The summary below
+                is for orientation; where it and the bylaws differ, the bylaws control.
+              </T>
+            </p>
+            <BylawsText />
           </div>
 
+          <h2 className="font-disp font-bold uppercase text-xl mb-4 text-muted">
+            <T id="bylaws.outline.h2">Article by article</T>
+          </h2>
           <ol className="space-y-5">
             {bylawsOutline.map((b) => {
               const key = b.article.toLowerCase().replace(/\s+/g, '-');
