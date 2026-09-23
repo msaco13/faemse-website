@@ -475,3 +475,19 @@ For the real faemse.org cutover, connect this repo to Netlify — `netlify.toml`
 already carries the build command, SPA fallback, cache headers, and security
 headers, so the only dashboard step is adding the custom domain — then point
 DNS at it. See PLAN.md §10 phase 5.
+
+## Monitoring
+
+The site fails soft: when a live read is refused it shows its bundled sample
+content instead of an error, so an outage that only affects signed-out
+visitors is invisible to anyone testing while signed in. Two things watch
+for that:
+
+- **Hourly smoke check** (`.github/workflows/smoke.yml`, `scripts/smoke.mjs`):
+  loads faemse.org and every public read the pages make, exactly as an
+  anonymous visitor, and fails the run if anything is refused, slow, missing,
+  or readable that should not be. A red run emails the repository owner.
+  Run it by hand with `node scripts/smoke.mjs`.
+- **Daily maintenance routine**: a scheduled Claude session reads the smoke
+  runs, the Supabase logs and advisors, and any site emails from the board,
+  fixes what is small and safe, and reports only when something was found.
