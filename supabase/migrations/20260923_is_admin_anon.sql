@@ -1,0 +1,13 @@
+-- 2026-09-23, found live by the board: anonymous visitors saw the bundled
+-- sample spotlights, jobs and classes instead of the real rows. The public
+-- SELECT policies on spotlights, jobs and class_listings end with
+-- "or is_admin()" so admins can see expired rows, but is_admin() was only
+-- executable by authenticated and service_role. For the anon role the policy
+-- itself raised "permission denied for function is_admin" (42501), the
+-- request failed with 401, and the site fell back to its samples. Signed-in
+-- users never saw it, which is why it went unnoticed.
+--
+-- is_admin() is safe for anon: it only checks whether auth.uid() (null when
+-- signed out) belongs to an admin profile, and returns false.
+-- Applied to the FAEMSE WEBSITE project on 2026-09-23.
+grant execute on function public.is_admin() to anon;
