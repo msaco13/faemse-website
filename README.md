@@ -130,9 +130,11 @@ association's Supabase organization.
   reminder emails (portal → Board admin → Renewal reminder emails).
 - `documents` — text documents members can read in the portal; today the
   full bylaws (slug `bylaws`, plain text, one line per paragraph, rendered
-  with the document's own numbering as headings). Current members read,
-  admins manage, the public gets nothing (RLS). The public Bylaws page shows
-  an article-by-article outline instead. Schema and the bylaws text:
+  with the document's own numbering as headings). The bylaws row is public
+  (board decision 2026-09-23, `supabase/migrations/20260923_bylaws_public.sql`):
+  the Bylaws page shows the complete text above its article-by-article
+  summary, and the portal keeps a copy at hand. Any other document stays
+  members-only; admins manage. Schema and the bylaws text:
   `supabase/migrations/20260913_bylaws_documents.sql`. That file was written
   to be pasted into the SQL Editor and sat unapplied for a week — the portal's
   Bylaws card errored for every member, and the 90-day grace gate below never

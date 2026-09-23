@@ -8,7 +8,7 @@ import PageHead from '../components/PageHead';
 import { resourceCategories } from '../content/data';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
 import { dateState, dollars, duesCents, formatDate, graceEnd, overallState } from '../lib/portal';
-import { parseDocument, useDocument } from '../lib/documents';
+import BylawsText from '../components/BylawsText';
 import { useLibrary } from '../lib/postings';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
@@ -324,7 +324,7 @@ export default function Members() {
             ))}
           </div>
 
-          <BylawsCard enabled={mState === 'current' || mState === 'grace'} admin={profile?.role === 'admin'} />
+          <BylawsCard />
 
           {/* Organizations this person represents: the membership is theirs, not the person's. */}
           {myOrgs.length > 0 && (
@@ -587,61 +587,16 @@ export default function Members() {
 
 // The full bylaws, members-only: the row comes through RLS, so a visitor who
 // is not a current member never receives the text at all. Rendered from plain
-// text with the document's own numbering turned into headings.
-function BylawsCard({ enabled, admin }: { enabled: boolean; admin: boolean }) {
-  const doc = useDocument('bylaws', enabled);
-  const blocks = doc.status === 'ready' ? parseDocument(doc.doc.body) : [];
-  const current = blocks.filter((b) => b.kind === 'date').map((b) => (b.kind === 'date' ? b.text : '')).pop();
+// text with the document's own numbering turned into headings. Public since
+// 2026-09-23 (same block as the Bylaws page); kept here so members have it
+// at hand in the portal.
+function BylawsCard() {
   return (
     <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
       <h2 className="font-disp font-bold uppercase text-2xl mb-2">
         <T id="members.bylaws.title">Bylaws</T>
       </h2>
-      {!enabled && (
-        <p className="text-muted text-[14.5px]">
-          <T id="members.bylaws.locked">The full bylaws are available to current members. The public outline is on the Bylaws page.</T>
-        </p>
-      )}
-      {enabled && doc.status === 'loading' && (
-        <p className="text-muted text-[14.5px]"><T id="members.bylaws.loading">Loading the bylaws…</T></p>
-      )}
-      {enabled && doc.status === 'missing' && (
-        <p className="text-muted text-[14.5px]">
-          <T id="members.bylaws.missing">The bylaws have not been loaded into the portal yet.</T>
-          {admin && ' Admins: run supabase/migrations/20260913_bylaws_documents.sql in the SQL Editor.'}
-        </p>
-      )}
-      {enabled && doc.status === 'error' && (
-        <p className="text-brand-red text-[14.5px] font-semibold" role="alert">{doc.message}</p>
-      )}
-      {enabled && doc.status === 'ready' && (
-        <>
-          <p className="text-muted text-[14px] mb-4">
-            <T id="members.bylaws.text">The complete, current bylaws of the association.</T>
-            {current ? ` ${current.replace(/^Date /, '')}.` : ''}
-          </p>
-          <details className="group">
-            <summary className="cursor-pointer list-none inline-flex items-center gap-2 font-bold text-brand-blue hover:underline text-[15px]">
-              <span className="group-open:hidden"><T id="members.bylaws.open">Read the full text ↓</T></span>
-              <span className="hidden group-open:inline"><T id="members.bylaws.close">Collapse ↑</T></span>
-            </summary>
-            <div className="mt-5 max-h-[70vh] overflow-y-auto pr-3 border-t border-line pt-5 text-[15px] leading-relaxed">
-              <h3 className="font-disp font-bold uppercase text-xl mb-4">{doc.doc.title}</h3>
-              {blocks.map((b, i) => {
-                if (b.kind === 'article')
-                  return (
-                    <h4 key={i} className="font-disp font-bold uppercase text-lg mt-7 mb-2 text-brand-bluedeep">
-                      Article {b.number}{b.title ? `: ${b.title}` : ''}
-                    </h4>
-                  );
-                if (b.kind === 'section') return <h5 key={i} className="font-bold mt-4 mb-1">{b.text}</h5>;
-                if (b.kind === 'date') return <p key={i} className="text-muted text-[14px] my-0.5">{b.text}</p>;
-                return <p key={i} className="text-body mb-3">{b.text}</p>;
-              })}
-            </div>
-          </details>
-        </>
-      )}
+      <BylawsText />
     </div>
   );
 }
