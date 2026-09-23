@@ -338,7 +338,7 @@ export default function ContentManager() {
                         </button>
                         <button
                           onClick={() => remove('events', ev.id, ev.title)}
-                          className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
+                          className="btn-outline !py-1.5 !px-3.5 text-[12.5px] !border-brand-red/40 !text-brand-red hover:!border-brand-red hover:!text-brand-red hover:!bg-[#FDEAEB]"
                         >
                           Delete
                         </button>
@@ -386,7 +386,7 @@ export default function ContentManager() {
                         </button>
                         <button
                           onClick={() => remove('news_posts', p.id, p.title)}
-                          className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
+                          className="btn-outline !py-1.5 !px-3.5 text-[12.5px] !border-brand-red/40 !text-brand-red hover:!border-brand-red hover:!text-brand-red hover:!bg-[#FDEAEB]"
                         >
                           Delete
                         </button>
