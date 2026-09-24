@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Organization, OrganizationMember, Payment, Profile } from '../lib/portal';
 import { dateState, dollars, duesCents, formatDate, PAYMENT_METHODS, seatCap } from '../lib/portal';
+import { matchesQuery } from '../lib/search';
 import { supabase } from '../lib/supabase';
 
 // Institutional and corporate memberships, which belong to an organization
@@ -249,6 +250,7 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
   const [expires, setExpires] = useState('');
   const [adding, setAdding] = useState(false);
   const [tick, setTick] = useState(0);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     Promise.all([supabase.from('organizations').select('*').order('name'), supabase.from('organization_members').select('*')]).then(([o, s]) => {
@@ -278,13 +280,31 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
   }
 
   const seatsFor = (id: string) => seats.filter((s) => s.organization_id === id);
+  const memberName = (id: string | null) => members.find((m) => m.id === id)?.full_name ?? '';
+  // Search by organization name, kind, billing contact, coordinator, or any seated representative.
+  const visible = orgs.filter((o) =>
+    matchesQuery(query, [o.name, o.kind, o.contact_email, o.website, memberName(o.coordinator_id), ...seatsFor(o.id).map((s) => memberName(s.profile_id))]),
+  );
 
   return (
     <>
-      <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-3">
-        Organizations
-        <span className="ml-2 font-body normal-case tracking-normal text-[12.5px] font-normal">institutional and corporate memberships</span>
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <h3 className="font-disp font-bold uppercase text-2xl">
+          Organizations
+          <span className="ml-2 font-body normal-case tracking-normal text-[13px] font-normal text-muted">
+            {orgs.length ? `${orgs.length} institutional and corporate memberships` : 'institutional and corporate memberships'}
+          </span>
+        </h3>
+        {orgs.length > 5 && (
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Find by organization, coordinator, representative…"
+            className={`${small} w-[300px] max-w-full`}
+            aria-label="Find an organization"
+          />
+        )}
+      </div>
       <p className="text-muted text-[13.5px] mb-3 max-w-[76ch]">
         An institutional membership seats up to five representatives, a corporate one up to three. Everyone seated is a
         current member while the organization is paid up, on top of any membership of their own. Renewal reminders go to
@@ -297,9 +317,11 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
       )}
       {orgs.length === 0 ? (
         <p className="text-muted text-[14.5px] mb-4">No organizations yet.</p>
+      ) : visible.length === 0 ? (
+        <p className="text-muted text-[14.5px] mb-4">No organization matches &ldquo;{query}&rdquo;.</p>
       ) : (
         <div className="border border-line rounded-2xl overflow-hidden mb-4">
-          {orgs.map((o) => (
+          {visible.map((o) => (
             <OrgRow key={o.id} org={o} seats={seatsFor(o.id)} members={members} onChanged={changed} />
           ))}
         </div>
