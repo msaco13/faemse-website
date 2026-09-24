@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import AdminPanel from '../components/AdminPanel';
-import ContentManager from '../components/ContentManager';
-import PostingsManager from '../components/PostingsManager';
+import AdminWorkspace from '../components/admin/AdminWorkspace';
 import PageHead from '../components/PageHead';
 import { resourceCategories } from '../content/data';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
@@ -288,13 +286,7 @@ export default function Members() {
             </p>
           )}
 
-          {profile?.role === 'admin' && (
-            <>
-              <AdminPanel />
-              <ContentManager />
-              <PostingsManager />
-            </>
-          )}
+          {profile?.role === 'admin' && <AdminWorkspace />}
 
           <div className="grid md:grid-cols-3 gap-6 mb-10">
             {[
