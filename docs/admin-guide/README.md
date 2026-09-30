@@ -131,13 +131,15 @@ The things you touch a few times a year.
   at once. Always click **Check (no changes)** first; it reports what would be
   created or updated without writing anything. Then click **Import members**.
 
-Two switches sit at the bottom and both should stay as they are until the
-board decides otherwise:
+Two switches sit at the bottom. Both were turned on at the board's request on
+September 30, 2026, and changing either is a board decision:
 
-- **Renewal reminder emails** is **Held**. When switched to Running, members
-  get automatic emails 90, 60, 30 and 7 days before their paid-through date.
-- **Online dues (Stripe)** is **Off**. Off means nobody can pay by card on the
-  site and nobody can be charged. Recording checks and cash still works.
+- **Renewal reminder emails** is **Running**. Members get automatic emails 90,
+  60, 30 and 7 days before their paid-through date. Held stops them.
+- **Online dues (Stripe)** is **On**. Members see a Pay dues online button in
+  the portal and a card payment extends them a year on the spot. Off hides the
+  button and makes it impossible to charge anyone. Recording checks and cash
+  works either way.
 
 ![Dues and tools](24-tools.jpg)
 
