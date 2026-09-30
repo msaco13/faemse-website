@@ -355,10 +355,17 @@ The parsing is `src/lib/roster.ts`, kept free of React and network calls so it
 can be exercised directly; `toRows()` is the entry point.
 
 New members receive no email from either path; they set a password with
-*Forgot password* on the sign-in page. That email goes out through Supabase
-Auth, whose built-in mailer is limited to a few messages an hour — before
-inviting the whole roster, set Supabase → Authentication → SMTP to the Resend
-account (host `smtp.resend.com`, user `resend`, password = the API key).
+*Forgot password* on the sign-in page. Since 2026-09-30 that button calls
+`supabase/functions/password-link/`, which mints the same recovery link
+Supabase Auth would have emailed (`auth.admin.generateLink`) and sends it
+through Resend as notifications@faemse.org, so it does not depend on
+Supabase's built-in mailer (team-only recipients, a couple of messages an
+hour). Unknown addresses get the same "sent" answer and no email; each
+address gets at most 3 links an hour (`password_link_log`,
+`supabase/migrations/20260930_password_link_log.sql`). The other Auth
+emails (email change, invites from the dashboard) still use the built-in
+mailer until Supabase → Authentication → SMTP is pointed at Resend (host
+`smtp.resend.com`, port 465, user `resend`, password = the API key).
 
 ## Updating the site (board admins — no GitHub needed)
 
