@@ -53,7 +53,7 @@ export default function PaymentComplete() {
           <Link to={fromForm ? '/login' : '/members'} className="btn-gold">
             {fromForm ? <T id="paid.cta.login">Sign in to the portal</T> : <T id="paid.cta.portal">Back to the portal</T>}
           </Link>
-          <Link to="/" className="btn-outline !border-white/40 !text-white hover:!bg-white/10">
+          <Link to="/" className="btn-glass">
             <T id="paid.cta.home">Back to home</T>
           </Link>
         </div>
