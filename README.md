@@ -331,6 +331,34 @@ Test with Stripe's test keys first (card 4242 4242 4242 4242): the payment
 shows in the ledger with method "Online (Stripe)". Stripe's fee is 2.9% +
 30¢ per card payment (about $1.75 on $50). The site never sees card numbers.
 
+#### Paying from the application form (added 2026-09-30)
+
+Board decision (Jorge, 2026-09-30): the public Join or renew form leads
+straight to the card page; nobody waits for an approval before paying.
+
+- `src/pages/Membership.tsx` mints the application's id, inserts the row as
+  before, and when the Online dues switch is on calls
+  `supabase/functions/apply-checkout/` with that id. The function checks the
+  switch itself, prices the tier, opens a Stripe Checkout session with
+  `metadata[application_id]`, and the page sends the visitor to Stripe. Free
+  tiers and a refused checkout fall back to the old "application received"
+  message, and the row is in the Inbox either way.
+- `stripe-webhook` now has two paths: `metadata.profile_id` (a signed-in
+  member paying from the portal, unchanged) and `metadata.application_id`.
+  For the latter it finds the login by email or creates one, then calls
+  `complete_paid_application()` (`supabase/migrations/20260930_paid_applications.sql`),
+  which fills the profile from the form, runs `extend_membership()` (12
+  months, ledger row, idempotent per Stripe session) and marks the
+  application `approved`, in one transaction. Then it emails the member
+  ("Welcome to FAEMSE" with a set-password link for a new login, or
+  "Your FAEMSE membership is renewed") and the board a receipt
+  (`[FAEMSE site] Paid online: …`), both through Resend.
+- Stripe returns the visitor to `/membership?paid=1` (or `?paid=0` if they
+  backed out; the application stays `new` for the board to follow up).
+- Institutional and corporate applicants become a *person* with that tier;
+  the board still creates the organization and seats representatives under
+  Board admin → Organizations. The receipt email says so.
+
 #### Adding people
 
 **One person:** Board admin → **Add a person**. Name, email, membership type,

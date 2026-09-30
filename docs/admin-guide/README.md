@@ -40,6 +40,12 @@ application lands here. **Reply by email** opens a reply in your mail program;
 Approving does not create the person's login; do that with **Add a person**
 under People. The red number on the Inbox tab is how many items are waiting.
 
+Since September 30, 2026 the public form sends paid tiers straight to the
+card page. An application that was paid online arrives here already
+**approved**, with the payment in the Dues ledger, the person's login created,
+and a "Paid online" email to the board. Only applications where the person
+skipped the payment page (to pay by check) wait here as new.
+
 ![Inbox](20-inbox.jpg)
 
 ### People

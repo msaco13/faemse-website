@@ -68,8 +68,40 @@ type Session = {
   client_reference_id?: string | null;
   payment_intent?: string | null;
   customer_details?: { email?: string | null } | null;
-  metadata?: { profile_id?: string; tier?: string } | null;
+  // profile_id: a signed-in member paying from the portal (create-checkout).
+  // application_id: someone paying straight from the application form
+  // (apply-checkout, board decision 2026-09-30).
+  metadata?: { profile_id?: string; application_id?: string; tier?: string; kind?: string } | null;
 };
+
+const SITE = 'https://faemse.org';
+const FROM = 'FAEMSE <notifications@faemse.org>';
+const DEFAULT_BOARD = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
+const TIER_LABEL: Record<string, string> = { active: 'Active', institutional: 'Institutional', corporate: 'Corporate', honorary: 'Honorary' };
+
+function dollars(cents: number | null | undefined): string {
+  return typeof cents === 'number' ? `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}` : 'dues';
+}
+
+function longDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Best effort: a failed email never fails the webhook, the membership is
+// already active by the time these run.
+async function sendMail(to: string[], subject: string, text: string, replyTo = 'info@faemse.org'): Promise<void> {
+  const key = Deno.env.get('RESEND_API_KEY');
+  if (!key) {
+    console.log(`RESEND_API_KEY not set; would email ${to.join(', ')}: ${subject}`);
+    return;
+  }
+  const resp = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ from: FROM, to, subject, text, reply_to: replyTo }),
+  });
+  if (!resp.ok) console.error(`Resend refused (${resp.status}) for ${to.join(', ')}: ${subject}`);
+}
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('POST only', { status: 405 });
@@ -118,27 +150,167 @@ Deno.serve(async (req) => {
   }
   if (s.payment_status && s.payment_status !== 'paid') return new Response('not paid yet', { status: 200 });
 
-  const profileId = s.metadata?.profile_id || s.client_reference_id;
-  if (!profileId) {
-    console.error(`REJECT: no profile id on session ${s.id}`);
-    return new Response('no profile', { status: 200 });
+  const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const note = `Stripe ${s.payment_intent ?? s.id}${s.customer_details?.email ? ` · ${s.customer_details.email}` : ''}`;
+  const applicationId = s.metadata?.application_id;
+
+  // ---- Path 1: a signed-in member paid from the portal ---------------------
+  if (!applicationId) {
+    const profileId = s.metadata?.profile_id || s.client_reference_id;
+    if (!profileId) {
+      console.error(`REJECT: no profile id on session ${s.id}`);
+      return new Response('no profile', { status: 200 });
+    }
+    const { data, error } = await supabase.rpc('extend_membership', {
+      p_profile: profileId,
+      p_method: 'stripe',
+      p_amount_cents: s.amount_total ?? null,
+      p_months: 12,
+      p_note: note,
+      p_stripe_session: s.id,
+      p_recorded_by: null,
+    });
+    if (error) {
+      console.error(`extend_membership failed: ${error.message}`);
+      // 500 makes Stripe retry later (up to 3 days), which is what we want.
+      return new Response(error.message, { status: 500 });
+    }
+    console.log(`OK: ${profileId} extended to ${data}`);
+    return new Response(JSON.stringify({ ok: true, new_expires: data }), { headers: { 'Content-Type': 'application/json' } });
   }
 
-  const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-  const { data, error } = await supabase.rpc('extend_membership', {
-    p_profile: profileId,
-    p_method: 'stripe',
-    p_amount_cents: s.amount_total ?? null,
-    p_months: 12,
-    p_note: `Stripe ${s.payment_intent ?? s.id}${s.customer_details?.email ? ` · ${s.customer_details.email}` : ''}`,
-    p_stripe_session: s.id,
-    p_recorded_by: null,
-  });
-  if (error) {
-    console.error(`extend_membership failed: ${error.message}`);
-    // 500 makes Stripe retry later (up to 3 days), which is what we want.
-    return new Response(error.message, { status: 500 });
+  // ---- Path 2: paid straight from the application form ---------------------
+  // Create the login if there is none, then complete_paid_application() fills
+  // the profile, extends the paid-through date, writes the ledger row (once
+  // per Stripe session) and marks the application approved, in one
+  // transaction. Then the member gets a welcome email with a set-password
+  // link and the board gets a receipt.
+  const { data: app, error: appErr } = await supabase
+    .from('membership_applications')
+    .select('id, kind, tier, full_name, email, organization, status')
+    .eq('id', applicationId)
+    .maybeSingle();
+  if (appErr) {
+    console.error(`application read failed: ${appErr.message}`);
+    return new Response(appErr.message, { status: 500 });
   }
-  console.log(`OK: ${profileId} extended to ${data}`);
-  return new Response(JSON.stringify({ ok: true, new_expires: data }), { headers: { 'Content-Type': 'application/json' } });
+  if (!app) {
+    console.error(`REJECT: application ${applicationId} not found for session ${s.id}`);
+    return new Response('no application', { status: 200 });
+  }
+  const email = String(app.email).trim().toLowerCase();
+
+  let profileId: string | undefined;
+  let created = false;
+  const { data: existing } = await supabase.from('profiles').select('id').ilike('email', email).maybeSingle();
+  if (existing?.id) {
+    profileId = existing.id;
+  } else {
+    const { data: made, error: mkErr } = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { full_name: app.full_name, tier: app.tier },
+    });
+    if (made?.user) {
+      profileId = made.user.id;
+      created = true;
+    } else {
+      // A login can exist without a profile row (never opened the portal).
+      for (let page = 1; page <= 20 && !profileId; page++) {
+        const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+        if (listErr) break;
+        profileId = list.users.find((u) => (u.email ?? '').toLowerCase() === email)?.id;
+        if (list.users.length < 1000) break;
+      }
+      if (!profileId) {
+        console.error(`could not create or find a login for application ${app.id}: ${mkErr?.message ?? 'unknown'}`);
+        return new Response('no login', { status: 500 });
+      }
+    }
+  }
+
+  const { data: newExpires, error: doneErr } = await supabase.rpc('complete_paid_application', {
+    p_application: app.id,
+    p_profile: profileId,
+    p_amount_cents: s.amount_total ?? null,
+    p_stripe_session: s.id,
+    p_note: note,
+  });
+  if (doneErr) {
+    console.error(`complete_paid_application failed for ${app.id}: ${doneErr.message}`);
+    return new Response(doneErr.message, { status: 500 });
+  }
+  const through = typeof newExpires === 'string' ? longDate(newExpires) : String(newExpires);
+  const tier = String(app.tier ?? 'active').toLowerCase();
+  const tierLabel = TIER_LABEL[tier] ?? tier;
+  console.log(`OK: application ${app.id} paid; ${profileId} extended to ${newExpires}${created ? ' (login created)' : ''}`);
+
+  // Welcome the member. A new login gets a set-password link (the same one
+  // Forgot password would send); an existing member is pointed at sign-in.
+  const firstName = String(app.full_name ?? '').split(' ')[0] || 'there';
+  let passwordLines: string[];
+  if (created) {
+    const { data: link } = await supabase.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: `${SITE}/` } });
+    const actionLink = link?.properties?.action_link;
+    passwordLines = actionLink
+      ? ['Set your portal password with this link (it works once and expires in one hour):', '', actionLink, '', `Your login is this email address. After that, sign in at ${SITE}/login`]
+      : [`Your login is this email address. Go to ${SITE}/login and use "Forgot password" to set your password.`];
+  } else {
+    passwordLines = [`Sign in at ${SITE}/login with this email address. If you have not set a password yet, use "Forgot password" there.`];
+  }
+  await sendMail(
+    [email],
+    app.kind === 'renew' ? 'Your FAEMSE membership is renewed' : 'Welcome to FAEMSE',
+    [
+      `Hi ${firstName},`,
+      '',
+      `Thank you. Your payment of ${dollars(s.amount_total)} went through and your ${tierLabel} membership is paid through ${through}.`,
+      '',
+      ...passwordLines,
+      '',
+      'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
+      '',
+      'Questions? Reply to this email or write to info@faemse.org.',
+      '',
+      'The FAEMSE board',
+    ].join('\n'),
+  );
+
+  // Tell the board. The application already emailed them when it was
+  // submitted; this is the receipt, and the reminder for organizations.
+  const boardTo = (Deno.env.get('NOTIFY_TO') ?? DEFAULT_BOARD.join(','))
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const orgLine =
+    tier === 'institutional' || tier === 'corporate'
+      ? [
+          '',
+          `This is a ${tierLabel} membership. To seat their representatives, create the organization under Board admin → Organizations and make this person the coordinator.`,
+        ]
+      : [];
+  await sendMail(
+    boardTo,
+    `[FAEMSE site] Paid online: ${app.full_name} (${tierLabel}, ${dollars(s.amount_total)})`,
+    [
+      `${app.full_name} paid ${dollars(s.amount_total)} by card through the ${app.kind === 'renew' ? 'renewal' : 'application'} form.`,
+      '',
+      `Email: ${email}`,
+      app.organization ? `Organization: ${app.organization}` : '',
+      `Tier: ${tierLabel}`,
+      `Paid through: ${through}`,
+      created ? 'A portal login was created and they were emailed a set-password link.' : 'They already had a portal login; it was extended.',
+      ...orgLine,
+      '',
+      `The application is marked approved and the payment is in the Dues ledger: ${SITE}/members`,
+    ]
+      .filter((l, i, arr) => !(l === '' && arr[i - 1] === ''))
+      .join('\n'),
+  );
+
+  return new Response(JSON.stringify({ ok: true, application: app.id, new_expires: newExpires, login_created: created }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
 });
