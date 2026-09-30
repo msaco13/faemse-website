@@ -268,9 +268,12 @@ against the real 2026-09-19 export (176 rows → 162 people, 28 organizations,
 
 Renewal reminders (`renewal-reminders`) now also email an organization's
 coordinator and billing contact at 90/60/30/7 days, and honour the
-**reminders_paused** switch. It is **held** as of 2026-09-22 at the board's
-request until they decide how the first renewal cycle should run; the
-October 31 cohort (47 memberships) is the reason to decide before October 1.
+**reminders_paused** switch. Held from 2026-09-22 while the board decided how
+the first renewal cycle should run; **running since 2026-09-30** at the
+board's request. The first unpaused run (2026-10-01, 12:00 UTC) sends the
+30-day notice to the October 31 cohort. When online dues is on, the notice
+tells first-time visitors that their login is their email address and to use
+Forgot password to set a password.
 
 Schema and functions: `supabase/migrations/20260922_organizations.sql`
 (applied 2026-09-22).
@@ -303,11 +306,11 @@ are deployed and inert until configured. One-time setup:
 
 3. In the portal's Board admin panel, switch **Online dues** on.
 
-**Pausing payments (currently paused, 2026-09-20).** Online dues is switched
-**off** at the board's request. Turning it back on is one click: portal →
-Board admin → **Online dues** → On. Nothing in Stripe was changed — the keys,
-the destination, and the past payments are all still there, so there is no
-Stripe work to redo either way.
+**Pausing payments.** Online dues was switched off at the board's request on
+2026-09-20 and **back on, live mode, on 2026-09-30** (verified by starting a
+checkout and reading a `cs_live_` session id). Pausing again is one click:
+portal → Board admin → **Online dues** → Off. Nothing in Stripe changes
+either way — the keys, the destination, and the past payments all stay.
 
 Off is enforced in two places, not one. The portal hides the button, and
 `create-checkout` reads the same switch through `get_settings()` and refuses

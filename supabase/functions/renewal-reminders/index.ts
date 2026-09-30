@@ -69,6 +69,9 @@ function howToRenew(onlineDues: boolean): string[] {
         '',
         PORTAL,
         '',
+        'First time signing in? Your login is this email address. Use "Forgot',
+        'password" on the sign-in page to set your password.',
+        '',
         'Prefer to pay by check? Submit the renewal form and the board will follow up:',
         RENEW_FORM,
       ]
