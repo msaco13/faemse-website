@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { faq, honorary, membershipTerms, tiers } from '../content/data';
@@ -17,6 +17,21 @@ export default function Membership() {
   const [tier, setTier] = useState('active');
   const [kind, setKind] = useState<'join' | 'renew'>('join');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  // Back from Stripe: ?paid=1 means the card cleared (the webhook activates
+  // the membership within seconds), ?paid=0 means they backed out; the
+  // application is still on file for the board either way.
+  const [paidNotice, setPaidNotice] = useState<'success' | 'cancelled' | null>(null);
+  const { online_dues: onlineDues } = useSettings();
+
+  useEffect(() => {
+    const paid = new URLSearchParams(window.location.search).get('paid');
+    if (paid === '1') setPaidNotice('success');
+    else if (paid === '0') setPaidNotice('cancelled');
+    if (paid !== null) {
+      window.history.replaceState(null, '', window.location.pathname);
+      formRef.current?.scrollIntoView({ block: 'start' });
+    }
+  }, []);
 
   function pickTier(name: string) {
     setTier(tierValue[name] ?? 'active');
@@ -34,7 +49,13 @@ export default function Membership() {
       return;
     }
     setStatus('sending');
+    setPaidNotice(null);
+    // The id is minted here so the payment step can name this application
+    // without needing to read the table back (anonymous visitors can only
+    // insert).
+    const id = crypto.randomUUID();
     const { error } = await supabase.from('membership_applications').insert({
+      id,
       kind,
       tier,
       full_name: String(data.full_name),
@@ -47,10 +68,21 @@ export default function Membership() {
     });
     if (error) {
       setStatus('error');
-    } else {
-      setStatus('sent');
-      form.reset();
+      return;
     }
+    // Paid tiers go straight to the card page (board decision, 2026-09-30).
+    // The function checks the Online dues switch itself; if it refuses, the
+    // application is still on file and the board follows up as before.
+    if (onlineDues) {
+      const { data: checkout } = await supabase.functions.invoke('apply-checkout', { body: { application_id: id } });
+      const url = (checkout as { url?: string } | null)?.url;
+      if (url) {
+        window.location.assign(url);
+        return;
+      }
+    }
+    setStatus('sent');
+    form.reset();
   }
 
   const input =
@@ -58,7 +90,6 @@ export default function Membership() {
   const label = 'text-[13px] font-bold uppercase tracking-wide text-muted';
   const typeAria = useText('membership.form.type.aria', 'Application type');
   const certPlaceholder = useText('membership.form.cert.placeholder', 'e.g. Paramedic, EMT, RN');
-  const { online_dues: onlineDues } = useSettings();
 
   return (
     <>
@@ -153,15 +184,24 @@ export default function Membership() {
             <T id="membership.apply.h2">Join or renew</T>
           </h2>
           <p className="text-muted text-[16px] max-w-[62ch] mb-8">
-            <T id="membership.apply.text">
-              Submit your application. The Secretary reviews it under the bylaws; once it is
-              approved, the board follows up with dues payment and your portal account. No payment
-              is collected on this form.
-            </T>
+            {onlineDues ? (
+              <T id="membership.apply.text.pay">
+                Fill in the form and you go straight to a secure card payment page. Your membership
+                starts the moment the payment clears, and we email you a link to set up your portal
+                login. Paying by check instead? Submit the form and skip the payment page; the board
+                will follow up.
+              </T>
+            ) : (
+              <T id="membership.apply.text">
+                Submit your application. The Secretary reviews it under the bylaws; once it is
+                approved, the board follows up with dues payment and your portal account. No payment
+                is collected on this form.
+              </T>
+            )}
             {onlineDues && (
               <>
                 {' '}
-                <T id="membership.apply.online">Already a member? Renew in two minutes by paying your dues online in the</T>{' '}
+                <T id="membership.apply.online">Already have a portal login? You can also renew in the</T>{' '}
                 <Link to="/login" className="font-semibold text-brand-blue hover:underline">
                   <T id="membership.apply.online.link">member portal</T>
                 </Link>
@@ -169,6 +209,23 @@ export default function Membership() {
               </>
             )}
           </p>
+          {paidNotice === 'success' && (
+            <p className="mb-6 rounded-xl border border-[#0E7A4A]/30 bg-[#0E7A4A]/10 text-[#0E7A4A] font-semibold text-[15px] px-5 py-4" role="status">
+              <T id="membership.paid.success">
+                Payment received. Welcome to FAEMSE. Your membership is active, and within a minute
+                you will get an email with a link to set your portal password. Check your spam
+                folder if it has not arrived.
+              </T>
+            </p>
+          )}
+          {paidNotice === 'cancelled' && (
+            <p className="mb-6 rounded-xl border border-line bg-paper text-muted font-semibold text-[15px] px-5 py-4" role="status">
+              <T id="membership.paid.cancelled">
+                The payment was not completed. Your application is saved; the board will follow up by
+                email, or you can submit the form again to return to the payment page.
+              </T>
+            </p>
+          )}
 
           <form onSubmit={onSubmit} className="card p-8">
             <div className="absolute w-px h-px overflow-hidden [clip:rect(0,0,0,0)]" aria-hidden>
@@ -262,6 +319,8 @@ export default function Membership() {
             <button type="submit" disabled={status === 'sending'} className="btn-red w-full sm:w-auto disabled:opacity-60">
               {status === 'sending' ? (
                 <T id="membership.form.submit.sending">Submitting…</T>
+              ) : onlineDues ? (
+                <T id="membership.form.submit.pay">Continue to payment</T>
               ) : kind === 'join' ? (
                 <T id="membership.form.submit.join">Submit application</T>
               ) : (
