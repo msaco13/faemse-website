@@ -60,11 +60,20 @@ export default function Login() {
       return;
     }
     setStatus('working');
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
-    });
+    // The password-link function mints the same recovery link Supabase Auth
+    // would email and sends it through Resend, so members get it whether or
+    // not the project's built-in mailer is configured. The link lands on the
+    // site root and RecoveryRedirect (App.tsx) takes it from there.
+    const { error } = await supabase.functions.invoke('password-link', { body: { email: email.trim() } });
     if (error) {
-      setErrorMsg(error.message);
+      let msg = error.message;
+      try {
+        const body = await (error as { context?: Response }).context?.json();
+        if (body?.error) msg = body.error;
+      } catch {
+        /* keep the generic message */
+      }
+      setErrorMsg(msg);
       setStatus('error');
     } else {
       setStatus('reset-sent');
