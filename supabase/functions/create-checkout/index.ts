@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
   const form = new URLSearchParams();
   form.set('mode', 'payment');
-  form.set('success_url', `${SITE}/members?paid=1`);
+  form.set('success_url', `${SITE}/payment-complete`);
   form.set('cancel_url', `${SITE}/members?paid=0`);
   form.set('customer_email', user.email ?? profile?.email ?? '');
   form.set('client_reference_id', user.id);
