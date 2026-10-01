@@ -77,6 +77,9 @@ type Session = {
 const SITE = 'https://faemse.org';
 const FROM = 'FAEMSE <notifications@faemse.org>';
 const DEFAULT_BOARD = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
+// Member-facing emails reply to the board directly: nobody on the project
+// holds a login for info@faemse.org (2026-10-01).
+const REPLY_TO = DEFAULT_BOARD;
 const TIER_LABEL: Record<string, string> = { active: 'Active', institutional: 'Institutional', corporate: 'Corporate', honorary: 'Honorary' };
 
 function dollars(cents: number | null | undefined): string {
@@ -89,7 +92,7 @@ function longDate(iso: string): string {
 
 // Best effort: a failed email never fails the webhook, the membership is
 // already active by the time these run.
-async function sendMail(to: string[], subject: string, text: string, replyTo = 'info@faemse.org'): Promise<void> {
+async function sendMail(to: string[], subject: string, text: string, replyTo: string | string[] = REPLY_TO): Promise<void> {
   const key = Deno.env.get('RESEND_API_KEY');
   if (!key) {
     console.log(`RESEND_API_KEY not set; would email ${to.join(', ')}: ${subject}`);
@@ -272,7 +275,7 @@ Deno.serve(async (req) => {
       '',
       'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
       '',
-      'Questions? Reply to this email or write to info@faemse.org.',
+      'Questions? Just reply to this email.',
       '',
       'The FAEMSE board',
     ].join('\n'),
