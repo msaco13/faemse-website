@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
+import { arrivedByPasswordLink } from './lib/recovery';
 import { SiteTextProvider } from './lib/text';
 import { MediaProvider } from './lib/media';
 import EditModeBar from './components/EditModeBar';
@@ -80,10 +81,26 @@ function RecoveryRedirect() {
   useEffect(() => {
     // Password-reset emails land on the site root (the allow-listed redirect);
     // supabase-js consumes the token from the URL hash and fires this event.
-    // Send the member straight to the portal's "Set a new password" card.
+    // Send the member straight to the portal with the "Set your password"
+    // card first (?setpw=1). The event can fire before this effect has
+    // subscribed, so when the page load itself came from a password link,
+    // also wait for the session and go there regardless. Whichever path
+    // fires first wins; the portal strips ?setpw=1 once it has read it.
+    let done = false;
+    const go = () => {
+      if (done) return;
+      done = true;
+      navigate('/members?setpw=1', { replace: true });
+    };
     const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') navigate('/members');
+      if (event === 'PASSWORD_RECOVERY') go();
     });
+    if (arrivedByPasswordLink) {
+      // getSession waits for supabase-js to finish reading the hash.
+      supabase.auth.getSession().then(({ data: s }) => {
+        if (s.session) go();
+      });
+    }
     return () => data.subscription.unsubscribe();
   }, [navigate]);
   return null;

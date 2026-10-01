@@ -8,6 +8,7 @@ import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/po
 import { dateState, dollars, duesCents, formatDate, graceEnd, overallState } from '../lib/portal';
 import BylawsText from '../components/BylawsText';
 import { useLibrary } from '../lib/postings';
+import { arrivedByPasswordLink } from '../lib/recovery';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { slug, T, useText } from '../lib/text';
@@ -40,6 +41,13 @@ export default function Members() {
   const [payErr, setPayErr] = useState('');
   // Back from Stripe: ?paid=1 (success) or ?paid=0 (cancelled).
   const [paidNotice, setPaidNotice] = useState<'' | 'success' | 'cancelled'>('');
+  // Arrived through a password link (?setpw=1 from RecoveryRedirect, or the
+  // link's own hash): the "Set your password" card goes first, because the
+  // link signs the member in only on the device it was opened on. On the
+  // first day of renewal reminders a member landed here, saw a normal portal
+  // with the card at the bottom, never set a password, and then could not
+  // sign in from his own browser.
+  const [settingPassword, setSettingPassword] = useState(false);
 
   // Hand the member to Stripe's hosted checkout; the webhook does the rest.
   async function payOnline() {
@@ -163,13 +171,15 @@ export default function Members() {
     // Returning from Stripe. The webhook usually lands within a second or
     // two; re-read the profile a few times so the new date shows without a
     // manual refresh, then drop the query string.
-    const paid = new URLSearchParams(window.location.search).get('paid');
+    const params = new URLSearchParams(window.location.search);
+    const paid = params.get('paid');
     const timers: number[] = [];
     if (paid === '1') {
       setPaidNotice('success');
       for (const ms of [1500, 4000, 8000, 14000]) timers.push(window.setTimeout(loadPortalData, ms));
     } else if (paid === '0') setPaidNotice('cancelled');
-    if (paid !== null) window.history.replaceState(null, '', window.location.pathname);
+    if (params.get('setpw') === '1' || arrivedByPasswordLink) setSettingPassword(true);
+    if (paid !== null || params.has('setpw')) window.history.replaceState(null, '', window.location.pathname);
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
@@ -199,6 +209,56 @@ export default function Members() {
   const input =
     'mt-1.5 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-blue';
   const label = 'text-[13px] font-bold uppercase tracking-wide text-muted';
+
+  // One card, two places: first on the page for someone who arrived through
+  // a password link, otherwise down with the rest of the account tools.
+  const passwordCard = (
+    <div
+      id="set-password"
+      className={`card p-8 mb-10 border-t-[3px] max-w-[560px] ${settingPassword ? 'border-t-brand-red/80 shadow-[0_18px_40px_rgba(4,21,42,.12)]' : 'border-t-brand-gold/70'}`}
+    >
+      {settingPassword ? (
+        <>
+          <h2 className="font-disp font-bold uppercase text-2xl mb-2"><T id="members.password.link.title">Set your password now</T></h2>
+          <p className="text-muted text-[14.5px] mb-4">
+            <T id="members.password.link.text">
+              Your email link signed you in on this device only. Choose a password here, then use it with your email
+              address to sign in from any browser.
+            </T>
+          </p>
+        </>
+      ) : (
+        <>
+          <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.password.title">Set a new password</T></h2>
+          <p className="text-muted text-[14px] mb-4">
+            <T id="members.password.text">Choose the password you&apos;ll use to sign in from now on.</T>
+          </p>
+        </>
+      )}
+      <form onSubmit={onSetPassword} className="flex flex-wrap gap-3">
+        <input
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={8}
+          autoFocus={settingPassword}
+          placeholder={pwPlaceholder}
+          aria-label={pwAria}
+          className="flex-1 min-w-[220px] rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-gold"
+        />
+        <button type="submit" disabled={pwStatus === 'working'} className="btn-gold disabled:opacity-60">
+          {pwStatus === 'working' ? <T id="members.password.saving">Saving…</T> : <T id="members.password.save">Save password</T>}
+        </button>
+      </form>
+      {pwStatus === 'done' && (
+        <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{pwMsg}</p>
+      )}
+      {pwStatus === 'error' && (
+        <p className="mt-3 text-[#B8232D] font-semibold text-[14px]" role="alert">{pwMsg}</p>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -230,6 +290,8 @@ export default function Members() {
               <T id="members.signout">Sign out</T>
             </button>
           </div>
+
+          {settingPassword && passwordCard}
 
           {paidNotice === 'success' && (
             <p className="mb-8 rounded-2xl border border-[#0E7A4A]/30 bg-[#E2F7EC] px-6 py-4 text-[14.5px] font-semibold text-[#0E7A4A]" role="status">
@@ -474,33 +536,7 @@ export default function Members() {
             </div>
           </div>
 
-          <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70 max-w-[560px]">
-            <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.password.title">Set a new password</T></h2>
-            <p className="text-muted text-[14px] mb-4">
-              <T id="members.password.text">Choose the password you&apos;ll use to sign in from now on.</T>
-            </p>
-            <form onSubmit={onSetPassword} className="flex flex-wrap gap-3">
-              <input
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                placeholder={pwPlaceholder}
-                aria-label={pwAria}
-                className="flex-1 min-w-[220px] rounded-xl border border-line px-4 py-3 outline-none focus:border-brand-gold"
-              />
-              <button type="submit" disabled={pwStatus === 'working'} className="btn-gold disabled:opacity-60">
-                {pwStatus === 'working' ? <T id="members.password.saving">Saving…</T> : <T id="members.password.save">Save password</T>}
-              </button>
-            </form>
-            {pwStatus === 'done' && (
-              <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{pwMsg}</p>
-            )}
-            {pwStatus === 'error' && (
-              <p className="mt-3 text-[#B8232D] font-semibold text-[14px]" role="alert">{pwMsg}</p>
-            )}
-          </div>
+          {!settingPassword && passwordCard}
 
           <div className="card p-8 mb-10 border-t-[3px] border-t-brand-gold/70">
             <h2 className="font-disp font-bold uppercase text-2xl mb-2"><T id="members.library.title">Member library</T></h2>

@@ -390,7 +390,13 @@ through Resend as notifications@faemse.org, so it does not depend on
 Supabase's built-in mailer (team-only recipients, a couple of messages an
 hour). Unknown addresses get the same "sent" answer and no email; each
 address gets at most 3 links an hour (`password_link_log`,
-`supabase/migrations/20260930_password_link_log.sql`). The other Auth
+`supabase/migrations/20260930_password_link_log.sql`). The link signs the
+person in only in the browser it opens in (often a mail app's built-in
+one), so since 2026-10-01 the portal puts a "Set your password now" card
+first on the page for anyone who arrived through a link (`?setpw=1` from
+`RecoveryRedirect` in `src/App.tsx`, or `type=recovery` in the landing
+hash, read once in `src/lib/recovery.ts`); on an ordinary visit the same
+card sits lower down as "Set a new password". The other Auth
 emails (email change, invites from the dashboard) still use the built-in
 mailer until Supabase → Authentication → SMTP is pointed at Resend (host
 `smtp.resend.com`, port 465, user `resend`, password = the API key).
