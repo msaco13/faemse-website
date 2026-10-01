@@ -29,6 +29,9 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const SITE = 'https://faemse.org';
 const FROM = 'FAEMSE <notifications@faemse.org>';
+// Replies go to the board directly: nobody on the project holds a login for
+// info@faemse.org (2026-10-01), so a reply there could go unread.
+const REPLY_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
 const PER_HOUR = 3;
 
 const cors = {
@@ -109,7 +112,7 @@ Deno.serve(async (req) => {
     'If you did not ask for this, you can ignore this message. Nothing changes',
     'until the link is used.',
     '',
-    'Questions? Reply to this email or write to info@faemse.org.',
+    'Questions? Just reply to this email.',
     '',
     'The FAEMSE board',
   ].join('\n');
@@ -117,7 +120,7 @@ Deno.serve(async (req) => {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [email], subject: 'Set your FAEMSE password', text, reply_to: 'info@faemse.org' }),
+    body: JSON.stringify({ from: FROM, to: [email], subject: 'Set your FAEMSE password', text, reply_to: REPLY_TO }),
   });
   if (!resp.ok) {
     console.error(`Resend refused (${resp.status}) for ${email}`);

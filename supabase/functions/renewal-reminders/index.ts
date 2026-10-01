@@ -41,6 +41,10 @@ function jwtRole(auth: string): string {
 
 const WINDOWS = [90, 60, 30, 7] as const;
 const FROM = 'FAEMSE <renewals@faemse.org>';
+// Replies go to the board directly. info@faemse.org is printed on the site
+// but nobody on the project holds a login for it (2026-10-01), so until the
+// association has a monitored mailbox, a member's reply must land with people.
+const REPLY_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
 const PORTAL = 'https://faemse.org/members';
 const RENEW_FORM = 'https://faemse.org/membership';
 
@@ -120,7 +124,7 @@ Deno.serve(async (req) => {
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to, subject, text: body, reply_to: 'info@faemse.org' }),
+      body: JSON.stringify({ from: FROM, to, subject, text: body, reply_to: REPLY_TO }),
     });
     if (!resp.ok) {
       await supabase.from('reminder_log').delete().match(claim); // retry tomorrow

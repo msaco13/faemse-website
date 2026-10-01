@@ -160,12 +160,25 @@ association's Supabase organization.
 
 ### Email routing (interim)
 
-faemse.org mail is hosted on Microsoft 365 by the association, so
-`info@faemse.org` is real — but until the board confirms who monitors it,
-every "send us a posting / class / resource / video" button on the site
-addresses info@faemse.org **and copies the interim board inbox**
-(`contact.boardCc` in `src/content/data.ts`: Jorge Anzardo and Michael
-Saco). Change that one constant when the association mailbox is confirmed.
+faemse.org mail is hosted on Microsoft 365 by the association (the MX
+record points there and the executive director's address is on it), and
+`info@faemse.org` was the contact address on the old site, so the new site
+prints it too. **Nobody on the project holds a login for info@faemse.org
+and it has not been confirmed to exist** (2026-10-01). So:
+
+* every "send us a posting / class / resource / video" button addresses
+  info@faemse.org **and copies the board** (`contact.boardCc` in
+  `src/content/data.ts`: Jorge Anzardo and Michael Saco);
+* every email the site sends to a member (renewal reminders, password
+  links, welcome and renewal confirmations) carries a `Reply-To` of the two
+  board addresses, not info@faemse.org (`REPLY_TO` in
+  `supabase/functions/renewal-reminders`, `password-link`, `stripe-webhook`),
+  so a member who hits Reply reaches people. Until 2026-10-01 those replies
+  went to info@faemse.org.
+
+When the association has a monitored mailbox, change `REPLY_TO` in the three
+functions and `contact.boardCc`, redeploy, and the printed address stays as
+it is.
 
 ### Board notifications (contact form + applications)
 
