@@ -8,8 +8,10 @@ show the panels with sample data.
 
 Go to **faemse.org/login** and sign in with your email and password. If you
 have never set a password, or forgot it, type your email and click **Forgot
-password**. A reset link is emailed to you and lands you on a "Set a new
-password" card in the portal.
+password**. A link is emailed to you; it opens the portal with a "Set your
+password now" card at the top. Save a password there, then sign in with it
+from any browser. The link only signs you in on the device you opened it on,
+so if you skip that card you will need another link later.
 
 ![Sign in](01-login.jpg)
 
