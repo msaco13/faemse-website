@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { faq, honorary, membershipTerms, tiers } from '../content/data';
+import type { Representative } from '../lib/portal';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { slug, T, useText } from '../lib/text';
@@ -11,6 +12,11 @@ const tierValue: Record<string, string> = {
   Institutional: 'institutional',
   Corporate: 'corporate',
 };
+
+// Representatives an organization can list on the form. Five seats, the
+// coordinator takes one (board decision 2026-10-01: corporate matches
+// institutional).
+const REP_ROWS = 4;
 
 export default function Membership() {
   const formRef = useRef<HTMLDivElement>(null);
@@ -22,6 +28,7 @@ export default function Membership() {
   // application is still on file for the board either way.
   const [paidNotice, setPaidNotice] = useState<'success' | 'cancelled' | null>(null);
   const { online_dues: onlineDues } = useSettings();
+  const isOrg = tier === 'institutional' || tier === 'corporate';
 
   useEffect(() => {
     const paid = new URLSearchParams(window.location.search).get('paid');
@@ -50,6 +57,20 @@ export default function Membership() {
     }
     setStatus('sending');
     setPaidNotice(null);
+    // Organizations: the people the coordinator wants seated, up to four
+    // (the coordinator is the fifth seat). A row counts only with both a
+    // name and an email; the coordinator's own address is not a seat twice.
+    const coordinatorEmail = String(data.email).trim().toLowerCase();
+    const representatives: Representative[] = [];
+    if (isOrg) {
+      for (let i = 1; i <= REP_ROWS; i++) {
+        const name = String(data[`rep_name_${i}`] ?? '').trim();
+        const email = String(data[`rep_email_${i}`] ?? '').trim().toLowerCase();
+        if (name && email && email !== coordinatorEmail && !representatives.some((r) => r.email === email)) {
+          representatives.push({ name, email });
+        }
+      }
+    }
     // The id is minted here so the payment step can name this application
     // without needing to read the table back (anonymous visitors can only
     // insert).
@@ -65,6 +86,7 @@ export default function Membership() {
       county: String(data.county ?? '') || null,
       cert_level: String(data.cert_level ?? '') || null,
       note: String(data.note ?? '') || null,
+      representatives,
     });
     if (error) {
       setStatus('error');
@@ -271,7 +293,7 @@ export default function Membership() {
               </label>
               <label className="block">
                 <span className={label}>
-                  <T id="membership.form.name.label">Full name</T>
+                  {isOrg ? <T id="membership.form.name.label.org">Coordinator's full name</T> : <T id="membership.form.name.label">Full name</T>}
                 </span>
                 <input name="full_name" required maxLength={200} className={input} />
               </label>
@@ -279,7 +301,7 @@ export default function Membership() {
             <div className="grid sm:grid-cols-2 gap-4 mb-4">
               <label className="block">
                 <span className={label}>
-                  <T id="membership.form.email.label">Email</T>
+                  {isOrg ? <T id="membership.form.email.label.org">Coordinator's email</T> : <T id="membership.form.email.label">Email</T>}
                 </span>
                 <input name="email" type="email" required maxLength={254} className={input} />
               </label>
@@ -293,9 +315,9 @@ export default function Membership() {
             <div className="grid sm:grid-cols-3 gap-4 mb-4">
               <label className="block sm:col-span-1">
                 <span className={label}>
-                  <T id="membership.form.org.label">Organization / program</T>
+                  {isOrg ? <T id="membership.form.org.label.org">Organization name</T> : <T id="membership.form.org.label">Organization / program</T>}
                 </span>
-                <input name="organization" maxLength={300} className={input} />
+                <input name="organization" required={isOrg} maxLength={300} className={input} />
               </label>
               <label className="block">
                 <span className={label}>
@@ -310,6 +332,34 @@ export default function Membership() {
                 <input name="cert_level" maxLength={100} placeholder={certPlaceholder} className={input} />
               </label>
             </div>
+            {isOrg && (
+              <fieldset className="mb-4 rounded-2xl border border-line bg-paper/60 p-5">
+                <legend className="px-2 font-disp font-bold uppercase text-[15px] tracking-[0.06em]">
+                  <T id="membership.form.reps.legend">Your representatives</T>
+                </legend>
+                <p className="text-muted text-[13.5px] mb-4 max-w-[70ch]">
+                  <T id="membership.form.reps.text">
+                    The membership covers five people: the coordinator above plus up to four more. Everyone listed
+                    becomes a member the moment the payment clears and gets their own portal login. Leave rows blank to
+                    fill them later, and when you renew, whoever you list replaces last year's names.
+                  </T>
+                </p>
+                <div className="space-y-3">
+                  {Array.from({ length: REP_ROWS }, (_, i) => i + 1).map((i) => (
+                    <div key={i} className="grid sm:grid-cols-2 gap-3">
+                      <label className="block">
+                        <span className="sr-only">Representative {i} name</span>
+                        <input name={`rep_name_${i}`} maxLength={200} placeholder={`Representative ${i}: full name`} className={input} />
+                      </label>
+                      <label className="block">
+                        <span className="sr-only">Representative {i} email</span>
+                        <input name={`rep_email_${i}`} type="email" maxLength={254} placeholder="Their email" className={input} />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             <label className="block mb-6">
               <span className={label}>
                 <T id="membership.form.note.label">Anything else? (optional)</T>

@@ -54,7 +54,7 @@ obfuscated. Need from Jorge: headshots, short bios, term dates.
 |---|---|---|
 | Active (individual) | $50/yr | Full voting + committee rights |
 | Institutional | $250/yr | Includes 5 Active seats |
-| Corporate | $200/yr | 3 reps, non-voting committee service |
+| Corporate | $200/yr | 5 reps (3 until 2026-10-01), non-voting committee service |
 | Participant | Free | Regulatory agency staff, resource access |
 | Honorary | Free, lifetime | Board-appointed |
 

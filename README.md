@@ -245,9 +245,11 @@ memberships on the **organization** that holds them:
   and a **special listserv email** used in place of the login address.
 - `organizations` is an institutional or corporate membership: name, kind,
   paid-through date, coordinator, billing contact. `organization_members`
-  seats its representatives — up to five for institutional, three for
-  corporate (bylaws 2.02.03/.04); the cap is a database trigger, so the
-  admin panel and the import cannot disagree. A person can sit on several
+  seats its representatives — up to five for either kind (bylaws 2.02.03
+  says five for institutional and 2.02.04 three for corporate; the board
+  raised corporate to five on 2026-10-01 since those seats do not vote);
+  the cap is a database trigger (`org_seat_cap`), so the admin panel and
+  the import cannot disagree. A person can sit on several
   organizations and hold a membership of their own too.
 - `contacts` is the listserv without a login: the state EMS office
   regulators (listserv only, by board decision) and members whose email the
@@ -261,7 +263,13 @@ represent is current **or** board admin. `membership_payments` and
 **Board admin panel:** an *Organizations* section (seat and unseat
 representatives, name the coordinator, set the paid-through date and
 billing contact, record a payment · +1 year), a *Listserv-only contacts*
-list, a **Download listserv CSV** button (Gaggle Mail imports it as-is:
+list, a **Download voting roll CSV** button (since 2026-10-02, for the
+board's voting software: `get_voting_roll()` in
+`supabase/migrations/20261002_voting_roll.sql` lists Active members
+current in dues and the representatives of current institutional
+memberships, one row per address, leaving off corporate representatives,
+honorary members, contacts, and the grace period), a **Download listserv
+CSV** button (Gaggle Mail imports it as-is:
 Members → Add members → upload; opt-outs left off, special addresses
 honoured), and a **Renewal reminder emails** switch (Held / Running) next
 to the online-dues one. Member rows show job title, organization, phone,
@@ -368,9 +376,21 @@ straight to the card page; nobody waits for an approval before paying.
   (`[FAEMSE site] Paid online: …`), both through Resend.
 - Stripe returns the visitor to `/membership?paid=1` (or `?paid=0` if they
   backed out; the application stays `new` for the board to follow up).
-- Institutional and corporate applicants become a *person* with that tier;
-  the board still creates the organization and seats representatives under
-  Board admin → Organizations. The receipt email says so.
+- Institutional and corporate applications (since 2026-10-02, board
+  decision 2026-10-01) carry up to four `representatives` ({name, email})
+  besides the coordinator. On payment the webhook makes a login for each
+  person, then `complete_paid_org_application()`
+  (`supabase/migrations/20261002_org_signup.sql`) finds the organization by
+  name and kind (or, on a renewal, the one this person already
+  coordinates), creates it if new, extends it through `extend_organization`,
+  seats the coordinator and the listed people, and approves the application.
+  A renewal that lists at least one representative unseats anyone not on the
+  list; a renewal that lists nobody keeps last year's seats. The
+  coordinator's own `profiles.expires_at` is never touched: the organization
+  is the membership. The coordinator and every representative get an email
+  (set-password link for new logins), and the board gets a receipt listing
+  the seats. Both kinds seat five (`org_seat_cap`; corporate was three until
+  2026-10-01).
 
 #### Adding people
 

@@ -68,9 +68,15 @@ export type Contact = {
   created_at: string;
 };
 
+// Five seats for both kinds since 2026-10-01 (board decision: corporate
+// representatives do not vote, so the bylaws' three was raised to five).
+// Mirrors org_seat_cap() in the database, which is what actually enforces it.
 export function seatCap(kind: Organization['kind']): number {
-  return kind === 'institutional' ? 5 : 3;
+  return kind === 'institutional' || kind === 'corporate' ? 5 : 0;
 }
+
+// One person listed on an organization's application: seated when it pays.
+export type Representative = { name: string; email: string };
 
 export type DirectoryEntry = {
   full_name: string | null;
@@ -91,6 +97,9 @@ export type Application = {
   county: string | null;
   cert_level: string | null;
   note: string | null;
+  // Institutional and corporate applications: up to four people the
+  // coordinator wants seated (the coordinator is the fifth seat).
+  representatives?: Representative[] | null;
   status: 'new' | 'approved' | 'declined';
 };
 

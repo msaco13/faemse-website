@@ -78,7 +78,7 @@ function yes(v: string): boolean {
 }
 
 function seatCap(kind: 'institutional' | 'corporate'): number {
-  return kind === 'institutional' ? 5 : 3;
+  return kind === 'institutional' || kind === 'corporate' ? 5 : 0;
 }
 
 export function parseLegacyExport(text: string): LegacyPlan {
