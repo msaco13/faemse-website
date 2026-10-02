@@ -81,9 +81,12 @@ workspace.
 
 ### Organizations
 
-Institutional memberships seat up to five people and corporate memberships up
-to three. Use the search box to find one by name, coordinator or
-representative. Click **manage** on an organization to set its paid-through
+Institutional and corporate memberships each seat up to five people, the
+coordinator included. An organization that pays online through the
+membership form is created here on its own, with the coordinator and the
+people they listed already seated; when it renews online, the people on the
+new form replace last year's. Use the search box to find one by name,
+coordinator or representative. Click **manage** on an organization to set its paid-through
 date and billing contact, seat a member by email, make someone the
 coordinator, remove a seat, record the organization's payment, or delete the
 organization. Add a new one with the form at the bottom. Everyone seated is a
@@ -133,6 +136,12 @@ The things you touch a few times a year.
 - **Download listserv CSV** builds the current mailing list (current members,
   the board, and the listserv-only contacts, minus anyone opted out) in the
   format Gaggle Mail imports.
+- **Download voting roll CSV** builds the list of everyone eligible to vote
+  today, for the voting software: Active members current in dues and the
+  representatives of current institutional memberships. Corporate
+  representatives, honorary members, contacts, and anyone in the 90-day grace
+  period are left off. One row per person, with name, organization, why they
+  qualify, and their paid-through date.
 - **Listserv-only contacts** are people who should get the listserv but have
   no portal login, such as the state EMS office. Add, edit or remove them here.
 - **Import a whole roster** takes a .csv file or pasted rows for many people

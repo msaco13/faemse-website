@@ -4,7 +4,7 @@ import { useSettings } from '../../lib/settings';
 import { supabase } from '../../lib/supabase';
 import ContactsAdmin from '../ContactsAdmin';
 import ContentManager from '../ContentManager';
-import { DuesLedger, ListservExport, MemberImport, OnlineDuesSwitch, RemindersSwitch } from '../DuesAdmin';
+import { DuesLedger, ListservExport, MemberImport, OnlineDuesSwitch, RemindersSwitch, VotingRollExport } from '../DuesAdmin';
 import OrganizationsAdmin from '../OrganizationsAdmin';
 import PostingsManager from '../PostingsManager';
 import InboxPane from './InboxPane';
@@ -174,6 +174,7 @@ export default function AdminWorkspace() {
                 </p>
                 <DuesLedger refreshKey={refreshKey} />
                 <ListservExport />
+                <VotingRollExport />
                 <ContactsAdmin refreshKey={refreshKey} />
                 <MemberImport onImported={load} />
                 <RemindersSwitch />

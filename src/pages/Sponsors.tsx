@@ -59,7 +59,7 @@ export default function Sponsors() {
               </h2>
               <p className="text-[#BCCBE7] text-[15px] max-w-[60ch]">
                 <T id="sponsors.become.text">
-                  Corporate membership is $200 a year: up to three named representatives, a seat on
+                  Corporate membership is $200 a year: up to five named representatives, a seat on
                   committees, and your name in front of the educators who decide what Florida&apos;s
                   EMS programs buy, teach, and recommend.
                 </T>

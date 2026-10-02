@@ -106,6 +106,46 @@ async function sendMail(to: string[], subject: string, text: string, replyTo: st
   if (!resp.ok) console.error(`Resend refused (${resp.status}) for ${to.join(', ')}: ${subject}`);
 }
 
+type Admin = ReturnType<typeof createClient>;
+
+// The login for an address: the existing one, or a new one confirmed on the
+// spot (the person sets a password through the link we email next). A login
+// can exist without a profile row (never opened the portal), so a failed
+// create falls back to scanning Auth for the address.
+async function loginFor(supabase: Admin, email: string, fullName: string, tier?: string): Promise<{ id: string; created: boolean } | null> {
+  const { data: existing } = await supabase.from('profiles').select('id').ilike('email', email).maybeSingle();
+  if (existing?.id) return { id: existing.id as string, created: false };
+  const { data: made, error: mkErr } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: tier ? { full_name: fullName, tier } : { full_name: fullName },
+  });
+  if (made?.user) return { id: made.user.id, created: true };
+  for (let page = 1; page <= 20; page++) {
+    const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    if (listErr) break;
+    const hit = list.users.find((u) => (u.email ?? '').toLowerCase() === email);
+    if (hit) return { id: hit.id, created: false };
+    if (list.users.length < 1000) break;
+  }
+  console.error(`could not create or find a login for ${email}: ${mkErr?.message ?? 'unknown'}`);
+  return null;
+}
+
+// How the email tells someone to get into the portal: a set-password link
+// for a login made just now (the same one Forgot password sends), otherwise
+// the sign-in page.
+async function passwordLines(supabase: Admin, email: string, created: boolean): Promise<string[]> {
+  if (!created) {
+    return [`Sign in at ${SITE}/login with this email address. If you have not set a password yet, use "Forgot password" there.`];
+  }
+  const { data: link } = await supabase.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: `${SITE}/` } });
+  const actionLink = link?.properties?.action_link;
+  return actionLink
+    ? ['Set your portal password with this link (it works once and expires in one hour):', '', actionLink, '', `Your login is this email address. After that, sign in at ${SITE}/login`]
+    : [`Your login is this email address. Go to ${SITE}/login and use "Forgot password" to set your password.`];
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('POST only', { status: 405 });
 
@@ -192,7 +232,7 @@ Deno.serve(async (req) => {
   // link and the board gets a receipt.
   const { data: app, error: appErr } = await supabase
     .from('membership_applications')
-    .select('id, kind, tier, full_name, email, organization, status')
+    .select('id, kind, tier, full_name, email, organization, status, representatives')
     .eq('id', applicationId)
     .maybeSingle();
   if (appErr) {
@@ -204,34 +244,118 @@ Deno.serve(async (req) => {
     return new Response('no application', { status: 200 });
   }
   const email = String(app.email).trim().toLowerCase();
+  const tier = String(app.tier ?? 'active').toLowerCase();
+  const tierLabel = TIER_LABEL[tier] ?? tier;
+  const firstName = String(app.full_name ?? '').split(' ')[0] || 'there';
 
-  let profileId: string | undefined;
-  let created = false;
-  const { data: existing } = await supabase.from('profiles').select('id').ilike('email', email).maybeSingle();
-  if (existing?.id) {
-    profileId = existing.id;
-  } else {
-    const { data: made, error: mkErr } = await supabase.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      user_metadata: { full_name: app.full_name, tier: app.tier },
-    });
-    if (made?.user) {
-      profileId = made.user.id;
-      created = true;
-    } else {
-      // A login can exist without a profile row (never opened the portal).
-      for (let page = 1; page <= 20 && !profileId; page++) {
-        const { data: list, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
-        if (listErr) break;
-        profileId = list.users.find((u) => (u.email ?? '').toLowerCase() === email)?.id;
-        if (list.users.length < 1000) break;
-      }
-      if (!profileId) {
-        console.error(`could not create or find a login for application ${app.id}: ${mkErr?.message ?? 'unknown'}`);
-        return new Response('no login', { status: 500 });
-      }
+  const login = await loginFor(supabase, email, String(app.full_name ?? ''), tier === 'institutional' || tier === 'corporate' ? undefined : tier);
+  if (!login) return new Response('no login', { status: 500 });
+  const profileId = login.id;
+  const created = login.created;
+
+  const boardTo = (Deno.env.get('NOTIFY_TO') ?? DEFAULT_BOARD.join(','))
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  // ---- Path 2b: an organization paid from the form ------------------------
+  // Board decision 2026-10-01: the organization is created or found, its
+  // date moves, and everyone the coordinator listed is seated, each with a
+  // login. The coordinator's own membership record is left alone; they are
+  // current through their seat like everyone else on it.
+  if (tier === 'institutional' || tier === 'corporate') {
+    type Rep = { name?: unknown; email?: unknown };
+    const listed = (Array.isArray(app.representatives) ? app.representatives : []) as Rep[];
+    const reps: { profile_id: string; name: string; email: string; created: boolean }[] = [];
+    for (const r of listed.slice(0, 4)) {
+      const re = String(r?.email ?? '').trim().toLowerCase();
+      const rn = String(r?.name ?? '').trim();
+      if (!re || !rn || re === email || reps.some((x) => x.email === re)) continue;
+      const rl = await loginFor(supabase, re, rn);
+      if (!rl) continue; // logged inside; the rest are still seated
+      reps.push({ profile_id: rl.id, name: rn, email: re, created: rl.created });
     }
+
+    const { data: done, error: orgErr } = await supabase.rpc('complete_paid_org_application', {
+      p_application: app.id,
+      p_coordinator: profileId,
+      p_reps: reps.map(({ profile_id, name, email: e }) => ({ profile_id, name, email: e })),
+      p_amount_cents: s.amount_total ?? null,
+      p_stripe_session: s.id,
+      p_note: note,
+    });
+    if (orgErr) {
+      console.error(`complete_paid_org_application failed for ${app.id}: ${orgErr.message}`);
+      return new Response(orgErr.message, { status: 500 });
+    }
+    const result = done as { organization_id: string; name: string; new_expires: string; seated: number };
+    const orgName = result.name;
+    const through = longDate(result.new_expires);
+    console.log(
+      `OK: application ${app.id} paid; ${orgName} (${tier}) extended to ${result.new_expires}, ${result.seated} seated${created ? ' (coordinator login created)' : ''}`,
+    );
+
+    const repNames = reps.map((r) => r.name);
+    await sendMail(
+      [email],
+      app.kind === 'renew' ? `${orgName}'s FAEMSE membership is renewed` : `Welcome to FAEMSE, ${orgName}`,
+      [
+        `Hi ${firstName},`,
+        '',
+        `Thank you. Your payment of ${dollars(s.amount_total)} went through and ${orgName}'s ${tierLabel} membership is paid through ${through}.`,
+        '',
+        repNames.length
+          ? `Seated under it: you as coordinator, plus ${repNames.join(', ')}. Each of them is getting an email with their own sign-in details.`
+          : `Seated under it: you as coordinator. The membership covers up to five people; email info@faemse.org whenever you want representatives added.`,
+        '',
+        ...(await passwordLines(supabase, email, created)),
+        '',
+        'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
+        '',
+        'Questions? Just reply to this email.',
+        '',
+        'The FAEMSE board',
+      ].join('\n'),
+    );
+    for (const r of reps) {
+      await sendMail(
+        [r.email],
+        `You are a FAEMSE member through ${orgName}`,
+        [
+          `Hi ${r.name.split(' ')[0] || 'there'},`,
+          '',
+          `${app.full_name} listed you as a representative under ${orgName}'s FAEMSE ${tierLabel} membership, which is paid through ${through}. That makes you a member of the Florida Association of EMS Educators, with your own portal login.`,
+          '',
+          ...(await passwordLines(supabase, r.email, r.created)),
+          '',
+          'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
+          '',
+          'Questions? Just reply to this email.',
+          '',
+          'The FAEMSE board',
+        ].join('\n'),
+      );
+    }
+    await sendMail(
+      boardTo,
+      `[FAEMSE site] Paid online: ${orgName} (${tierLabel}, ${dollars(s.amount_total)})`,
+      [
+        `${app.full_name} paid ${dollars(s.amount_total)} by card for ${orgName}'s ${tierLabel} membership through the ${app.kind === 'renew' ? 'renewal' : 'application'} form.`,
+        '',
+        `Coordinator: ${app.full_name} <${email}>${created ? ' (login created)' : ''}`,
+        ...reps.map((r) => `Representative: ${r.name} <${r.email}>${r.created ? ' (login created)' : ''}`),
+        `Paid through: ${through}`,
+        `Seats used: ${result.seated} of 5`,
+        app.kind === 'renew' && reps.length ? 'Anyone seated last year who is not on this list has been unseated.' : '',
+        '',
+        `The organization is set up and seated under Board admin → Organizations, and the payment is in the Dues ledger: ${SITE}/members`,
+      ]
+        .filter((l, i, arr) => !(l === '' && arr[i - 1] === ''))
+        .join('\n'),
+    );
+    return new Response(JSON.stringify({ ok: true, application: app.id, organization: result.organization_id, new_expires: result.new_expires, seated: result.seated }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const { data: newExpires, error: doneErr } = await supabase.rpc('complete_paid_application', {
@@ -246,23 +370,10 @@ Deno.serve(async (req) => {
     return new Response(doneErr.message, { status: 500 });
   }
   const through = typeof newExpires === 'string' ? longDate(newExpires) : String(newExpires);
-  const tier = String(app.tier ?? 'active').toLowerCase();
-  const tierLabel = TIER_LABEL[tier] ?? tier;
   console.log(`OK: application ${app.id} paid; ${profileId} extended to ${newExpires}${created ? ' (login created)' : ''}`);
 
   // Welcome the member. A new login gets a set-password link (the same one
   // Forgot password would send); an existing member is pointed at sign-in.
-  const firstName = String(app.full_name ?? '').split(' ')[0] || 'there';
-  let passwordLines: string[];
-  if (created) {
-    const { data: link } = await supabase.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: `${SITE}/` } });
-    const actionLink = link?.properties?.action_link;
-    passwordLines = actionLink
-      ? ['Set your portal password with this link (it works once and expires in one hour):', '', actionLink, '', `Your login is this email address. After that, sign in at ${SITE}/login`]
-      : [`Your login is this email address. Go to ${SITE}/login and use "Forgot password" to set your password.`];
-  } else {
-    passwordLines = [`Sign in at ${SITE}/login with this email address. If you have not set a password yet, use "Forgot password" there.`];
-  }
   await sendMail(
     [email],
     app.kind === 'renew' ? 'Your FAEMSE membership is renewed' : 'Welcome to FAEMSE',
@@ -271,7 +382,7 @@ Deno.serve(async (req) => {
       '',
       `Thank you. Your payment of ${dollars(s.amount_total)} went through and your ${tierLabel} membership is paid through ${through}.`,
       '',
-      ...passwordLines,
+      ...(await passwordLines(supabase, email, created)),
       '',
       'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
       '',
@@ -282,18 +393,8 @@ Deno.serve(async (req) => {
   );
 
   // Tell the board. The application already emailed them when it was
-  // submitted; this is the receipt, and the reminder for organizations.
-  const boardTo = (Deno.env.get('NOTIFY_TO') ?? DEFAULT_BOARD.join(','))
-    .split(',')
-    .map((x) => x.trim())
-    .filter(Boolean);
-  const orgLine =
-    tier === 'institutional' || tier === 'corporate'
-      ? [
-          '',
-          `This is a ${tierLabel} membership. To seat their representatives, create the organization under Board admin → Organizations and make this person the coordinator.`,
-        ]
-      : [];
+  // submitted; this is the receipt.
+  const orgLine: string[] = [];
   await sendMail(
     boardTo,
     `[FAEMSE site] Paid online: ${app.full_name} (${tierLabel}, ${dollars(s.amount_total)})`,

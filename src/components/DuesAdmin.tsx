@@ -237,6 +237,67 @@ export function ListservExport() {
   );
 }
 
+// The voting roll (board request 2026-10-01): who may vote, as a CSV for
+// whatever voting software the board uses. Active members current in dues
+// and the representatives of current institutional memberships; corporate
+// representatives, honorary members, contacts, and the 90-day grace are
+// left off. get_voting_roll() applies the rule; this just downloads it.
+export function VotingRollExport() {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [err, setErr] = useState('');
+  async function download() {
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    const { data, error } = await supabase.rpc('get_voting_roll');
+    setBusy(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    const rows = (data ?? []) as { email: string; full_name: string | null; organization: string | null; basis: string; paid_through: string }[];
+    const q = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const csv = [
+      'Email,Name,Organization,Basis,Paid through',
+      ...rows.map((r) => [r.email, r.full_name ?? '', r.organization ?? '', r.basis, r.paid_through].map(q).join(',')),
+    ].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `faemse-voting-roll-${todayISO()}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const reps = rows.filter((r) => r.basis !== 'Active member').length;
+    setMsg(`${rows.length} voters: ${rows.length - reps} Active members and ${reps} institutional representatives.`);
+  }
+  return (
+    <div className="border border-line rounded-2xl p-5 mb-8 flex flex-wrap items-start gap-4">
+      <div className="flex-1 min-w-[260px]">
+        <b className="block text-[14.5px]">Voting roll export</b>
+        <p className="text-muted text-[13.5px] mt-1 max-w-[70ch]">
+          Downloads everyone eligible to vote today as a CSV for the voting software: Active members current in dues and
+          the representatives of current institutional memberships. Corporate representatives, honorary members,
+          listserv-only contacts, and anyone in the 90-day grace period are left off. One row per person.
+        </p>
+        {msg && (
+          <p className="text-[#0E7A4A] font-semibold text-[13px] mt-2" role="status">
+            {msg}
+          </p>
+        )}
+        {err && (
+          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+            {err}
+          </p>
+        )}
+      </div>
+      <button onClick={download} disabled={busy} className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60">
+        {busy ? 'Building…' : 'Download voting roll CSV'}
+      </button>
+    </div>
+  );
+}
+
 // --- Roster import -----------------------------------------------------------
 // Reading the paste is in lib/roster.ts and lib/legacyExport.ts (pure, and
 // unit-tested there); this is just the panel around them. The old system's
@@ -477,7 +538,7 @@ function LegacyPlanPreview({ plan }: { plan: LegacyPlan }) {
                 <td className="px-3 py-1.5">{o.expires_at || <span className="text-muted">—</span>}</td>
                 <td className="px-3 py-1.5 text-muted">{o.coordinator_email}</td>
                 <td className="px-3 py-1.5">
-                  {o.member_emails.length} of {o.kind === 'institutional' ? 5 : 3}
+                  {o.member_emails.length} of 5
                 </td>
               </tr>
             ))}

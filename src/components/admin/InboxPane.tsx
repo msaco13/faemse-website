@@ -75,8 +75,9 @@ export default function InboxPane({
         <p className="text-muted text-[13px]">Applications and contact messages that still need a decision. Newest first.</p>
       </div>
       <p className="text-muted text-[13.5px] mb-5 max-w-[80ch]">
-        Approving an application does not create the person&apos;s login on its own. Use &ldquo;Add a person&rdquo; under
-        People for that, then record their payment on their row.
+        Anyone who paid online arrives here already approved, with their login made and, for an organization, its
+        people seated. Approving an unpaid application does not create the login on its own: use &ldquo;Add a person&rdquo;
+        under People for that, then record their payment on their row.
       </p>
 
       <h4 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-2">
@@ -101,6 +102,11 @@ export default function InboxPane({
                   {a.organization ? ` · ${a.organization}` : ''}
                   {a.county ? ` · ${a.county}` : ''}
                 </span>
+                {(a.representatives?.length ?? 0) > 0 && (
+                  <span className="text-[13px] text-muted block truncate" title={a.representatives!.map((r) => `${r.name} <${r.email}>`).join(', ')}>
+                    Representatives: {a.representatives!.map((r) => r.name).join(', ')}
+                  </span>
+                )}
                 {a.note && <span className="text-[13px] text-muted block truncate">&ldquo;{a.note}&rdquo;</span>}
               </div>
               <span className="text-[13px] text-muted">{formatDate(a.created_at)}</span>

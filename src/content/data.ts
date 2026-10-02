@@ -98,7 +98,7 @@ export const tiers = [
     per: '/ year',
     featured: false,
     perks: [
-      'Up to three named representatives',
+      'Up to five named representatives',
       'Serve on committees (non-voting)',
       'Recognized as a corporate sponsor on this site',
       'Archive, videos, and library access',
@@ -434,7 +434,7 @@ export const faq = [
   },
   {
     q: 'What does membership cost?',
-    a: 'Active (individual) membership is $50 a year. Institutional membership is $250 a year and covers up to five representatives with Active privileges. Corporate membership is $200 a year with up to three representatives. Honorary membership is by board election and carries no dues. Dues are set by the board, and any change is announced to members 30 days before it takes effect.',
+    a: 'Active (individual) membership is $50 a year. Institutional membership is $250 a year and covers up to five representatives with Active privileges. Corporate membership is $200 a year with up to five representatives. Honorary membership is by board election and carries no dues. Dues are set by the board, and any change is announced to members 30 days before it takes effect.',
   },
   {
     q: 'How long does membership last?',
