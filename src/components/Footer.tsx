@@ -42,9 +42,9 @@ export default function Footer() {
             </div>
           </div>
           <div>
-            <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
+            <h2 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
               <T id="footer.col.association">Association</T>
-            </h5>
+            </h2>
             <ul className="space-y-2.5">
               <li><Link className="hover:text-white" to="/about"><T id="footer.link.about">About FAEMSE</T></Link></li>
               <li><Link className="hover:text-white" to="/board"><T id="footer.link.board">Board of Directors</T></Link></li>
@@ -58,9 +58,9 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
+            <h2 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
               <T id="footer.col.educators">For educators</T>
-            </h5>
+            </h2>
             <ul className="space-y-2.5">
               <li><Link className="hover:text-white" to="/programs"><T id="footer.link.programs">Program map</T></Link></li>
               <li><Link className="hover:text-white" to="/qa"><T id="footer.link.qa">Q&amp;A archive</T></Link></li>
@@ -71,9 +71,9 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h5 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
+            <h2 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
               <T id="footer.col.contact">Get in touch</T>
-            </h5>
+            </h2>
             <p className="text-[#7C90B6] mb-2">{contact.address}</p>
             <a className="text-brand-bluesoft hover:text-white font-semibold" href={`mailto:${contact.email}`}>
               {contact.email}

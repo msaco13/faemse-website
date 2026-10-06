@@ -10,6 +10,14 @@ import { slug, T, useSiteText, useText } from '../lib/text';
 
 const INTERVAL_MS = 8000;
 
+// Slides that are off screen are aria-hidden, but aria-hidden alone leaves
+// their buttons and links in the Tab order (WCAG 4.1.2, flagged by axe as
+// aria-hidden-focus). The `inert` attribute takes them out of it as well.
+// React 18's types do not know `inert`, hence the spread.
+function inertWhen(on: boolean): Record<string, string> {
+  return on ? { inert: '' } : {};
+}
+
 function SlideLink({ to, className, children }: { to: string; className: string; children: React.ReactNode }) {
   if (to.startsWith('/')) {
     return (
@@ -105,6 +113,7 @@ export default function HeroSpotlight({
         <div
           className={`${stack} ${index === 0 ? shown : hidden}`}
           aria-hidden={index !== 0}
+          {...inertWhen(index !== 0)}
           aria-roledescription="slide"
           aria-label={`1 of ${total}`}
         >
@@ -166,6 +175,7 @@ export default function HeroSpotlight({
               key={s.id ?? s.title}
               className={`${stack} absolute inset-0 ${active ? shown : hidden}`}
               aria-hidden={!active}
+              {...inertWhen(!active)}
               aria-roledescription="slide"
               aria-label={`${n + 1} of ${total}`}
             >

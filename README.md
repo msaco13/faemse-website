@@ -565,6 +565,16 @@ for that:
   anonymous visitor, and fails the run if anything is refused, slow, missing,
   or readable that should not be. A red run emails the repository owner.
   Run it by hand with `node scripts/smoke.mjs`.
+- **Accessibility audit** (`scripts/a11y.mjs`): runs axe-core's WCAG 2.1
+  Level A and AA rules against every public page, the check the ADA Title II
+  rule points at. Jorge asked for it on 2026-10-06; the three findings it
+  turned up (hidden hero slides still in the Tab order, past events faded
+  below the contrast minimum, a heading-level skip in the footer) were fixed
+  the same day and every page now passes. Run it with `npm run a11y`
+  (needs the dev dependencies and a Chromium that Playwright can find; set
+  `A11Y_SITE` to audit a preview instead of faemse.org). Automated rules
+  cannot judge text over photos or gradients; those are listed as "needs
+  review" and were checked by eye.
 - **Daily maintenance routine**: a scheduled Claude session reads the smoke
   runs, the Supabase logs and advisors, and any site emails from the board,
   fixes what is small and safe, and reports only when something was found.
