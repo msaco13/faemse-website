@@ -10,20 +10,23 @@ const tagStyles: Record<string, string> = {
 };
 
 function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
+  // Past rows used to be faded with opacity, which dropped the grey text to
+  // 2.6:1 against white (WCAG AA asks 4.5:1). They are now marked by muted
+  // colours that still pass, plus the "Held" pill and no registration link.
   return (
     <div
       className={`grid md:grid-cols-[110px_1.6fr_1fr_140px] gap-4 items-center px-7 py-6 border-b border-line last:border-b-0 hover:bg-paper transition-colors ${
-        past ? 'opacity-60' : ''
+        past ? 'bg-paper/50' : ''
       }`}
     >
-      <div className="font-disp uppercase leading-none">
+      <div className={`font-disp uppercase leading-none ${past ? 'text-muted' : ''}`}>
         <b className="block text-[32px] font-bold">{e.day}</b>
         <span className="text-[13px] tracking-[0.16em] text-muted">
           {e.month} {e.year}
         </span>
       </div>
       <div>
-        <b className="block text-[16.5px]">{e.title}</b>
+        <b className={`block text-[16.5px] ${past ? 'text-muted' : ''}`}>{e.title}</b>
         <span className="text-[13.5px] text-muted">{e.detail}</span>
         {e.url && !past && (
           <a
