@@ -31,6 +31,7 @@ const QandA = lazy(() => import('./pages/QandA'));
 const Videos = lazy(() => import('./pages/Videos'));
 const DirectorGuide = lazy(() => import('./pages/DirectorGuide'));
 const Programs = lazy(() => import('./pages/Programs'));
+const Hubs = lazy(() => import('./pages/Hubs'));
 const PaymentComplete = lazy(() => import('./pages/PaymentComplete'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -156,6 +157,8 @@ export default function App() {
             <Route path="/videos" element={<Videos />} />
             <Route path="/program-directors" element={<DirectorGuide />} />
             <Route path="/programs" element={<Programs />} />
+            {/* Board admins only; the page and the database both enforce it. */}
+            <Route path="/admin/hubs/:hub?/:section?/:sub?" element={<Hubs />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/members" element={<Members />} />
