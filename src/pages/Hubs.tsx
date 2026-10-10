@@ -1,8 +1,8 @@
 import { useMemo, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import Markdown from '../components/Markdown';
 import PageHead from '../components/PageHead';
-import { leaves, parseHub, useHubDoc, useHubList, type Hub, type HubDoc } from '../lib/hubs';
+import { leaves, parseHub, useHubDoc, useHubList, type Hub, type HubDoc, type HubListing } from '../lib/hubs';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // The board's program hubs (Program Directors and its companions), admin-only
@@ -10,8 +10,9 @@ import { useMemberStatus } from '../lib/useMemberStatus';
 //   /admin/hubs/:hub                     the pillars
 //   /admin/hubs/:hub/:section            one pillar's subsections
 //   /admin/hubs/:hub/:section/:sub       one subsection's content
-// Every subsection has its own link, and previous/next walk the whole hub in
-// order. Non-admins never fetch anything: the page checks the profile first,
+// A row of pill tabs, one per hub, sits above all three levels; /admin/hubs
+// alone opens the first hub. Every subsection has its own link, and
+// previous/next walk the whole hub in order. Non-admins never fetch anything: the page checks the profile first,
 // and the table's RLS refuses them anyway.
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -87,18 +88,31 @@ function RowLink({ to, n, title, meta }: { to: string; n?: number; title: string
   );
 }
 
-function HubIndex() {
-  const list = useHubList(true);
-  if (list.status === 'loading') return <Notice>Loading the hubs…</Notice>;
-  if (list.status === 'error') return <Notice tone="error">{list.message}</Notice>;
-  if (list.status === 'missing' || list.data.length === 0)
-    return <Notice>No hub documents are loaded yet. They go into the admin_documents table from the Supabase SQL Editor.</Notice>;
+// One pill per hub across the top of every hubs page; the selected hub's
+// pillars show underneath. Wraps onto a second row on narrow screens rather
+// than scrolling sideways.
+function HubTabs({ hubs, active }: { hubs: HubListing[]; active: string }) {
   return (
-    <ul className="space-y-3">
-      {list.data.map((h) => (
-        <RowLink key={h.slug} to={`/admin/hubs/${h.slug}`} title={h.title} meta={`${h.summary ? `${h.summary} · ` : ''}Updated ${fmt(h.updated_at)}`} />
-      ))}
-    </ul>
+    <nav aria-label="Program hubs" className="mb-8">
+      <ul className="flex flex-wrap gap-2">
+        {hubs.map((h) => {
+          const on = h.slug === active;
+          return (
+            <li key={h.slug}>
+              <Link
+                to={`/admin/hubs/${h.slug}`}
+                aria-current={on ? 'page' : undefined}
+                className={`inline-flex items-center rounded-full px-4 py-2 text-[14px] font-semibold border transition-colors ${
+                  on ? 'bg-ink text-white border-ink' : 'bg-white text-body border-line hover:border-brand-blue hover:text-brand-blue'
+                }`}
+              >
+                {h.title.replace(/\s+Hub$/, '')}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
 
@@ -106,9 +120,9 @@ function HubHome({ doc, hub }: { doc: HubDoc; hub: Hub }) {
   const first = leaves(doc.slug, hub)[0];
   return (
     <>
-      <Crumbs items={[{ label: 'All hubs', to: '/admin/hubs' }, { label: doc.title }]} />
       <DraftBadge updated={doc.updated_at} />
-      <h2 className="font-disp font-bold uppercase text-[clamp(30px,4vw,44px)] leading-none mb-5">{doc.title}</h2>
+      <h2 className="font-disp font-bold uppercase text-[clamp(30px,4vw,44px)] leading-none mb-2">{doc.title}</h2>
+      {doc.summary && <p className="text-muted text-[15px] mb-5">{doc.summary}</p>}
       {hub.intro && (
         <div className="card p-6 md:p-7 mb-6">
           <Markdown source={hub.intro} />
@@ -168,7 +182,7 @@ function SectionPage({ doc, hub, sectionSlug }: { doc: HubDoc; hub: Hub; section
   const path = `/admin/hubs/${doc.slug}/${section.slug}`;
   return (
     <>
-      <Crumbs items={[{ label: 'All hubs', to: '/admin/hubs' }, { label: doc.title, to: `/admin/hubs/${doc.slug}` }, { label: section.title }]} />
+      <Crumbs items={[{ label: doc.title, to: `/admin/hubs/${doc.slug}` }, { label: section.title }]} />
       <DraftBadge updated={doc.updated_at} />
       <h2 className="font-disp font-bold uppercase text-[clamp(28px,3.6vw,40px)] leading-none mb-5">{section.title}</h2>
       {section.intro && (
@@ -198,7 +212,6 @@ function SubPage({ doc, hub, sectionSlug, subSlug }: { doc: HubDoc; hub: Hub; se
     <>
       <Crumbs
         items={[
-          { label: 'All hubs', to: '/admin/hubs' },
           { label: doc.title, to: `/admin/hubs/${doc.slug}` },
           { label: section.title, to: `/admin/hubs/${doc.slug}/${section.slug}` },
           { label: sub.title },
@@ -261,7 +274,23 @@ export default function Hubs() {
       </Notice>
     );
   else if (!status.admin) body = <Notice>This area is for board admins only.</Notice>;
-  else if (hub) body = <HubView key={hub} hubSlug={hub} sectionSlug={section} subSlug={sub} />;
-  else body = <HubIndex />;
+  else body = <AdminHubs hub={hub} section={section} sub={sub} />;
   return <Shell>{body}</Shell>;
+}
+
+// Rendered only once the profile check says admin, so the hub list is never
+// requested for anyone else. /admin/hubs on its own opens the first hub.
+function AdminHubs({ hub, section, sub }: { hub?: string; section?: string; sub?: string }) {
+  const list = useHubList(true);
+  if (list.status === 'loading') return <Notice>Loading the hubs…</Notice>;
+  if (list.status === 'error') return <Notice tone="error">{list.message}</Notice>;
+  if (list.status === 'missing' || list.data.length === 0)
+    return <Notice>No hub documents are loaded yet. They go into the admin_documents table from the Supabase SQL Editor.</Notice>;
+  if (!hub) return <Navigate to={`/admin/hubs/${list.data[0].slug}`} replace />;
+  return (
+    <>
+      <HubTabs hubs={list.data} active={hub} />
+      <HubView key={hub} hubSlug={hub} sectionSlug={section} subSlug={sub} />
+    </>
+  );
 }
