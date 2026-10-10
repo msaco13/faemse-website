@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Application, ContactMessage, Profile } from '../../lib/portal';
 import { useSettings } from '../../lib/settings';
 import { supabase } from '../../lib/supabase';
@@ -99,6 +100,12 @@ export default function AdminWorkspace() {
 
   return (
     <div className="card mb-10 border-t-[3px] border-t-brand-red/60 overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-b border-line bg-paper text-[13.5px]">
+        <span className="text-muted">Program Directors hub and companion hubs (drafts, admins only)</span>
+        <Link to="/admin/hubs" className="text-brand-blue font-bold hover:underline">
+          Open program hubs →
+        </Link>
+      </div>
       <div className="grid md:grid-cols-[210px_1fr]">
         <nav className="bg-ink text-[#AFC1E2] p-3 md:p-4 md:min-h-full flex md:flex-col flex-wrap gap-1" role="tablist" aria-label="Board admin areas">
           <div className="hidden md:block px-2.5 pb-3 mb-2 border-b border-white/10">
