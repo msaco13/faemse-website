@@ -79,6 +79,14 @@ association's Supabase organization.
 - `organizations`, `organization_members`, `contacts` — institutional and
   corporate memberships with their seated representatives (cap enforced by
   trigger), and the listserv-only people without a login.
+- **Members-only pages (board decision 2026-10-13):** News, Q&A, Jobs and
+  Resources. Visitors who aren't current members don't see those header
+  tabs, and the pages show them a sign-in / join notice instead of content
+  (`src/components/MembersOnly.tsx`, wrapped around the routes in
+  `src/App.tsx`). The homepage still shows news headlines and cards for
+  these pages to everyone, as a teaser. This locks the pages, not the data:
+  `news_posts` and `jobs` stay publicly readable because the homepage reads
+  news while signed out. The pages are out of `public/sitemap.xml`.
 - `events`, `news_posts` — the public calendar and news, editable from the
   portal's **Site content** panel (admins only). Schema:
   `supabase/migrations/20260830_editable_content.sql` — paste it once into the

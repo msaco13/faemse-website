@@ -6,7 +6,7 @@ import { slug, T } from '../lib/text';
 const faemseResources = [
   {
     title: 'Q&A archive',
-    text: 'Real questions from Florida educators, answered once and kept. Questions are public; answers open with membership.',
+    text: 'Real questions from Florida educators, answered once and kept.',
     to: '/qa',
     tag: 'Searchable',
   },

@@ -6,9 +6,11 @@ import { T, useText } from '../lib/text';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // The archive, not a forum: the board distills listserv threads into single
-// clean answers. Questions are public — the pitch — and answers are a member
-// benefit, enforced server-side by RLS (the public index RPC never returns
-// answer text).
+// clean answers. Since 2026-10-13 the whole page is members only (the route
+// wraps it in MembersOnly). The non-member view below (questions only) stays
+// in case the board reopens the questions as a teaser; answers are enforced
+// server-side by RLS either way (the public index RPC never returns answer
+// text).
 export default function QandA() {
   const status = useMemberStatus();
   const index = useQaIndex();
