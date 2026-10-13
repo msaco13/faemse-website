@@ -55,6 +55,9 @@ export type Spotlight = {
   // (localStorage) still show both; only `false` hides a button.
   showLink?: boolean;
   showJoin?: boolean;
+  // The small tags under the buttons that are switched on (tag_1..3 with
+  // show_tag_1..3), in order. Missing before the columns exist: no tags.
+  tags?: string[];
   // The welcome slide (is_welcome): same fields, its own look. See
   // HeroSpotlight.
   welcome?: boolean;
@@ -167,6 +170,10 @@ export function useSpotlights(): Loaded<Spotlight> {
           linkLabel: r.link_label,
           showLink: r.show_link !== false,
           showJoin: r.show_join !== false,
+          tags: [1, 2, 3]
+            .filter((n) => r[`show_tag_${n}`] !== false)
+            .map((n) => String(r[`tag_${n}`] ?? '').trim())
+            .filter(Boolean),
           welcome: r.is_welcome === true,
         }));
         // Before the is_welcome column exists (the code can deploy a minute

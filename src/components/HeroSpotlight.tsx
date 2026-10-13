@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { welcomeSlide } from '../content/data';
 import type { Spotlight } from '../lib/postings';
-import { slug, T, useSiteText, useText } from '../lib/text';
+import { T, useSiteText, useText } from '../lib/text';
 
 // The homepage's "one main screen that flips through": the welcome slide
 // leads, then the other spotlights (next meeting, awards, schools,
@@ -163,6 +163,7 @@ export default function HeroSpotlight({
                       )}
                     </div>
                   )}
+                  <SlideTags tags={s.tags} />
                 </>
               )}
               {editing && (
@@ -239,8 +240,7 @@ export default function HeroSpotlight({
 }
 
 // The welcome slide's own look: the gold-rule kicker, the page's one h1 with
-// its last line in gold, the red join button ahead of the board's button,
-// and the three tags (those are still worded with "Edit page").
+// its last line in gold, and the red join button ahead of the board's button.
 function WelcomeSlide({ s, link, showJoin }: { s: Spotlight; link: React.ReactNode; showJoin: boolean }) {
   const lines = s.title.split('\n').map((l) => l.trim()).filter(Boolean);
   const gold = lines.length > 1 ? lines.pop() : undefined;
@@ -276,16 +276,28 @@ function WelcomeSlide({ s, link, showJoin }: { s: Spotlight; link: React.ReactNo
           {link}
         </div>
       )}
-      <div className="flex flex-wrap gap-2.5">
-        {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map((c) => (
-          <span
-            key={c}
-            className="text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
-          >
-            <T id={`home.hero.chip.${slug(c)}`}>{c}</T>
-          </span>
-        ))}
-      </div>
+      <SlideTags tags={s.tags} />
     </>
+  );
+}
+
+// The small tags under a slide's buttons: the ones switched on in the
+// Spotlights panel (up to three). They share one row as wide as the three
+// original tags were together (about 600px), each as wide as its words plus an
+// even share of what's left, so fewer tags means wider ones (board request,
+// Oct 2026). Below that width they wrap and each line fills the same way.
+function SlideTags({ tags }: { tags?: string[] }) {
+  if (!tags?.length) return null;
+  return (
+    <div className="flex flex-wrap gap-2.5 max-w-[600px]">
+      {tags.map((c, i) => (
+        <span
+          key={i}
+          className="flex-auto text-center text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
+        >
+          {c}
+        </span>
+      ))}
+    </div>
   );
 }

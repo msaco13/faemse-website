@@ -401,6 +401,11 @@ export const sampleVideos: { topic: string; title: string; presenter: string; mi
 // table can't be reached, so keep it in step with the live row: it sets the
 // hero's height, and a different wording here would make the hero jump when
 // the real row arrives.
+// The three small tags under a slide's buttons. Every slide has three,
+// each with its own show switch; these are the words a new slide starts
+// with (and the database's column defaults).
+export const defaultSlideTags = ['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'];
+
 export const welcomeSlide = {
   kicker: 'Florida Association of EMS Educators',
   title: "Supporting the educators\nwho train Florida's\nfirst responders",
@@ -409,6 +414,7 @@ export const welcomeSlide = {
   videoUrl: '',
   linkUrl: '/events',
   linkLabel: "See what's coming up",
+  tags: defaultSlideTags,
   welcome: true,
 };
 

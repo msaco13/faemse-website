@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { todayISO } from '../lib/dates';
+import { defaultSlideTags } from '../content/data';
 import Collapsible from './admin/Collapsible';
 import { supabase } from '../lib/supabase';
 
@@ -24,6 +25,8 @@ type Field = {
   hint?: string; // media fields: sizing guidance under the input
   span?: boolean; // full-width in the two-column form grid
   nullable?: boolean; // clearing the field on edit stores NULL (column allows it)
+  newValue?: string; // text fields: what a new row's field starts with
+  beside?: boolean; // checkboxes: lines up with the input of the field to its left
 };
 
 type Section = {
@@ -74,6 +77,12 @@ const SECTIONS: Section[] = [
       { name: 'link_label', label: 'Button text', type: 'text', placeholder: 'See the calendar' },
       { name: 'show_link', label: 'Show this button on the slide', type: 'checkbox' },
       { name: 'show_join', label: 'Show the "Become a member" button', type: 'checkbox' },
+      // The three small tags under the buttons, each with its own switch.
+      // The ones switched on share one row and stretch to fill it.
+      ...defaultSlideTags.flatMap((word, i): Field[] => [
+        { name: `tag_${i + 1}`, label: `Tag ${i + 1} (small pill under the buttons)`, type: 'text', newValue: word },
+        { name: `show_tag_${i + 1}`, label: `Show tag ${i + 1}`, type: 'checkbox', beside: true },
+      ]),
       { name: 'starts_on', label: 'Show from', type: 'date' },
       { name: 'expires_on', label: 'Stop showing after (optional)', type: 'date', nullable: true },
     ],
@@ -329,9 +338,8 @@ function RowForm({
     <form onSubmit={onSubmit} className="bg-paper rounded-xl p-5 grid sm:grid-cols-2 gap-3">
       {initial?.is_welcome === true && (
         <p className="sm:col-span-2 text-[13.5px] text-muted">
-          This is the welcome slide. It keeps its own look: the last line of the headline shows in gold, the red
-          &ldquo;Become a member — $50/yr&rdquo; button comes first and your button second, and the three small tags
-          under the buttons are worded with Edit page on the homepage.
+          This is the welcome slide. It keeps its own look: the last line of the headline shows in gold, and the red
+          &ldquo;Become a member — $50/yr&rdquo; button comes first and your button second.
         </p>
       )}
       {section.fields.map((f) => {
@@ -339,13 +347,16 @@ function RowForm({
           ? f.type === 'tags' && Array.isArray(initial[f.name])
             ? (initial[f.name] as string[]).join(', ')
             : String(initial[f.name] ?? '')
-          : '';
+          : f.newValue ?? '';
         if (f.type === 'media') {
           return <MediaInput key={f.name} field={f} initial={initialVal} />;
         }
         if (f.type === 'checkbox') {
           return (
-            <label key={f.name} className={`flex items-center gap-2.5 text-[14px] font-semibold ${f.span ? 'sm:col-span-2' : ''}`}>
+            <label
+              key={f.name}
+              className={`flex items-center gap-2.5 text-[14px] font-semibold ${f.span ? 'sm:col-span-2' : ''} ${f.beside ? 'sm:self-end sm:min-h-[42px]' : ''}`}
+            >
               <input
                 type="checkbox"
                 name={f.name}
