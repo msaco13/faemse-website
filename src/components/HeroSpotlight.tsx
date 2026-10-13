@@ -195,17 +195,23 @@ export default function HeroSpotlight({
               {/* Keeps line breaks typed in the Spotlights panel (Enter starts a
                   new line); six lines at most. */}
               {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{s.body}</p>}
-              <div className="flex flex-wrap gap-3.5 mb-6">
-                {s.linkUrl && (
-                  <SlideLink to={s.linkUrl} className="btn-gold">
-                    {s.linkLabel || 'Learn more'}
-                    {!s.linkUrl.startsWith('/') && ' ↗'}
-                  </SlideLink>
-                )}
-                <Link to="/membership" className="btn-glass">
-                  <T id="home.hero.spot.join">Become a member</T>
-                </Link>
-              </div>
+              {/* Either button can be switched off per slide in the
+                  Spotlights panel (board request, Oct 2026). */}
+              {((s.linkUrl && s.showLink !== false) || s.showJoin !== false) && (
+                <div className="flex flex-wrap gap-3.5 mb-6">
+                  {s.linkUrl && s.showLink !== false && (
+                    <SlideLink to={s.linkUrl} className="btn-gold">
+                      {s.linkLabel || 'Learn more'}
+                      {!s.linkUrl.startsWith('/') && ' ↗'}
+                    </SlideLink>
+                  )}
+                  {s.showJoin !== false && (
+                    <Link to="/membership" className="btn-glass">
+                      <T id="home.hero.spot.join">Become a member</T>
+                    </Link>
+                  )}
+                </div>
+              )}
               {editing && (
                 <p className="text-[13px] font-semibold text-brand-goldsoft bg-black/40 border border-brand-goldsoft/40 rounded-xl px-4 py-2.5 max-w-[52ch]">
                   This slide is a homepage spotlight. Its words are changed in{' '}

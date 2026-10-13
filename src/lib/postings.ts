@@ -50,6 +50,11 @@ export type Spotlight = {
   videoUrl: string;
   linkUrl: string;
   linkLabel: string;
+  // The two slide buttons, each switched off with a checkbox in the
+  // Spotlights panel. Optional so slides cached before the switch existed
+  // (localStorage) still show both; only `false` hides a button.
+  showLink?: boolean;
+  showJoin?: boolean;
 };
 
 export type VideoIndexItem = {
@@ -159,6 +164,8 @@ export function useSpotlights(): Loaded<Spotlight> {
             videoUrl: r.video_url ?? '',
             linkUrl: r.link_url,
             linkLabel: r.link_label,
+            showLink: r.show_link !== false,
+            showJoin: r.show_join !== false,
           })),
         };
       }

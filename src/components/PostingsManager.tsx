@@ -72,6 +72,8 @@ const SECTIONS: Section[] = [
       },
       { name: 'link_url', label: 'Button link (/events, /about, or https://…)', type: 'text' },
       { name: 'link_label', label: 'Button text', type: 'text', placeholder: 'See the calendar' },
+      { name: 'show_link', label: 'Show this button on the slide', type: 'checkbox' },
+      { name: 'show_join', label: 'Show the "Become a member" button', type: 'checkbox' },
       { name: 'starts_on', label: 'Show from', type: 'date' },
       { name: 'expires_on', label: 'Stop showing after (optional)', type: 'date', nullable: true },
     ],
