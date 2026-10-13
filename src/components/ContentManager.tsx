@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Collapsible from './admin/Collapsible';
 import { todayISO } from '../lib/dates';
 import { supabase } from '../lib/supabase';
 
@@ -234,6 +235,7 @@ function NewsForm({
 export default function ContentManager() {
   const [events, setEvents] = useState<DbEvent[]>([]);
   const [posts, setPosts] = useState<DbNews[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [adding, setAdding] = useState<'event' | 'news' | null>(null);
@@ -254,6 +256,7 @@ export default function ContentManager() {
     setLoadError('');
     setEvents((ev.data ?? []) as DbEvent[]);
     setPosts((nw.data ?? []) as DbNews[]);
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -297,22 +300,30 @@ export default function ContentManager() {
 
       {!needsSetup && (
         <>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted">
-              Events
-            </h3>
-            <button onClick={() => setAdding(adding === 'event' ? null : 'event')} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
-              + Add event
-            </button>
-          </div>
+          <Collapsible
+            title="Events"
+            count={loaded ? events.length : null}
+            noun={['event', 'events']}
+            action={(open) => (
+              <button
+                onClick={() => {
+                  open();
+                  setAdding(adding === 'event' ? null : 'event');
+                }}
+                className="btn-outline !py-1.5 !px-3.5 text-[12.5px]"
+              >
+                + Add event
+              </button>
+            )}
+          >
           {adding === 'event' && <div className="mb-4"><EventForm onDone={done} onCancel={() => setAdding(null)} /></div>}
           {events.length === 0 ? (
-            <p className="text-muted text-[14.5px] mb-8">
+            <p className="text-muted text-[14.5px]">
               No events yet — until the first one is added, the public site shows its sample
               calendar with a &ldquo;sample&rdquo; label.
             </p>
           ) : (
-            <div className="border border-line rounded-2xl overflow-hidden mb-8">
+            <div className="border border-line rounded-2xl overflow-hidden">
               {events.map((ev) => (
                 <div key={ev.id} className="px-5 py-4 border-b border-line last:border-b-0">
                   {editing === ev.id ? (
@@ -349,15 +360,24 @@ export default function ContentManager() {
               ))}
             </div>
           )}
+          </Collapsible>
 
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted">
-              News
-            </h3>
-            <button onClick={() => setAdding(adding === 'news' ? null : 'news')} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
-              + Add post
-            </button>
-          </div>
+          <Collapsible
+            title="News"
+            count={loaded ? posts.length : null}
+            noun={['post', 'posts']}
+            action={(open) => (
+              <button
+                onClick={() => {
+                  open();
+                  setAdding(adding === 'news' ? null : 'news');
+                }}
+                className="btn-outline !py-1.5 !px-3.5 text-[12.5px]"
+              >
+                + Add post
+              </button>
+            )}
+          >
           {adding === 'news' && <div className="mb-4"><NewsForm onDone={done} onCancel={() => setAdding(null)} /></div>}
           {posts.length === 0 ? (
             <p className="text-muted text-[14.5px]">
@@ -397,6 +417,7 @@ export default function ContentManager() {
               ))}
             </div>
           )}
+          </Collapsible>
         </>
       )}
     </div>
