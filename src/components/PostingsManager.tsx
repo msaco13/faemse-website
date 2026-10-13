@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { todayISO } from '../lib/dates';
+import { defaultSlideTags } from '../content/data';
 import Collapsible from './admin/Collapsible';
 import { supabase } from '../lib/supabase';
 
@@ -24,6 +25,8 @@ type Field = {
   hint?: string; // media fields: sizing guidance under the input
   span?: boolean; // full-width in the two-column form grid
   nullable?: boolean; // clearing the field on edit stores NULL (column allows it)
+  newValue?: string; // text fields: what a new row's field starts with
+  beside?: boolean; // checkboxes: lines up with the input of the field to its left
 };
 
 type Section = {
@@ -50,7 +53,7 @@ const SECTIONS: Section[] = [
     fields: [
       { name: 'kicker', label: 'Kicker (small gold line above the headline)', type: 'text', placeholder: 'Educator of the Year · Next meeting · Program spotlight' },
       { name: 'sort_order', label: 'Order (lower shows first)', type: 'number' },
-      { name: 'title', label: 'Headline (keep it under ~60 characters)', type: 'text', required: true, span: true },
+      { name: 'title', label: 'Headline (keep it under ~60 characters. Press Enter to start a new line)', type: 'textarea', required: true, span: true },
       { name: 'body', label: 'One or two sentences. Press Enter to start a new line (the homepage shows at most six lines)', type: 'textarea', span: true },
       {
         name: 'image_url',
@@ -74,13 +77,21 @@ const SECTIONS: Section[] = [
       { name: 'link_label', label: 'Button text', type: 'text', placeholder: 'See the calendar' },
       { name: 'show_link', label: 'Show this button on the slide', type: 'checkbox' },
       { name: 'show_join', label: 'Show the "Become a member" button', type: 'checkbox' },
+      // The three small tags under the buttons, each with its own switch.
+      // The ones switched on share one row and stretch to fill it.
+      ...defaultSlideTags.flatMap((word, i): Field[] => [
+        { name: `tag_${i + 1}`, label: `Tag ${i + 1} (small pill under the buttons)`, type: 'text', newValue: word },
+        { name: `show_tag_${i + 1}`, label: `Show tag ${i + 1}`, type: 'checkbox', beside: true },
+      ]),
       { name: 'starts_on', label: 'Show from', type: 'date' },
       { name: 'expires_on', label: 'Stop showing after (optional)', type: 'date', nullable: true },
     ],
     summary: (r) => ({
       date: `#${s(r, 'sort_order')}`,
       primary: s(r, 'title'),
-      secondary: [s(r, 'kicker'), s(r, 'expires_on') ? `until ${s(r, 'expires_on')}` : 'no end date'].filter(Boolean).join(' · '),
+      secondary: [r.is_welcome ? 'Welcome slide' : '', s(r, 'kicker'), s(r, 'expires_on') ? `until ${s(r, 'expires_on')}` : 'no end date']
+        .filter(Boolean)
+        .join(' · '),
     }),
   },
   {
@@ -325,18 +336,27 @@ function RowForm({
 
   return (
     <form onSubmit={onSubmit} className="bg-paper rounded-xl p-5 grid sm:grid-cols-2 gap-3">
+      {initial?.is_welcome === true && (
+        <p className="sm:col-span-2 text-[13.5px] text-muted">
+          This is the welcome slide. It keeps its own look: the last line of the headline shows in gold, and the red
+          &ldquo;Become a member — $50/yr&rdquo; button comes first and your button second.
+        </p>
+      )}
       {section.fields.map((f) => {
         const initialVal = initial
           ? f.type === 'tags' && Array.isArray(initial[f.name])
             ? (initial[f.name] as string[]).join(', ')
             : String(initial[f.name] ?? '')
-          : '';
+          : f.newValue ?? '';
         if (f.type === 'media') {
           return <MediaInput key={f.name} field={f} initial={initialVal} />;
         }
         if (f.type === 'checkbox') {
           return (
-            <label key={f.name} className={`flex items-center gap-2.5 text-[14px] font-semibold ${f.span ? 'sm:col-span-2' : ''}`}>
+            <label
+              key={f.name}
+              className={`flex items-center gap-2.5 text-[14px] font-semibold ${f.span ? 'sm:col-span-2' : ''} ${f.beside ? 'sm:self-end sm:min-h-[42px]' : ''}`}
+            >
               <input
                 type="checkbox"
                 name={f.name}
@@ -353,7 +373,7 @@ function RowForm({
             {f.type === 'textarea' ? (
               <textarea
                 name={f.name}
-                rows={f.name === 'answer' ? 5 : 2}
+                rows={f.name === 'answer' ? 5 : f.name === 'title' && section.table === 'spotlights' ? 3 : 2}
                 required={f.required}
                 maxLength={f.name === 'answer' ? 8000 : 2000}
                 placeholder={f.placeholder}
@@ -506,12 +526,16 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
                       <button onClick={() => setEditing(r.id)} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
                         {expired ? 'Repost / edit' : 'Edit'}
                       </button>
-                      <button
-                        onClick={() => remove(r.id, sum.primary)}
-                        className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
-                      >
-                        Delete
-                      </button>
+                      {/* The welcome slide can't be re-created from this panel,
+                          so it has no Delete; "Stop showing after" hides it. */}
+                      {r.is_welcome !== true && (
+                        <button
+                          onClick={() => remove(r.id, sum.primary)}
+                          className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
