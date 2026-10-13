@@ -2,18 +2,20 @@ import { useMemo, type ReactNode } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import Markdown from '../components/Markdown';
 import PageHead from '../components/PageHead';
-import { leaves, parseHub, useHubDoc, useHubList, type Hub, type HubDoc, type HubListing } from '../lib/hubs';
+import { forViewer, HUBS_PATH, leaves, parseHub, useHubDoc, useHubList, type Hub, type HubDoc, type HubListing } from '../lib/hubs';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
-// The board's program hubs (Program Directors and its companions), admin-only
-// while they are drafts. Three click levels, as the draft's build note asks:
-//   /admin/hubs/:hub                     the pillars
-//   /admin/hubs/:hub/:section            one pillar's subsections
-//   /admin/hubs/:hub/:section/:sub       one subsection's content
-// A row of pill tabs, one per hub, sits above all three levels; /admin/hubs
-// alone opens the first hub. Every subsection has its own link, and
-// previous/next walk the whole hub in order. Non-admins never fetch anything: the page checks the profile first,
-// and the table's RLS refuses them anyway.
+// The program hubs (Program Directors and its companions), for current
+// members and admins; the header's "Members only" tab links here. Three click
+// levels, as the draft's build note asks:
+//   /hubs/:hub                     the pillars
+//   /hubs/:hub/:section            one pillar's subsections
+//   /hubs/:hub/:section/:sub       one subsection's content
+// A row of pill tabs, one per hub, sits above all three levels; /hubs alone
+// opens the first hub. Every subsection has its own link, and previous/next
+// walk the whole hub in order. Visitors who aren't current members never
+// fetch anything: the page checks the profile first, and the table's RLS
+// refuses them anyway. The drafts' maintenance notes show to admins only.
 
 const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -21,10 +23,10 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <>
       <PageHead
-        id="adminhubs"
-        eyebrow="Board admins only"
+        id="hubs"
+        eyebrow="Members only"
         title="Program hubs"
-        sub="Drafts of the Program Directors hub and its companion hubs. Visible to board admins only until the board publishes them."
+        sub="The Program Directors hub and its companion hubs: what each role requires under CoAEMSP and Florida rules, with the sources to check."
       />
       <section className="py-14 md:py-16 bg-paper min-h-[40vh]">
         <div className="wrap max-w-[900px]">{children}</div>
@@ -67,7 +69,7 @@ function Crumbs({ items }: { items: { label: string; to?: string }[] }) {
 function DraftBadge({ updated }: { updated: string }) {
   return (
     <p className="text-[12.5px] text-muted mb-2">
-      <span className="font-bold tracking-[0.08em] uppercase text-brand-goldink bg-[#FBF3D9] px-2 py-0.5 rounded-full mr-2">Draft · admins only</span>
+      <span className="font-bold tracking-[0.08em] uppercase text-brand-goldink bg-[#FBF3D9] px-2 py-0.5 rounded-full mr-2">Draft · members only</span>
       Updated {fmt(updated)}
     </p>
   );
@@ -100,7 +102,7 @@ function HubTabs({ hubs, active }: { hubs: HubListing[]; active: string }) {
           return (
             <li key={h.slug}>
               <Link
-                to={`/admin/hubs/${h.slug}`}
+                to={`${HUBS_PATH}/${h.slug}`}
                 aria-current={on ? 'page' : undefined}
                 className={`inline-flex items-center rounded-full px-4 py-2 text-[14px] font-semibold border transition-colors ${
                   on ? 'bg-ink text-white border-ink' : 'bg-white text-body border-line hover:border-brand-blue hover:text-brand-blue'
@@ -139,7 +141,7 @@ function HubHome({ doc, hub }: { doc: HubDoc; hub: Hub }) {
         {hub.sections.map((s, i) => (
           <RowLink
             key={s.slug}
-            to={`/admin/hubs/${doc.slug}/${s.slug}`}
+            to={`${HUBS_PATH}/${doc.slug}/${s.slug}`}
             n={i + 1}
             title={s.title}
             meta={s.subs.length ? `${s.subs.length} ${s.subs.length === 1 ? 'subsection' : 'subsections'}` : undefined}
@@ -179,10 +181,10 @@ function PrevNext({ doc, hub, path }: { doc: HubDoc; hub: Hub; path: string }) {
 function SectionPage({ doc, hub, sectionSlug }: { doc: HubDoc; hub: Hub; sectionSlug: string }) {
   const section = hub.sections.find((s) => s.slug === sectionSlug);
   if (!section) return <NotInHub doc={doc} />;
-  const path = `/admin/hubs/${doc.slug}/${section.slug}`;
+  const path = `${HUBS_PATH}/${doc.slug}/${section.slug}`;
   return (
     <>
-      <Crumbs items={[{ label: doc.title, to: `/admin/hubs/${doc.slug}` }, { label: section.title }]} />
+      <Crumbs items={[{ label: doc.title, to: `${HUBS_PATH}/${doc.slug}` }, { label: section.title }]} />
       <DraftBadge updated={doc.updated_at} />
       <h2 className="font-disp font-bold uppercase text-[clamp(28px,3.6vw,40px)] leading-none mb-5">{section.title}</h2>
       {section.intro && (
@@ -207,13 +209,13 @@ function SubPage({ doc, hub, sectionSlug, subSlug }: { doc: HubDoc; hub: Hub; se
   const section = hub.sections.find((s) => s.slug === sectionSlug);
   const sub = section?.subs.find((s) => s.slug === subSlug);
   if (!section || !sub) return <NotInHub doc={doc} />;
-  const path = `/admin/hubs/${doc.slug}/${section.slug}/${sub.slug}`;
+  const path = `${HUBS_PATH}/${doc.slug}/${section.slug}/${sub.slug}`;
   return (
     <>
       <Crumbs
         items={[
-          { label: doc.title, to: `/admin/hubs/${doc.slug}` },
-          { label: section.title, to: `/admin/hubs/${doc.slug}/${section.slug}` },
+          { label: doc.title, to: `${HUBS_PATH}/${doc.slug}` },
+          { label: section.title, to: `${HUBS_PATH}/${doc.slug}/${section.slug}` },
           { label: sub.title },
         ]}
       />
@@ -231,24 +233,24 @@ function NotInHub({ doc }: { doc: HubDoc }) {
   return (
     <Notice>
       That section isn&rsquo;t in this hub (it may have been renamed).{' '}
-      <Link to={`/admin/hubs/${doc.slug}`} className="text-brand-blue font-semibold">
+      <Link to={`${HUBS_PATH}/${doc.slug}`} className="text-brand-blue font-semibold">
         Back to {doc.title}
       </Link>
     </Notice>
   );
 }
 
-function HubView({ hubSlug, sectionSlug, subSlug }: { hubSlug: string; sectionSlug?: string; subSlug?: string }) {
+function HubView({ hubSlug, sectionSlug, subSlug, admin }: { hubSlug: string; sectionSlug?: string; subSlug?: string; admin: boolean }) {
   const state = useHubDoc(hubSlug, true);
   const doc = state.status === 'ready' ? state.data : null;
-  const hub = useMemo(() => (doc ? parseHub(doc.body) : null), [doc]);
+  const hub = useMemo(() => (doc ? forViewer(parseHub(doc.body), admin) : null), [doc, admin]);
   if (state.status === 'loading') return <Notice>Loading…</Notice>;
   if (state.status === 'error') return <Notice tone="error">{state.message}</Notice>;
   if (state.status === 'missing' || !doc || !hub)
     return (
       <Notice>
         No hub at this address.{' '}
-        <Link to="/admin/hubs" className="text-brand-blue font-semibold">
+        <Link to={HUBS_PATH} className="text-brand-blue font-semibold">
           See all hubs
         </Link>
       </Notice>
@@ -266,31 +268,41 @@ export default function Hubs() {
   else if (!status.signedIn)
     body = (
       <Notice>
-        This area is for board admins.{' '}
+        The program hubs are for FAEMSE members.{' '}
         <Link to="/login" className="text-brand-blue font-semibold">
           Sign in
         </Link>{' '}
-        with an admin account to see it.
+        to read them.
       </Notice>
     );
-  else if (!status.admin) body = <Notice>This area is for board admins only.</Notice>;
-  else body = <AdminHubs hub={hub} section={section} sub={sub} />;
+  else if (!status.current)
+    body = (
+      <Notice>
+        The program hubs are for current members.{' '}
+        <Link to="/membership" className="text-brand-blue font-semibold">
+          Renew your membership
+        </Link>{' '}
+        to read them.
+      </Notice>
+    );
+  else body = <MemberHubs hub={hub} section={section} sub={sub} admin={status.admin} />;
   return <Shell>{body}</Shell>;
 }
 
-// Rendered only once the profile check says admin, so the hub list is never
-// requested for anyone else. /admin/hubs on its own opens the first hub.
-function AdminHubs({ hub, section, sub }: { hub?: string; section?: string; sub?: string }) {
+// Rendered only once the profile check says current member (or admin), so
+// the hub list is never requested for anyone else. /hubs on its own opens
+// the first hub.
+function MemberHubs({ hub, section, sub, admin }: { hub?: string; section?: string; sub?: string; admin: boolean }) {
   const list = useHubList(true);
   if (list.status === 'loading') return <Notice>Loading the hubs…</Notice>;
   if (list.status === 'error') return <Notice tone="error">{list.message}</Notice>;
   if (list.status === 'missing' || list.data.length === 0)
     return <Notice>No hub documents are loaded yet. They go into the admin_documents table from the Supabase SQL Editor.</Notice>;
-  if (!hub) return <Navigate to={`/admin/hubs/${list.data[0].slug}`} replace />;
+  if (!hub) return <Navigate to={`${HUBS_PATH}/${list.data[0].slug}`} replace />;
   return (
     <>
       <HubTabs hubs={list.data} active={hub} />
-      <HubView key={hub} hubSlug={hub} sectionSlug={section} subSlug={sub} />
+      <HubView key={hub} hubSlug={hub} sectionSlug={section} subSlug={sub} admin={admin} />
     </>
   );
 }

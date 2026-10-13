@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Seal from './Seal';
+import { HUBS_PATH } from '../lib/hubs';
 import { T, useText } from '../lib/text';
+import { useMemberStatus, type MemberStatus } from '../lib/useMemberStatus';
 
 // Seven slots is all the 1180px wrap can fit (see the layout note below), so
 // the header carries the pages people return to; Board, Sponsors, Classes,
@@ -16,6 +18,18 @@ const nav = [
   { to: '/jobs', label: 'Jobs' },
   { to: '/resources', label: 'Resources' },
 ];
+
+// Signed-in current members see "Members only" (the program hubs) in
+// Membership's slot: they have already joined. Admins see both, so the
+// header can run to eight slots for them; checked to fit at the xl
+// breakpoint. Everyone else gets the public list above.
+const membersOnly = { to: HUBS_PATH, label: 'Members only' };
+
+function navFor(status: MemberStatus) {
+  if (status.admin) return nav.flatMap((n) => (n.to === '/membership' ? [n, membersOnly] : [n]));
+  if (status.current) return nav.map((n) => (n.to === '/membership' ? membersOnly : n));
+  return nav;
+}
 
 // The mobile menu has room for everything.
 const mobileExtra = [
@@ -32,6 +46,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const menuOpen = useText('nav.menu.open', 'Open menu');
   const menuClose = useText('nav.menu.close', 'Close menu');
+  const items = navFor(useMemberStatus());
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -68,7 +83,7 @@ export default function Header() {
 
         <nav className="hidden xl:block" aria-label="Primary">
           <ul className="flex gap-6 font-semibold text-[15px]">
-            {nav.map((n) => (
+            {items.map((n) => (
               <li key={n.to}>
                 <NavLink
                   to={n.to}
@@ -129,7 +144,7 @@ export default function Header() {
       {open && (
         <div className="xl:hidden border-t border-white/10 bg-ink2">
           <ul className="px-6 py-3">
-            {[...nav, ...mobileExtra, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
+            {[...items, ...mobileExtra, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
               <li key={n.to}>
                 <NavLink
                   to={n.to}

@@ -140,17 +140,21 @@ association's Supabase organization.
   Bylaws card errored for every member, and the 90-day grace gate below never
   took effect — until the 2026-09-20 review applied both halves through the
   migration tool. Re-running it refreshes the text.
-- `admin_documents` — board-only documents: the Program Directors hub and
-  its companion hubs (Medical Director, Instructors, Field/Clinical
-  Internship, Placement) while they are drafts. Admins only for every
-  operation; members and visitors get nothing. Read at `/admin/hubs` (link at
-  the top of the board workspace on `/members`) in three click levels:
-  pillars, subsections, content. Body is Markdown ("##" pillar, "###"
-  subsection; see `src/lib/hubs.ts`). Schema:
-  `supabase/migrations/20261010_admin_documents.sql`. The document text is
-  deliberately not in this repository, because the repository is public: it
-  is loaded straight into the table from the SQL Editor. The hourly smoke
-  check fails if a signed-out visitor can read a row.
+- `admin_documents` — the program hubs: the Program Directors hub and its
+  companion hubs (Medical Director, Instructors, Field/Clinical Internship,
+  Placement). Members only since 2026-10-13 (admins only before that; the
+  table name predates the change): current members and admins read, admins
+  write, signed-out visitors get nothing. Read at `/hubs` in three click
+  levels (pillars, subsections, content) under a row of pill tabs, one per
+  hub. Signed-in current members see a "Members only" tab in the header in
+  place of Membership; admins see both tabs. Each draft's "Maintenance
+  notes" section shows to admins only (hidden in the page; the row itself is
+  readable by members). Body is Markdown ("##" pillar, "###" subsection; see
+  `src/lib/hubs.ts`). Schema and policies:
+  `supabase/migrations/20261010_admin_documents.sql` and
+  `20261013_hubs_for_members.sql`. The document text is deliberately not in
+  this repository, because the repository is public: it lives only in the
+  table. The hourly smoke check fails if a signed-out visitor can read a row.
 - Membership gate: `is_current_member()` — true for admins and for profiles
   whose `expires_at` plus a 90-day grace window is today or later (bylaws
   2.05 allows revocation only once dues are 90 days past due; the same

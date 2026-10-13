@@ -1,10 +1,12 @@
-// Board-only documents: the Program Directors hub and its companion hubs
-// (Medical Director, Instructors, Field/Clinical Internship, Placement), kept
-// admin-only while they are drafts. Rows live in `admin_documents`, which RLS
-// opens to admins and nobody else (supabase/migrations/20261010_admin_documents.sql).
-// The text never ships in the site bundle or the repository; it is fetched
-// only after the profile check says admin, and the database refuses everyone
-// else regardless.
+// The program hubs: the Program Directors hub and its companion hubs (Medical
+// Director, Instructors, Field/Clinical Internship, Placement). Members only
+// since 2026-10-13 (admins only before that). Rows live in `admin_documents`
+// (the name predates the move to members): RLS lets current members and
+// admins read them, admins write them, and signed-out visitors get nothing
+// (supabase/migrations/20261010_admin_documents.sql and
+// 20261013_hubs_for_members.sql). The text never ships in the site bundle or
+// the repository; it is fetched only after the profile check says current
+// member, and the database refuses everyone else regardless.
 //
 // The body is Markdown laid out the way the drafts are written: "#" is the
 // document title, each "##" a pillar (level 1), each "###" a subsection
@@ -14,6 +16,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import { slug } from './text';
+
+// Where the hubs live on the site; the header's "Members only" tab links here.
+export const HUBS_PATH = '/hubs';
 
 export type HubListing = { slug: string; title: string; summary: string; updated_at: string };
 export type HubDoc = HubListing & { body: string };
@@ -142,13 +147,21 @@ export function parseHub(body: string): Hub {
 // contributes one page per subsection; a pillar without any is a page itself.
 // Drives the previous/next links, so reading straight through follows the
 // draft's "start here" path.
+// Each draft ends with a "Maintenance notes (not for public display)" section
+// written for the board. Members don't see it; admins do. This only hides it
+// in the page: the row a member can read still contains it.
+export function forViewer(hub: Hub, admin: boolean): Hub {
+  if (admin) return hub;
+  return { ...hub, sections: hub.sections.filter((s) => !/^maintenance notes/i.test(s.title)) };
+}
+
 export type Leaf = { section: Section; sub: Sub | null; path: string };
 
 export function leaves(hubSlug: string, hub: Hub): Leaf[] {
   const out: Leaf[] = [];
   for (const section of hub.sections) {
-    if (section.subs.length === 0) out.push({ section, sub: null, path: `/admin/hubs/${hubSlug}/${section.slug}` });
-    else for (const sub of section.subs) out.push({ section, sub, path: `/admin/hubs/${hubSlug}/${section.slug}/${sub.slug}` });
+    if (section.subs.length === 0) out.push({ section, sub: null, path: `${HUBS_PATH}/${hubSlug}/${section.slug}` });
+    else for (const sub of section.subs) out.push({ section, sub, path: `${HUBS_PATH}/${hubSlug}/${section.slug}/${sub.slug}` });
   }
   return out;
 }

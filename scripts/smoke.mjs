@@ -126,7 +126,7 @@ async function checkPublicReads() {
   const lib = await anon(`library_resources?select=id&limit=1`);
   ok('anon cannot read the member library', lib.res.status !== 200 || (Array.isArray(lib.json) && lib.json.length === 0), `status ${lib.res.status}`);
   const hubs = await anon(`admin_documents?select=slug&limit=1`);
-  ok('anon cannot read the board-only hubs', hubs.res.status !== 200 || (Array.isArray(hubs.json) && hubs.json.length === 0), `status ${hubs.res.status}`);
+  ok('anon cannot read the members-only hubs', hubs.res.status !== 200 || (Array.isArray(hubs.json) && hubs.json.length === 0), `status ${hubs.res.status}`);
 }
 
 // --- 3. Payments stay off until the board says otherwise --------------------
