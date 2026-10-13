@@ -190,7 +190,7 @@ export default function HeroSpotlight({
               <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,60px)] max-w-[18ch] [text-wrap:balance] line-clamp-4">
                 {s.title}
               </h2>
-              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 line-clamp-4">{s.body}</p>}
+              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{s.body}</p>}
               <div className="flex flex-wrap gap-3.5 mb-6">
                 {s.linkUrl && (
                   <SlideLink to={s.linkUrl} className="btn-gold">
