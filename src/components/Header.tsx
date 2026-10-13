@@ -9,29 +9,29 @@ import { useMemberStatus, type MemberStatus } from '../lib/useMemberStatus';
 // the header carries the pages people return to; Board, Sponsors, Classes,
 // Videos, and the director guide stay one click away via the footer, About,
 // and the pages that reference them.
+// About sits last (board request, 2026-10-13).
 const nav = [
-  { to: '/about', label: 'About' },
   { to: '/membership', label: 'Membership' },
   { to: '/events', label: 'Events' },
   { to: '/news', label: 'News' },
   { to: '/qa', label: 'Q&A' },
   { to: '/jobs', label: 'Jobs' },
   { to: '/resources', label: 'Resources' },
+  { to: '/about', label: 'About' },
 ];
 
 // Signed-in current members see "Members only" (the program hubs) in
 // Membership's slot: they have already joined. Admins see both, so the
 // header can run to eight slots for them; checked to fit at the xl
-// breakpoint. Everyone else sees only the public pages: News, Q&A, Jobs and
-// Resources are members-only (board decision 2026-10-13; the pages gate
-// themselves too, see MembersOnly).
+// breakpoint. Everyone else sees the public list. News, Q&A, Jobs and
+// Resources are members-only pages but their tabs stay up for visitors as a
+// teaser: the pages show a sign-in / join notice (MembersOnly) instead.
 const membersOnly = { to: HUBS_PATH, label: 'Members only' };
-const memberPages = ['/news', '/qa', '/jobs', '/resources'];
 
 function navFor(status: MemberStatus) {
   if (status.admin) return nav.flatMap((n) => (n.to === '/membership' ? [n, membersOnly] : [n]));
   if (status.current) return nav.map((n) => (n.to === '/membership' ? membersOnly : n));
-  return nav.filter((n) => !memberPages.includes(n.to));
+  return nav;
 }
 
 // The mobile menu has room for everything.
