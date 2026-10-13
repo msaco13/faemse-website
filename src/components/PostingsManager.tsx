@@ -36,6 +36,9 @@ type Section = {
   emptyNote: string;
   orderBy: { column: string; ascending: boolean };
   expiresKey?: string;
+  // A yes/no column the list row switches directly, without opening Edit
+  // (spotlights: show_slide, "Show on homepage"). Off dims the row.
+  showKey?: { column: string; label: string; offNote: string };
   fields: Field[];
   summary: (r: Row) => { date: string; primary: string; secondary: string };
 };
@@ -50,7 +53,9 @@ const SECTIONS: Section[] = [
     emptyNote: 'No spotlights yet — the homepage falls back to its evergreen set. Add award winners, schools, instructors, lab work, or the next meeting.',
     orderBy: { column: 'sort_order', ascending: true },
     expiresKey: 'expires_on',
+    showKey: { column: 'show_slide', label: 'Show', offNote: 'hidden from the homepage' },
     fields: [
+      { name: 'show_slide', label: 'Show this slide on the homepage', type: 'checkbox', span: true },
       { name: 'kicker', label: 'Kicker (small gold line above the headline)', type: 'text', placeholder: 'Educator of the Year · Next meeting · Program spotlight' },
       { name: 'sort_order', label: 'Order (lower shows first)', type: 'number' },
       { name: 'title', label: 'Headline (keep it under ~60 characters. Press Enter to start a new line)', type: 'textarea', required: true, span: true },
@@ -462,6 +467,18 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
     else load();
   }
 
+  // The row's Show box saves at once. The list updates first so the box
+  // answers the click; a failed save puts it back and says why.
+  async function setShown(id: string, on: boolean) {
+    const col = section.showKey!.column;
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [col]: on } : r)));
+    const { error } = await supabase.from(section.table).update({ [col]: on }).eq('id', id);
+    if (error) {
+      setLoadError(error.message);
+      load();
+    }
+  }
+
   function done() {
     setAdding(false);
     setEditing(null);
@@ -508,26 +525,41 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
             const sum = section.summary(r);
             const exp = section.expiresKey ? s(r, section.expiresKey) : '';
             const expired = exp !== '' && exp < today;
+            const hidden = !!section.showKey && r[section.showKey.column] === false;
+            const dim = expired || hidden;
             return (
               <div key={r.id} className="px-5 py-4 border-b border-line last:border-b-0">
                 {editing === r.id ? (
                   <RowForm section={section} initial={r} onDone={done} onCancel={() => setEditing(null)} />
                 ) : (
                   <div className="grid md:grid-cols-[110px_1.9fr_auto] gap-3 items-center">
-                    <span className={`text-[13.5px] font-bold ${expired ? 'text-muted' : ''}`}>{sum.date}</span>
+                    <span className={`text-[13.5px] font-bold ${dim ? 'text-muted' : ''}`}>{sum.date}</span>
                     <div className="min-w-0">
-                      <b className={`block text-[14.5px] truncate ${expired ? 'text-muted' : ''}`}>{sum.primary}</b>
+                      <b className={`block text-[14.5px] truncate ${dim ? 'text-muted' : ''}`}>{sum.primary}</b>
                       <span className="text-[13px] text-muted truncate block">
                         {sum.secondary}
+                        {hidden ? ` · ${section.showKey!.offNote}` : ''}
                         {expired ? ' · expired (hidden from the public site)' : ''}
                       </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
+                      {section.showKey && (
+                        <label className="flex items-center gap-1.5 mr-1 text-[12.5px] font-semibold cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!hidden}
+                            onChange={(e) => setShown(r.id, e.target.checked)}
+                            aria-label={`${section.showKey.label} "${sum.primary}"`}
+                            className="w-4 h-4 accent-brand-blue"
+                          />
+                          <span aria-hidden>{section.showKey.label}</span>
+                        </label>
+                      )}
                       <button onClick={() => setEditing(r.id)} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
                         {expired ? 'Repost / edit' : 'Edit'}
                       </button>
                       {/* The welcome slide can't be re-created from this panel,
-                          so it has no Delete; "Stop showing after" hides it. */}
+                          so it has no Delete; its Show box hides it. */}
                       {r.is_welcome !== true && (
                         <button
                           onClick={() => remove(r.id, sum.primary)}
