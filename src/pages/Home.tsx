@@ -149,11 +149,60 @@ export default function Home() {
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} />
+        {/* Sponsor marquee, at the top of the hero under the header's gold
+            line (board, Oct 2026). Transparent so it sits on the hero's own
+            backdrop; the hero's top padding is trimmed to make room, and
+            with the tighter spacing below, "On the board" lands on a
+            1440x900 opening screen. */}
+        <section className="relative z-10 pt-4 overflow-hidden" aria-label={sponsorsAria}>
+        <p className="px-6 text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-4">
+          <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
+        </p>
+        {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
+            time) and it pauses under the pointer so a name can be clicked. */}
+        {/* Four copies, scrolled by a quarter (one copy's width, so the speed
+            is unchanged): the loop is seamless as long as three copies span
+            the viewport, about 7,500px with today's list. Two copies ran dry
+            on a 2,560px screen and showed an empty strip once per loop. */}
+        <div className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
+          {[...sponsors, ...sponsors, ...sponsors, ...sponsors].map((s, i) => {
+            // The extra copies exist only to make the marquee loop seamless;
+            // hide them from screen readers and the tab order so sponsors aren't
+            // announced or tabbed through repeatedly.
+            const dup = i >= sponsors.length;
+            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap';
+            const body = (
+              <>
+                <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
+                {s.name}
+              </>
+            );
+            return s.url ? (
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-hidden={dup || undefined}
+                tabIndex={dup ? -1 : undefined}
+                className={`${cls} hover:text-brand-goldsoft transition-colors`}
+              >
+                {body}
+              </a>
+            ) : (
+              <span key={i} aria-hidden={dup || undefined} className={cls}>
+                {body}
+              </span>
+            );
+          })}
+        </div>
+        <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-25%)}}`}</style>
+        </section>
         {/* minmax(0, …): the columns split the width by ratio only. With plain
             fr tracks, anything nowrap inside a column (the map's status chip
             as its wording changed) could widen that column, and the map,
             and the hero, every few seconds. */}
-        <div className="wrap relative isolate grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] gap-14 items-center pt-16 lg:pt-20 pb-20">
+        <div className="wrap relative isolate grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] gap-14 items-center pt-5 lg:pt-5 pb-8">
           {/* The seal, ghosted at the center of the hero (this grid is its
               containing block, so it sits midway between the page margins,
               behind the gap between copy and map), spinning like a coin; it
@@ -259,52 +308,6 @@ export default function Home() {
       <div className="bg-ink2 pt-px">
         <div className="gold-braid" aria-hidden />
       </div>
-
-      {/* Sponsor marquee */}
-      <section className="velvet bg-ink2 py-8 overflow-hidden" aria-label={sponsorsAria}>
-        <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-5">
-          <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
-        </p>
-        {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
-            time) and it pauses under the pointer so a name can be clicked. */}
-        {/* Four copies, scrolled by a quarter (one copy's width, so the speed
-            is unchanged): the loop is seamless as long as three copies span
-            the viewport, about 7,500px with today's list. Two copies ran dry
-            on a 2,560px screen and showed an empty strip once per loop. */}
-        <div className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
-          {[...sponsors, ...sponsors, ...sponsors, ...sponsors].map((s, i) => {
-            // The extra copies exist only to make the marquee loop seamless;
-            // hide them from screen readers and the tab order so sponsors aren't
-            // announced or tabbed through repeatedly.
-            const dup = i >= sponsors.length;
-            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap';
-            const body = (
-              <>
-                <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
-                {s.name}
-              </>
-            );
-            return s.url ? (
-              <a
-                key={i}
-                href={s.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-hidden={dup || undefined}
-                tabIndex={dup ? -1 : undefined}
-                className={`${cls} hover:text-brand-goldsoft transition-colors`}
-              >
-                {body}
-              </a>
-            ) : (
-              <span key={i} aria-hidden={dup || undefined} className={cls}>
-                {body}
-              </span>
-            );
-          })}
-        </div>
-        <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-25%)}}`}</style>
-      </section>
 
       {/* Vitals — hidden until the association confirms the real numbers. */}
       {CONTENT_VERIFIED && (
