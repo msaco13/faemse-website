@@ -7,6 +7,7 @@ import { MediaProvider } from './lib/media';
 import EditModeBar from './components/EditModeBar';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import MembersOnly from './components/MembersOnly';
 import Home from './pages/Home';
 
 // Home ships in the main bundle (it's the landing page and its LCP matters);
@@ -153,12 +154,55 @@ export default function App() {
             <Route path="/bylaws" element={<Bylaws />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/resources" element={<Resources />} />
+            {/* Members only (board decision 2026-10-13): visitors get the
+                banner and a sign-in / join notice. Each head matches the
+                page's own PageHead. */}
+            <Route
+              path="/news"
+              element={
+                <MembersOnly
+                  what="Association news"
+                  head={{ id: 'news', eyebrow: 'Association news', title: 'The latest', sub: "State policy updates in plain English, board news, awards, and resources for Florida's EMS education community." }}
+                >
+                  <News />
+                </MembersOnly>
+              }
+            />
+            <Route
+              path="/resources"
+              element={
+                <MembersOnly
+                  what="The resource shelf"
+                  head={{ id: 'resources', eyebrow: 'The reference shelf', title: 'Resources', sub: 'What FAEMSE has built for educators, plus the organizations, standards, and references every Florida EMS educator should have bookmarked.' }}
+                >
+                  <Resources />
+                </MembersOnly>
+              }
+            />
             <Route path="/sponsors" element={<Sponsors />} />
-            <Route path="/jobs" element={<Jobs />} />
+            <Route
+              path="/jobs"
+              element={
+                <MembersOnly
+                  what="The job board"
+                  head={{ id: 'jobs', eyebrow: 'Careers in EMS education', title: 'Job board', sub: 'Openings for instructors, coordinators, and program directors across Florida — posted by the board as we hear of them.' }}
+                >
+                  <Jobs />
+                </MembersOnly>
+              }
+            />
             <Route path="/classes" element={<Classes />} />
-            <Route path="/qa" element={<QandA />} />
+            <Route
+              path="/qa"
+              element={
+                <MembersOnly
+                  what="The Q&A archive"
+                  head={{ id: 'qa', eyebrow: 'The archive', title: 'Questions & answers', sub: 'Real questions from Florida EMS educators, answered once and kept — so the knowledge stops evaporating with the listserv.' }}
+                >
+                  <QandA />
+                </MembersOnly>
+              }
+            />
             <Route path="/videos" element={<Videos />} />
             <Route path="/program-directors" element={<DirectorGuide />} />
             <Route path="/programs" element={<Programs />} />

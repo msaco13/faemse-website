@@ -4,8 +4,9 @@ import { mailto } from '../content/data';
 import { useJobs } from '../lib/postings';
 import { T } from '../lib/text';
 
-// Public on purpose: there is no paid-posting model — the board posts openings
-// as it hears of them, and gating would only shrink the audience. Placement is
+// Members only since 2026-10-13 (board decision; the route wraps this page in
+// MembersOnly). There is no paid-posting model — the board posts openings
+// as it hears of them. Placement is
 // one of the three CoAEMSP program metrics, so this board sits close to the
 // accreditation material (cross-linked below).
 export default function Jobs() {

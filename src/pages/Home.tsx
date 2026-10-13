@@ -430,7 +430,7 @@ export default function Home() {
                 cta: 'Read the guide',
               },
               {
-                tag: 'Public boards',
+                tag: 'Member boards',
                 title: 'Jobs & classes',
                 text: 'Open positions and upcoming offerings statewide, posted by the board, never stale.',
                 to: '/jobs',

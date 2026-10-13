@@ -22,13 +22,16 @@ const nav = [
 // Signed-in current members see "Members only" (the program hubs) in
 // Membership's slot: they have already joined. Admins see both, so the
 // header can run to eight slots for them; checked to fit at the xl
-// breakpoint. Everyone else gets the public list above.
+// breakpoint. Everyone else sees only the public pages: News, Q&A, Jobs and
+// Resources are members-only (board decision 2026-10-13; the pages gate
+// themselves too, see MembersOnly).
 const membersOnly = { to: HUBS_PATH, label: 'Members only' };
+const memberPages = ['/news', '/qa', '/jobs', '/resources'];
 
 function navFor(status: MemberStatus) {
   if (status.admin) return nav.flatMap((n) => (n.to === '/membership' ? [n, membersOnly] : [n]));
   if (status.current) return nav.map((n) => (n.to === '/membership' ? membersOnly : n));
-  return nav;
+  return nav.filter((n) => !memberPages.includes(n.to));
 }
 
 // The mobile menu has room for everything.
