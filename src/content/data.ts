@@ -395,9 +395,27 @@ export const sampleQa = [
 // up, so there are no sample titles — the page shows its in-development state.
 export const sampleVideos: { topic: string; title: string; presenter: string; minutes: number }[] = [];
 
+// The welcome slide, as the board last saved it. It is a row in the
+// spotlights table like the rest (is_welcome), edited in the Spotlights panel;
+// this copy only stands in while the rows load on a first visit, or if the
+// table can't be reached, so keep it in step with the live row: it sets the
+// hero's height, and a different wording here would make the hero jump when
+// the real row arrives.
+export const welcomeSlide = {
+  kicker: 'Florida Association of EMS Educators',
+  title: "Supporting the educators\nwho train Florida's\nfirst responders",
+  body: 'FAEMSE is the statewide professional home for EMS instructors, program directors, and training officers — the network, the resources, and the policy voice behind better EMT and paramedic education.',
+  imageUrl: '',
+  videoUrl: '',
+  linkUrl: '/events',
+  linkLabel: "See what's coming up",
+  welcome: true,
+};
+
 // Evergreen homepage spotlights, used only if the spotlights table can't be
 // reached. The live set (board-editable) lives in Supabase.
 export const fallbackSpotlights = [
+  welcomeSlide,
   {
     kicker: 'EMS Educator of the Year',
     title: 'Honoring the educators who raise the standard.',

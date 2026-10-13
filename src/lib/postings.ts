@@ -4,7 +4,7 @@
 // unreachable, or not yet populated.
 
 import { useEffect, useState } from 'react';
-import { fallbackSpotlights, sampleClasses, sampleJobs, sampleQa, sampleVideos } from '../content/data';
+import { fallbackSpotlights, sampleClasses, sampleJobs, sampleQa, sampleVideos, welcomeSlide } from '../content/data';
 import { todayISO } from './dates';
 import { supabase } from './supabase';
 
@@ -55,6 +55,9 @@ export type Spotlight = {
   // (localStorage) still show both; only `false` hides a button.
   showLink?: boolean;
   showJoin?: boolean;
+  // The welcome slide (is_welcome): same fields, its own look. See
+  // HeroSpotlight.
+  welcome?: boolean;
 };
 
 export type VideoIndexItem = {
@@ -153,28 +156,31 @@ export function useSpotlights(): Loaded<Spotlight> {
           .order('sort_order', { ascending: true }),
       );
       if (!error && data && data.length > 0) {
-        return {
-          live: true,
-          items: data.map((r) => ({
-            id: r.id,
-            kicker: r.kicker,
-            title: r.title,
-            body: r.body,
-            imageUrl: r.image_url,
-            videoUrl: r.video_url ?? '',
-            linkUrl: r.link_url,
-            linkLabel: r.link_label,
-            showLink: r.show_link !== false,
-            showJoin: r.show_join !== false,
-          })),
-        };
+        const items: Spotlight[] = data.map((r) => ({
+          id: r.id,
+          kicker: r.kicker,
+          title: r.title,
+          body: r.body,
+          imageUrl: r.image_url,
+          videoUrl: r.video_url ?? '',
+          linkUrl: r.link_url,
+          linkLabel: r.link_label,
+          showLink: r.show_link !== false,
+          showJoin: r.show_join !== false,
+          welcome: r.is_welcome === true,
+        }));
+        // Before the is_welcome column exists (the code can deploy a minute
+        // ahead of the database change), keep showing the bundled welcome
+        // slide first, as the site always has.
+        if (!('is_welcome' in data[0])) items.unshift(welcomeSlide);
+        return { live: true, items };
       }
       if (!error && data) return { live: true, items: [] };
     } catch {
       /* fall back below */
     }
     return { live: false, items: fallbackSpotlights };
-  }, 'faemse:spotlights');
+  }, 'faemse:spotlights:v2');
 }
 
 // --- Jobs (public; RLS hides expired rows from the public site) -------------

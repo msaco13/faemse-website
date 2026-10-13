@@ -50,7 +50,7 @@ const SECTIONS: Section[] = [
     fields: [
       { name: 'kicker', label: 'Kicker (small gold line above the headline)', type: 'text', placeholder: 'Educator of the Year · Next meeting · Program spotlight' },
       { name: 'sort_order', label: 'Order (lower shows first)', type: 'number' },
-      { name: 'title', label: 'Headline (keep it under ~60 characters)', type: 'text', required: true, span: true },
+      { name: 'title', label: 'Headline (keep it under ~60 characters. Press Enter to start a new line)', type: 'textarea', required: true, span: true },
       { name: 'body', label: 'One or two sentences. Press Enter to start a new line (the homepage shows at most six lines)', type: 'textarea', span: true },
       {
         name: 'image_url',
@@ -80,7 +80,9 @@ const SECTIONS: Section[] = [
     summary: (r) => ({
       date: `#${s(r, 'sort_order')}`,
       primary: s(r, 'title'),
-      secondary: [s(r, 'kicker'), s(r, 'expires_on') ? `until ${s(r, 'expires_on')}` : 'no end date'].filter(Boolean).join(' · '),
+      secondary: [r.is_welcome ? 'Welcome slide' : '', s(r, 'kicker'), s(r, 'expires_on') ? `until ${s(r, 'expires_on')}` : 'no end date']
+        .filter(Boolean)
+        .join(' · '),
     }),
   },
   {
@@ -325,6 +327,13 @@ function RowForm({
 
   return (
     <form onSubmit={onSubmit} className="bg-paper rounded-xl p-5 grid sm:grid-cols-2 gap-3">
+      {initial?.is_welcome === true && (
+        <p className="sm:col-span-2 text-[13.5px] text-muted">
+          This is the welcome slide. It keeps its own look: the last line of the headline shows in gold, the red
+          &ldquo;Become a member — $50/yr&rdquo; button comes first and your button second, and the three small tags
+          under the buttons are worded with Edit page on the homepage.
+        </p>
+      )}
       {section.fields.map((f) => {
         const initialVal = initial
           ? f.type === 'tags' && Array.isArray(initial[f.name])
@@ -353,7 +362,7 @@ function RowForm({
             {f.type === 'textarea' ? (
               <textarea
                 name={f.name}
-                rows={f.name === 'answer' ? 5 : 2}
+                rows={f.name === 'answer' ? 5 : f.name === 'title' && section.table === 'spotlights' ? 3 : 2}
                 required={f.required}
                 maxLength={f.name === 'answer' ? 8000 : 2000}
                 placeholder={f.placeholder}
@@ -506,12 +515,16 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
                       <button onClick={() => setEditing(r.id)} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
                         {expired ? 'Repost / edit' : 'Edit'}
                       </button>
-                      <button
-                        onClick={() => remove(r.id, sum.primary)}
-                        className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
-                      >
-                        Delete
-                      </button>
+                      {/* The welcome slide can't be re-created from this panel,
+                          so it has no Delete; "Stop showing after" hides it. */}
+                      {r.is_welcome !== true && (
+                        <button
+                          onClick={() => remove(r.id, sum.primary)}
+                          className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

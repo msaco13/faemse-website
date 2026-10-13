@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { welcomeSlide } from '../content/data';
 import type { Spotlight } from '../lib/postings';
 import { slug, T, useSiteText, useText } from '../lib/text';
 
-// The homepage's "one main screen that flips through": the mission statement
-// leads, then board-editable spotlights (next meeting, awards, schools,
-// instructors, lab work). Auto-advances every 8 s, pauses on hover or focus,
-// stays still for reduced-motion users, and is fully keyboard-operable.
+// The homepage's "one main screen that flips through": the welcome slide
+// leads, then the other spotlights (next meeting, awards, schools,
+// instructors, lab work). All of them, the welcome slide included, are rows
+// in the board's Spotlights panel with the same fields; the welcome slide
+// (is_welcome) keeps its own look. Auto-advances every 8 s, pauses on hover
+// or focus, stays still for reduced-motion users, and is fully
+// keyboard-operable.
 
 const INTERVAL_MS = 8000;
 
@@ -40,7 +44,14 @@ export default function HeroSpotlight({
   spotlights: Spotlight[];
   onActiveChange?: (s: Spotlight | null) => void;
 }) {
-  const total = 1 + spotlights.length;
+  // Until the rows arrive on a first visit (or if none are showing), the
+  // bundled welcome slide stands in, so the hero never paints empty.
+  const slides: Spotlight[] = spotlights.length > 0 ? spotlights : [welcomeSlide];
+  const total = slides.length;
+  // One slide sits in the page flow and sets the hero's height; the rest lie
+  // absolutely over it. That is the welcome slide wherever the board orders
+  // it (it is the tallest, with its tags), else the first slide.
+  const flowIndex = Math.max(0, slides.findIndex((s) => s.welcome));
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
@@ -49,10 +60,10 @@ export default function HeroSpotlight({
   const tabsLabel = useText('home.hero.aria.tabs', 'Choose a slide');
   const prevLabel = useText('home.hero.aria.prev', 'Previous slide');
   const nextLabel = useText('home.hero.aria.next', 'Next slide');
-  // In edit mode the mission slide's words highlight, but the spotlight
-  // slides come from the Spotlights panel, not the text editor. Say so on
-  // the slide itself, otherwise an admin reasonably concludes slides 2+ are
-  // stuck (the board hit exactly this on launch day).
+  // In edit mode the page's words highlight, but the slides come from the
+  // Spotlights panel, not the text editor. Say so on the slide itself,
+  // otherwise an admin reasonably concludes the slides are stuck (the board
+  // hit exactly this on launch day).
   const { editing } = useSiteText();
 
   useEffect(() => {
@@ -69,8 +80,8 @@ export default function HeroSpotlight({
   }, [index, total]);
 
   useEffect(() => {
-    onActiveChange?.(index === 0 ? null : spotlights[index - 1] ?? null);
-  }, [index, spotlights, onActiveChange]);
+    onActiveChange?.(slides[index] ?? null);
+  }, [index, slides, onActiveChange]);
 
   const running = total > 1 && !paused && !reduced;
   useEffect(() => {
@@ -109,108 +120,50 @@ export default function HeroSpotlight({
       }}
     >
       <div className="grid relative" ref={liveRef}>
-        {/* Slide 0 — the mission. Always first, never expires. */}
-        <div
-          className={`${stack} ${index === 0 ? shown : hidden}`}
-          aria-hidden={index !== 0}
-          {...inertWhen(index !== 0)}
-          aria-roledescription="slide"
-          aria-label={`1 of ${total}`}
-        >
-          <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-5">
-            <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
-            <T id="home.hero.kicker">Florida Association of EMS Educators</T>
-          </p>
-          {/* 60px cap, the same as the spotlight headlines below (board
-              request, Oct 2026: the welcome slide looked bigger than the
-              rest). It also keeps the hero short enough that "On the board"
-              sits on a 1440x900 opening screen: the board's own wording,
-              "Supporting the educators", is the widest line, and above about
-              60px it wraps the lockup onto a fourth line, which pushes the
-              dates below the fold. Check that again if the wording changes. */}
-          <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5vw,60px)]">
-            <T id="home.hero.h1a">We train the people</T>
-            <br />
-            <T id="home.hero.h1b">who train Florida&apos;s</T>
-            <br />
-            <span className="gold-text drop-shadow-[0_2px_24px_rgba(235,188,66,.35)]">
-              <T id="home.hero.h1c">first responders.</T>
-            </span>
-          </h1>
-          {/* whitespace-pre-line: line breaks typed in "Edit page" show, the
-              same as on the spotlight slides below. */}
-          <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-6 whitespace-pre-line">
-            <T id="home.hero.lede">
-              FAEMSE is the statewide professional home for EMS instructors, program directors, and
-              training officers — the network, the resources, and the policy voice behind better EMT
-              and paramedic education.
-            </T>
-          </p>
-          <div className="flex flex-wrap gap-3.5 mb-6">
-            <Link to="/membership" className="btn-red">
-              <T id="home.hero.join">Become a member — $50/yr</T>
-            </Link>
-            <Link to="/events" className="btn-glass">
-              <T id="home.hero.events">See what&apos;s coming up</T>
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-2.5">
-            {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map((c, i) => (
-              <span
-                key={c}
-                className="text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
-              >
-                <T id={`home.hero.chip.${slug(c)}`}>{c}</T>
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Spotlight slides — from the board's Spotlights panel. They sit
-            absolutely over the mission slide, so the mission alone sets the
-            hero's height: the hero measures the same before and after the
-            spotlights arrive from the database, and a long headline or body
-            (clamped to four lines each) can never push the map and the rest
-            of the page down. On a phone the mission runs ~800px tall, on a
-            desktop ~540px; a clamped spotlight fits under both. */}
-        {spotlights.map((s, i) => {
-          const n = i + 1;
-          const active = index === n;
+        {slides.map((s, i) => {
+          const active = index === i;
+          const showLink = !!s.linkUrl && s.showLink !== false;
+          const showJoin = s.showJoin !== false;
+          const link = showLink && (
+            <SlideLink to={s.linkUrl} className={s.welcome ? 'btn-glass' : 'btn-gold'}>
+              {s.linkLabel || 'Learn more'}
+              {!s.linkUrl.startsWith('/') && ' ↗'}
+            </SlideLink>
+          );
           return (
             <div
               key={s.id ?? s.title}
-              className={`${stack} absolute inset-0 ${active ? shown : hidden}`}
+              className={`${stack} ${i === flowIndex ? '' : 'absolute inset-0'} ${active ? shown : hidden}`}
               aria-hidden={!active}
               {...inertWhen(!active)}
               aria-roledescription="slide"
-              aria-label={`${n + 1} of ${total}`}
+              aria-label={`${i + 1} of ${total}`}
             >
-              <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-5">
-                <i className="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_12px_rgba(58,219,143,.9)]" aria-hidden />
-                {s.kicker || <T id="home.hero.spot.kicker">Spotlight</T>}
-              </p>
-              <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,60px)] max-w-[18ch] [text-wrap:balance] line-clamp-4">
-                {s.title}
-              </h2>
-              {/* Keeps line breaks typed in the Spotlights panel (Enter starts a
-                  new line); six lines at most. */}
-              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{s.body}</p>}
-              {/* Either button can be switched off per slide in the
-                  Spotlights panel (board request, Oct 2026). */}
-              {((s.linkUrl && s.showLink !== false) || s.showJoin !== false) && (
-                <div className="flex flex-wrap gap-3.5 mb-6">
-                  {s.linkUrl && s.showLink !== false && (
-                    <SlideLink to={s.linkUrl} className="btn-gold">
-                      {s.linkLabel || 'Learn more'}
-                      {!s.linkUrl.startsWith('/') && ' ↗'}
-                    </SlideLink>
+              {s.welcome ? <WelcomeSlide s={s} link={link} showJoin={showJoin} /> : (
+                <>
+                  <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-5">
+                    <i className="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_12px_rgba(58,219,143,.9)]" aria-hidden />
+                    {s.kicker || <T id="home.hero.spot.kicker">Spotlight</T>}
+                  </p>
+                  {/* Line breaks typed in the Spotlights panel show, in the
+                      headline and the text; six lines of text at most. */}
+                  <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,60px)] max-w-[18ch] [text-wrap:balance] whitespace-pre-line line-clamp-4">
+                    {s.title}
+                  </h2>
+                  {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{s.body}</p>}
+                  {/* Either button can be switched off per slide in the
+                      Spotlights panel (board request, Oct 2026). */}
+                  {(showLink || showJoin) && (
+                    <div className="flex flex-wrap gap-3.5 mb-6">
+                      {link}
+                      {showJoin && (
+                        <Link to="/membership" className="btn-glass">
+                          <T id="home.hero.spot.join">Become a member</T>
+                        </Link>
+                      )}
+                    </div>
                   )}
-                  {s.showJoin !== false && (
-                    <Link to="/membership" className="btn-glass">
-                      <T id="home.hero.spot.join">Become a member</T>
-                    </Link>
-                  )}
-                </div>
+                </>
               )}
               {editing && (
                 <p className="text-[13px] font-semibold text-brand-goldsoft bg-black/40 border border-brand-goldsoft/40 rounded-xl px-4 py-2.5 max-w-[52ch]">
@@ -282,5 +235,57 @@ export default function HeroSpotlight({
       )}
       </div>
     </div>
+  );
+}
+
+// The welcome slide's own look: the gold-rule kicker, the page's one h1 with
+// its last line in gold, the red join button ahead of the board's button,
+// and the three tags (those are still worded with "Edit page").
+function WelcomeSlide({ s, link, showJoin }: { s: Spotlight; link: React.ReactNode; showJoin: boolean }) {
+  const lines = s.title.split('\n').map((l) => l.trim()).filter(Boolean);
+  const gold = lines.length > 1 ? lines.pop() : undefined;
+  return (
+    <>
+      <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-5">
+        <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
+        {s.kicker}
+      </p>
+      {/* 60px cap, the same as the other slides' headlines (board request,
+          Oct 2026: the welcome slide looked bigger than the rest). It also
+          keeps the hero short enough that "On the board" sits on a 1440x900
+          opening screen: "Supporting the educators" is the widest line, and
+          above about 60px it wraps onto a fourth line, which pushes the dates
+          below the fold. Keep the headline to three short lines. */}
+      <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5vw,60px)]">
+        {lines.map((l, i) => (
+          <span key={i}>
+            {l}
+            <br />
+          </span>
+        ))}
+        {gold && <span className="gold-text drop-shadow-[0_2px_24px_rgba(235,188,66,.35)]">{gold}</span>}
+      </h1>
+      {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-6 whitespace-pre-line">{s.body}</p>}
+      {(showJoin || link) && (
+        <div className="flex flex-wrap gap-3.5 mb-6">
+          {showJoin && (
+            <Link to="/membership" className="btn-red">
+              <T id="home.hero.join">Become a member — $50/yr</T>
+            </Link>
+          )}
+          {link}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2.5">
+        {['501(c)(6) nonprofit', 'Every program type, statewide', 'Statewide meetings & workshops'].map((c) => (
+          <span
+            key={c}
+            className="text-[12.5px] font-semibold text-[#AFC1E2] border border-white/15 bg-white/5 px-3.5 py-2 rounded-full backdrop-blur"
+          >
+            <T id={`home.hero.chip.${slug(c)}`}>{c}</T>
+          </span>
+        ))}
+      </div>
+    </>
   );
 }
