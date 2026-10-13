@@ -137,7 +137,9 @@ export default function HeroSpotlight({
               <T id="home.hero.h1c">first responders.</T>
             </span>
           </h1>
-          <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-6">
+          {/* whitespace-pre-line: line breaks typed in "Edit page" show, the
+              same as on the spotlight slides below. */}
+          <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-6 whitespace-pre-line">
             <T id="home.hero.lede">
               FAEMSE is the statewide professional home for EMS instructors, program directors, and
               training officers — the network, the resources, and the policy voice behind better EMT
@@ -190,7 +192,9 @@ export default function HeroSpotlight({
               <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,60px)] max-w-[18ch] [text-wrap:balance] line-clamp-4">
                 {s.title}
               </h2>
-              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 line-clamp-4">{s.body}</p>}
+              {/* Keeps line breaks typed in the Spotlights panel (Enter starts a
+                  new line); six lines at most. */}
+              {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{s.body}</p>}
               <div className="flex flex-wrap gap-3.5 mb-6">
                 {s.linkUrl && (
                   <SlideLink to={s.linkUrl} className="btn-gold">
