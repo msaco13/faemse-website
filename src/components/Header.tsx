@@ -9,14 +9,20 @@ import { useMemberStatus, type MemberStatus } from '../lib/useMemberStatus';
 // the header carries the pages people return to; Board, Sponsors, Classes,
 // Videos, and the director guide stay one click away via the footer, About,
 // and the pages that reference them.
-// About sits last (board request, 2026-10-13).
-const nav = [
+// About sits last (board request, 2026-10-13). Foundation is the one link
+// that leaves the site: the FAEMSE Foundation is its own 501(c)(3) with its
+// own website, so the tab opens it in a new tab, like the footer link and
+// the Foundation spotlight button. Plain label, no arrow (board request).
+type NavItem = { to: string; label: string; textId?: string; external?: boolean };
+const FOUNDATION_URL = 'https://www.faemsefoundation.org';
+const nav: NavItem[] = [
   { to: '/membership', label: 'Membership' },
   { to: '/events', label: 'Events' },
   { to: '/news', label: 'News' },
   { to: '/qa', label: 'Q&A' },
   { to: '/jobs', label: 'Jobs' },
   { to: '/resources', label: 'Resources' },
+  { to: FOUNDATION_URL, label: 'Foundation', textId: 'foundation', external: true },
   { to: '/about', label: 'About' },
 ];
 
@@ -26,9 +32,9 @@ const nav = [
 // breakpoint. Everyone else sees the public list. News, Q&A, Jobs and
 // Resources are members-only pages but their tabs stay up for visitors as a
 // teaser: the pages show a sign-in / join notice (MembersOnly) instead.
-const membersOnly = { to: HUBS_PATH, label: 'Members only' };
+const membersOnly: NavItem = { to: HUBS_PATH, label: 'Members only' };
 
-function navFor(status: MemberStatus) {
+function navFor(status: MemberStatus): NavItem[] {
   if (status.admin) return nav.flatMap((n) => (n.to === '/membership' ? [n, membersOnly] : [n]));
   if (status.current) return nav.map((n) => (n.to === '/membership' ? membersOnly : n));
   return nav;
@@ -85,9 +91,15 @@ export default function Header() {
         </Link>
 
         <nav className="hidden xl:block" aria-label="Primary">
-          <ul className="flex gap-6 font-semibold text-[15px]">
+          <ul className="flex gap-4 2xl:gap-6 font-semibold text-[15px] whitespace-nowrap">
             {items.map((n) => (
               <li key={n.to}>
+                {n.external ? (
+                  <a href={n.to} target="_blank" rel="noreferrer" className="relative pb-1 transition-colors text-[#D6E1F5]/90 hover:text-white">
+                    <T id={`nav.${n.textId}`}>{n.label}</T>
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                ) : (
                 <NavLink
                   to={n.to}
                   className={({ isActive }) =>
@@ -100,6 +112,7 @@ export default function Header() {
                 >
                   <T id={`nav.${n.to.slice(1)}`}>{n.label}</T>
                 </NavLink>
+                )}
               </li>
             ))}
           </ul>
@@ -147,8 +160,20 @@ export default function Header() {
       {open && (
         <div className="xl:hidden border-t border-white/10 bg-ink2">
           <ul className="px-6 py-3">
-            {[...items, ...mobileExtra, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n) => (
+            {[...items, ...mobileExtra, { to: '/contact', label: 'Contact' }, { to: '/login', label: 'Member Login' }].map((n: NavItem) => (
               <li key={n.to}>
+                {n.external ? (
+                  <a
+                    href={n.to}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => setOpen(false)}
+                    className="block py-3 font-semibold text-[#D6E1F5] border-b border-white/5"
+                  >
+                    <T id={`nav.${n.textId}`}>{n.label}</T>
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                ) : (
                 <NavLink
                   to={n.to}
                   onClick={() => setOpen(false)}
@@ -156,6 +181,7 @@ export default function Header() {
                 >
                   <T id={`nav.${n.to.slice(1)}`}>{n.label}</T>
                 </NavLink>
+                )}
               </li>
             ))}
           </ul>
