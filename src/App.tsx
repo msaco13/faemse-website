@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { arrivedByPasswordLink } from './lib/recovery';
 import { SiteTextProvider } from './lib/text';
@@ -107,6 +107,11 @@ function RecoveryRedirect() {
   return null;
 }
 
+function OldHubsAddress() {
+  const { pathname } = useLocation();
+  return <Navigate to={pathname.replace(/^\/admin\/hubs/, '/hubs')} replace />;
+}
+
 function CanonicalUrl() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -157,8 +162,10 @@ export default function App() {
             <Route path="/videos" element={<Videos />} />
             <Route path="/program-directors" element={<DirectorGuide />} />
             <Route path="/programs" element={<Programs />} />
-            {/* Board admins only; the page and the database both enforce it. */}
-            <Route path="/admin/hubs/:hub?/:section?/:sub?" element={<Hubs />} />
+            {/* Current members and admins; the page and the database both enforce it. */}
+            <Route path="/hubs/:hub?/:section?/:sub?" element={<Hubs />} />
+            {/* The hubs' first address, when they were admins only (Oct 10-13, 2026). */}
+            <Route path="/admin/hubs/*" element={<OldHubsAddress />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             <Route path="/members" element={<Members />} />

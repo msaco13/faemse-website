@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { Profile } from './portal';
-import { membershipState } from './portal';
+import type { MyOrganization, Profile } from './portal';
+import { overallState } from './portal';
 import { supabase } from './supabase';
 
 export type MemberStatus = {
@@ -31,8 +31,16 @@ export function useMemberStatus(): MemberStatus {
           on && setStatus(SIGNED_OUT);
           return;
         }
-        const { data: prof } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+        // Seats count too: someone covered only by their organization's
+        // membership is current, the same as is_current_member() decides in
+        // the database (60 such people in Oct 2026). A failed org lookup
+        // just leaves their own dues to decide.
+        const [{ data: prof }, orgs] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
+          supabase.rpc('my_organizations'),
+        ]);
         const p = (prof ?? null) as Profile | null;
+        const myOrgs = (orgs.error ? [] : orgs.data ?? []) as MyOrganization[];
         on &&
           setStatus({
             checked: true,
@@ -40,7 +48,7 @@ export function useMemberStatus(): MemberStatus {
             // 'grace' counts: bylaws 2.05 keep access for 90 days past the
             // paid-through date, and is_current_member() applies the same
             // window, so the paywall must not appear before the server's does.
-            current: p?.role === 'admin' || ['current', 'grace'].includes(membershipState(p)),
+            current: p?.role === 'admin' || ['current', 'grace'].includes(overallState(p, myOrgs)),
             admin: p?.role === 'admin',
           });
       } catch {
