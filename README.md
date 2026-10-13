@@ -80,8 +80,9 @@ association's Supabase organization.
   corporate memberships with their seated representatives (cap enforced by
   trigger), and the listserv-only people without a login.
 - **Members-only pages (board decision 2026-10-13):** News, Q&A, Jobs and
-  Resources. Visitors who aren't current members don't see those header
-  tabs, and the pages show them a sign-in / join notice instead of content
+  Resources. Their header tabs stay up for everyone as a teaser; for
+  visitors who aren't current members the pages show a sign-in / join
+  notice instead of content
   (`src/components/MembersOnly.tsx`, wrapped around the routes in
   `src/App.tsx`). The homepage still shows news headlines and cards for
   these pages to everyone, as a teaser. This locks the pages, not the data:
