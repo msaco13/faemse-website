@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { todayISO } from '../lib/dates';
+import Collapsible from './admin/Collapsible';
 import { supabase } from '../lib/supabase';
 
 // Admin CRUD for the brief's posting types: jobs, classes, Q&A entries,
@@ -388,12 +389,23 @@ function RowForm({
   );
 }
 
-function SectionBlock({ section }: { section: Section }) {
+// What the count on each collapsed title calls the rows.
+const NOUNS: Record<string, [string, string]> = {
+  spotlights: ['slide', 'slides'],
+  jobs: ['job', 'jobs'],
+  class_listings: ['class', 'classes'],
+  qa_entries: ['entry', 'entries'],
+  teaching_videos: ['video', 'videos'],
+  library_resources: ['resource', 'resources'],
+};
+
+function SectionBlock({ section, defaultOpen = false }: { section: Section; defaultOpen?: boolean }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [needsSetup, setNeedsSetup] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     const { data, error } = await supabase
@@ -408,6 +420,7 @@ function SectionBlock({ section }: { section: Section }) {
     setNeedsSetup(false);
     setLoadError('');
     setRows((data ?? []) as Row[]);
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -438,15 +451,23 @@ function SectionBlock({ section }: { section: Section }) {
   if (needsSetup) return null; // one shared notice is rendered by the parent
 
   return (
-    <>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted">
-          {section.title}
-        </h3>
-        <button onClick={() => setAdding(!adding)} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">
+    <Collapsible
+      title={section.title}
+      count={loaded ? rows.length : null}
+      noun={NOUNS[section.table] ?? ['item', 'items']}
+      defaultOpen={defaultOpen}
+      action={(open) => (
+        <button
+          onClick={() => {
+            open();
+            setAdding(!adding);
+          }}
+          className="btn-outline !py-1.5 !px-3.5 text-[12.5px]"
+        >
           {section.addLabel}
         </button>
-      </div>
+      )}
+    >
       {loadError && (
         <p className="text-brand-red font-semibold text-[14px] mb-3" role="alert">
           {loadError}
@@ -458,9 +479,9 @@ function SectionBlock({ section }: { section: Section }) {
         </div>
       )}
       {rows.length === 0 ? (
-        <p className="text-muted text-[14.5px] mb-8">{section.emptyNote}</p>
+        <p className="text-muted text-[14.5px]">{section.emptyNote}</p>
       ) : (
-        <div className="border border-line rounded-2xl overflow-hidden mb-8">
+        <div className="border border-line rounded-2xl overflow-hidden">
           {rows.map((r) => {
             const sum = section.summary(r);
             const exp = section.expiresKey ? s(r, section.expiresKey) : '';
@@ -497,12 +518,13 @@ function SectionBlock({ section }: { section: Section }) {
           })}
         </div>
       )}
-    </>
+    </Collapsible>
   );
 }
 
 export default function PostingsManager() {
   const [needsSetup, setNeedsSetup] = useState(false);
+  const [openSpotlights] = useState(() => typeof window !== 'undefined' && window.location.hash === '#boards');
 
   useEffect(() => {
     // One probe decides whether the migration has run; each section also
@@ -531,7 +553,15 @@ export default function PostingsManager() {
         automatically when they pass — edit the dates to repost instead of retyping. Q&amp;A
         entries can be saved as drafts and published when the board is happy with them.
       </p>
-      {needsSetup ? <SetupNotice /> : SECTIONS.map((sec) => <SectionBlock key={sec.table} section={sec} />)}
+      {needsSetup ? (
+        <SetupNotice />
+      ) : (
+        SECTIONS.map((sec) => (
+          // Arriving from the homepage's "this slide is a spotlight" note
+          // (/members#boards) opens the spotlights; everything else starts closed.
+          <SectionBlock key={sec.table} section={sec} defaultOpen={sec.table === 'spotlights' && openSpotlights} />
+        ))
+      )}
     </div>
   );
 }
