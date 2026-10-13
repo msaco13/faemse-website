@@ -154,6 +154,9 @@ export function useSpotlights(): Loaded<Spotlight> {
         supabase
           .from('spotlights')
           .select('*')
+          // Slides the board switched off (Show box) stay out of the deck,
+          // and out of its count, for everyone; admins included.
+          .eq('show_slide', true)
           .lte('starts_on', today)
           .or(`expires_on.is.null,expires_on.gte.${today}`)
           .order('sort_order', { ascending: true }),
