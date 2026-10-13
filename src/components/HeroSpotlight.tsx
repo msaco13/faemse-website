@@ -117,14 +117,18 @@ export default function HeroSpotlight({
           aria-roledescription="slide"
           aria-label={`1 of ${total}`}
         >
-          <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
+          <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-5">
             <span className="w-[26px] h-[3px] rounded-sm bg-gradient-to-r from-brand-goldsoft to-brand-golddeep" />
             <T id="home.hero.kicker">Florida Association of EMS Educators</T>
           </p>
-          {/* 80px cap: the widest line ("We train the people") measures 7.99px
-              per 1px of font size, and the column is ~645px — above 80px the
-              three-line lockup rewraps onto five lines and buries the CTAs. */}
-          <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5.8vw,80px)]">
+          {/* 60px cap, the same as the spotlight headlines below (board
+              request, Oct 2026: the welcome slide looked bigger than the
+              rest). It also keeps the hero short enough that "On the board"
+              sits on a 1440x900 opening screen: the board's own wording,
+              "Supporting the educators", is the widest line, and above about
+              60px it wraps the lockup onto a fourth line, which pushes the
+              dates below the fold. Check that again if the wording changes. */}
+          <h1 className="font-disp font-bold uppercase leading-[0.94] text-[clamp(48px,5vw,60px)]">
             <T id="home.hero.h1a">We train the people</T>
             <br />
             <T id="home.hero.h1b">who train Florida&apos;s</T>
@@ -133,14 +137,14 @@ export default function HeroSpotlight({
               <T id="home.hero.h1c">first responders.</T>
             </span>
           </h1>
-          <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8">
+          <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-6">
             <T id="home.hero.lede">
               FAEMSE is the statewide professional home for EMS instructors, program directors, and
               training officers — the network, the resources, and the policy voice behind better EMT
               and paramedic education.
             </T>
           </p>
-          <div className="flex flex-wrap gap-3.5 mb-8">
+          <div className="flex flex-wrap gap-3.5 mb-6">
             <Link to="/membership" className="btn-red">
               <T id="home.hero.join">Become a member — $50/yr</T>
             </Link>
@@ -179,15 +183,15 @@ export default function HeroSpotlight({
               aria-roledescription="slide"
               aria-label={`${n + 1} of ${total}`}
             >
-              <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-6">
+              <p className="font-disp font-semibold text-base tracking-[0.26em] uppercase text-brand-goldsoft flex items-center gap-3 mb-5">
                 <i className="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_12px_rgba(58,219,143,.9)]" aria-hidden />
                 {s.kicker || <T id="home.hero.spot.kicker">Spotlight</T>}
               </p>
-              <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,68px)] max-w-[18ch] [text-wrap:balance] line-clamp-4">
+              <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,60px)] max-w-[18ch] [text-wrap:balance] line-clamp-4">
                 {s.title}
               </h2>
               {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 line-clamp-4">{s.body}</p>}
-              <div className="flex flex-wrap gap-3.5 mb-8">
+              <div className="flex flex-wrap gap-3.5 mb-6">
                 {s.linkUrl && (
                   <SlideLink to={s.linkUrl} className="btn-gold">
                     {s.linkLabel || 'Learn more'}
@@ -216,7 +220,7 @@ export default function HeroSpotlight({
           The row's space is reserved even before the spotlights arrive from
           the database, so the hero doesn't grow (and shove the map and the
           page) a moment after first paint. */}
-      <div className="mt-10 min-h-[40px]">
+      <div className="mt-6 min-h-[40px]">
       {total > 1 && (
         <div className="flex items-center gap-4">
           <div className="flex gap-2 flex-1 max-w-[360px]" role="tablist" aria-label={tabsLabel}>
