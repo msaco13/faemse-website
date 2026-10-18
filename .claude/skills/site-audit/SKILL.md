@@ -54,7 +54,7 @@ These hold no matter what you find.
 10. **Pull request.** If you fixed anything:
     - Look for an open pull request whose title starts with "Site audit". If one exists, add your fixes to it rather than opening a second one: push to its branch if you can, otherwise merge its branch into yours, open the new one, and close the old one with a comment pointing to the new one.
     - Title: `Site audit YYYY-MM-DD: <short list of fixes>`.
-    - Body: what was broken, how you fixed it, and how you checked it, one short paragraph per fix. Request review from AJ.
+    - Body: what was broken, how you fixed it, and how you checked it, one short paragraph per fix. Request review from AJ (GitHub username `jlanzardo-code`).
     - Use the GitHub MCP tools; there is no `gh` CLI.
 
 11. **Clean up.** Stop the preview server.
