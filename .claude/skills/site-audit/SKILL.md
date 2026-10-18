@@ -41,7 +41,7 @@ These hold no matter what you find.
 
 4. **Accessibility.** Run `A11Y_SITE=http://localhost:4173 A11Y_CHROME=/opt/pw-browsers/chromium npm run a11y`. Fix violations that are clearly bugs (a missing label, a missing alt text). Color-contrast findings that would mean changing the palette are design choices: report them, do not change colors.
 
-5. **Look at a few pages yourself.** The script cannot judge looks. Take phone-width screenshots of the home page, Membership, and any page the last day's commits touched, and look for overlapping text, cut-off buttons, or anything plainly broken.
+5. **Look at a few pages yourself.** The script cannot judge looks. Take phone-width screenshots of the home page, Membership, and any page the last day's commits touched, and look for overlapping text, cut-off buttons, or anything plainly broken. Sections fade in as they scroll into view, so scroll the whole page top to bottom before a full-page screenshot; otherwise those sections show up as empty space and look broken when they are not.
 
 6. **Review the last day's commits.** Several people and Claude sessions push to this repo. Read the diff of everything merged to `main` in the last 24 hours (`git log --since="26 hours ago" origin/main`) and look for bugs: broken logic, typos in code, a page or link removed by accident.
 
