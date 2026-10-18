@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "a11y": "node scripts/a11y.mjs"
+    "a11y": "node scripts/a11y.mjs",
+    "audit": "node scripts/audit.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
