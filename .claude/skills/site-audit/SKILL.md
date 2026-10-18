@@ -45,7 +45,21 @@ These hold no matter what you find.
 
    Accessibility: fix violations that are clearly bugs (a missing label, a missing alt text). Color-contrast findings that would mean changing the palette are design choices: report them, do not change colors.
 
-3. **Look at a few pages yourself.** The script cannot judge looks. Start a local copy (`npm run build && node node_modules/vite/bin/vite.js preview --port 4173 &`), take phone-width screenshots of the home page, Membership, and any page the last day's commits touched, and look for overlapping text, cut-off buttons, or anything plainly broken. Sections fade in as they scroll into view, so scroll the whole page top to bottom before a full-page screenshot; otherwise those sections show up as empty space and look broken when they are not. Stop the preview server when done.
+3. **Look at a few pages yourself.** The script cannot judge looks. Start a local copy on port 4174 (not 4173, which the script uses), saving its process ID so it can be stopped cleanly:
+
+   ```
+   npm run build && (node node_modules/vite/bin/vite.js preview --port 4174 --strictPort > /tmp/faemse-preview.log 2>&1 & echo $! > /tmp/faemse-preview.pid)
+   ```
+
+   Take phone-width screenshots of the home page, Membership, and any page the last day's commits touched, and look for overlapping text, cut-off buttons, or anything plainly broken. Sections fade in as they scroll into view, so scroll the whole page top to bottom before a full-page screenshot; otherwise those sections show up as empty space and look broken when they are not. A fixed header drawn over the footer in a full-page screenshot is also normal.
+
+   When done, stop the copy by its saved ID:
+
+   ```
+   kill "$(cat /tmp/faemse-preview.pid)" && rm -f /tmp/faemse-preview.pid
+   ```
+
+   Do not use `pkill -f` or `pgrep -f` with a plain pattern such as `"vite.js preview"`: the pattern also matches the shell running that command, so it kills its own shell and the command shows as failed (exit code 144).
 
 4. **Review the last day's commits.** Several people and Claude sessions push to this repo. Read the diff of everything merged to `main` in the last 24 hours (`git log --since="26 hours ago" -p origin/main`) and look for bugs: broken logic, typos in code, a page or link removed by accident. If there were none, say so in the summary.
 
