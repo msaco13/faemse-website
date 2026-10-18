@@ -241,7 +241,9 @@ export default function Home() {
       <section className="velvet bg-[#071A32] border-t border-white/10 text-white" aria-label={boardAria}>
         {/* min-h: the row is this tall once the dates arrive; holding it from
             the start keeps the page from stepping down when they do. */}
-        <div className="wrap grid lg:grid-cols-[auto_1fr_1fr_1fr_auto] items-stretch lg:min-h-[82px]">
+        {/* minmax(0,1fr): a long event title wraps instead of widening its
+            column and pushing the row past the screen edge. */}
+        <div className="wrap grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch lg:min-h-[82px]">
           <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
             <T id="home.board.label">On the board</T>
