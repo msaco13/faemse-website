@@ -138,4 +138,35 @@ else
   incomplete+="dependencies "
 fi
 
+# 7. Locked doors: the private tables give an outsider nothing
+section "Locked doors"
+node scripts/locked-doors.mjs 2>&1 | tee "$LOGS/doors.log"
+doors=${PIPESTATUS[0]}
+doors_line=$(grep -E "^Locked doors:" "$LOGS/doors.log" | sed 's/^Locked doors: //')
+if [ "$doors" -eq 2 ] || [ -z "$doors_line" ]; then
+  row "Locked doors" "FAILED" "could not reach the database (output above)"
+  incomplete+="locked-doors "
+elif [ "$doors" -eq 1 ]; then
+  row "Locked doors" "ran" "PROBLEM: $doors_line"
+  issues=$((issues + 1))
+else
+  row "Locked doors" "ran" "$doors_line"
+fi
+
+# 8. Membership date tests
+section "Membership tests"
+npm test 2>&1 | tee "$LOGS/tests.log"
+tests=${PIPESTATUS[0]}
+passed=$(grep -E "^(ℹ|#) pass [0-9]+" "$LOGS/tests.log" | tail -1 | grep -oE "[0-9]+")
+failed=$(grep -E "^(ℹ|#) fail [0-9]+" "$LOGS/tests.log" | tail -1 | grep -oE "[0-9]+")
+if [ -z "$passed" ] && [ -z "$failed" ]; then
+  row "Tests" "FAILED" "tests did not run (output above)"
+  incomplete+="tests "
+elif [ "$tests" -ne 0 ] || [ "${failed:-0}" -gt 0 ]; then
+  row "Tests" "ran" "${failed:-some} failed, ${passed:-0} passed"
+  issues=$((issues + 1))
+else
+  row "Tests" "ran" "$passed of $passed passed"
+fi
+
 report

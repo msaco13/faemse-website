@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "a11y": "node scripts/a11y.mjs",
-    "audit": "node scripts/audit.mjs"
+    "audit": "node scripts/audit.mjs",
+    "test": "TZ=America/New_York node --test --test-reporter=spec \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

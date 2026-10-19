@@ -62,7 +62,9 @@ const browser = await chromium.launch({
   args: ['--no-sandbox'],
 });
 
-async function newContext(vp) {
+// dbDown: every request to the database fails, the way it would during a
+// Supabase outage. Used by the database-down pass below.
+async function newContext(vp, { dbDown = false } = {}) {
   const ctx = await browser.newContext({
     viewport: { width: vp.width, height: vp.height },
     isMobile: vp.isMobile ?? false,
@@ -72,6 +74,7 @@ async function newContext(vp) {
   // trusts but the bundled browser does not.
   await ctx.route('**/*', async (route) => {
     const req = route.request();
+    if (dbDown && new URL(req.url()).host.endsWith('supabase.co')) return route.abort('connectionrefused');
     if (!allowed(req)) {
       blockedWrites.push(`${req.method()} ${req.url().split('?')[0]}`);
       return route.abort('blockedbyclient');
@@ -202,6 +205,36 @@ for (const [href, from] of allLinks) {
   }
 }
 
+// Database-down pass: every page again at desktop width with the database
+// unreachable. Console errors about the failed requests are expected; what
+// must not happen is a page that fails to load, shows the crash card, throws
+// an uncaught error, or is still "Loading" after the site's own 5-second
+// database timeout has passed.
+const DB_DOWN = '(database down)';
+{
+  const ctx = await newContext(VIEWPORTS[0], { dbDown: true });
+  for (const path of PUBLIC) {
+    const page = await ctx.newPage();
+    const uncaught = [];
+    page.on('pageerror', (e) => uncaught.push(e.message));
+    try {
+      await page.goto(SITE + path, { waitUntil: 'load', timeout: 45000 });
+      await page.waitForTimeout(6500);
+      const { crashed, stuck } = await page.evaluate(() => {
+        const text = document.body.innerText;
+        return { crashed: /something went wrong on this page/i.test(text), stuck: (text.match(/^.*\bLoading\b.*$/im) || [''])[0].trim() };
+      });
+      if (crashed) add(`${path} ${DB_DOWN}`, 'desktop', 'error screen', 'The page shows the crash card when the database is unreachable.');
+      if (stuck) add(`${path} ${DB_DOWN}`, 'desktop', 'stuck loading', `Still showing "${stuck.slice(0, 80)}" 6 seconds after the database failed.`);
+      for (const m of [...new Set(uncaught)]) add(`${path} ${DB_DOWN}`, 'desktop', 'uncaught error', m.slice(0, 300));
+    } catch (e) {
+      add(`${path} ${DB_DOWN}`, 'desktop', 'did not load', String(e.message).split('\n')[0]);
+    }
+    await page.close();
+  }
+  await ctx.close();
+}
+
 // Members-only pages, signed in as the test account.
 let memberNote = 'skipped (no test account configured)';
 if (EMAIL && PASSWORD) {
@@ -235,7 +268,7 @@ for (const f of findings) {
   byPage.set(k, [...(byPage.get(k) ?? []), f.width]);
 }
 console.log(`Site audit of ${SITE}`);
-console.log(`Pages: ${PUBLIC.length + 1} at ${VIEWPORTS.map((v) => v.name).join(' and ')} widths. Members-only pages: ${memberNote}.`);
+console.log(`Pages: ${PUBLIC.length + 1} at ${VIEWPORTS.map((v) => v.name).join(' and ')} widths. Database-down pass: ${PUBLIC.length} pages. Members-only pages: ${memberNote}.`);
 console.log('');
 if (byPage.size) {
   console.log(`FOUND ${byPage.size} issue(s):`);

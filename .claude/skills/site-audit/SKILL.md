@@ -28,7 +28,7 @@ These hold no matter what you find.
 
 1. **Start clean.** Fetch the latest `main` and make sure your working branch starts from it.
 
-2. **Run the automatic checks.** One command does the install, the build, every page, accessibility, and the dependency scan:
+2. **Run the automatic checks.** One command does the install, the build, every page, accessibility, the dependency scan, the locked-doors check, and the membership tests:
 
    ```
    bash scripts/site-audit.sh
@@ -40,6 +40,12 @@ These hold no matter what you find.
    - If the build failed, stop. Report the error. Nothing else counts as checked.
 
    What the page check looks for: pages that fail to load or show the error card, console errors, missing images, internal links to pages that do not exist, pages wider than the screen, forms without a submit button or with unlabeled fields, and pages slower than 3 seconds, at desktop (1280px) and phone (390px) widths. Outside links are listed as "not checked" because the network blocks most outside sites; do not report those as broken. Members-only pages are checked signed in only when `AUDIT_EMAIL` and `AUDIT_PASSWORD` are set; otherwise the report says they were skipped, which is expected until the test account exists.
+
+   The page check also visits every page a second time with the database unreachable, the way the site behaves during a Supabase outage. Failed-request messages are expected there; a page that crashes, throws an uncaught error, or still says "Loading" after 6 seconds is a finding.
+
+   Locked doors (`scripts/locked-doors.mjs`): reads the private tables the way any outsider could, with the website's public key, and expects nothing back. It only reads. If it says `OPEN`, member data is exposed to the public: put that first in the summary, in plain words, with the table named. Do not try to fix it; database access rules are changed only by AJ in Supabase. If it cannot reach the database, the report says INCOMPLETE.
+
+   Membership tests (`npm test`): the portal's membership date rules. A failing test is a finding. Never change a test to make it pass; report which test failed and what it expected, and say whether a commit from the last day touched `src/lib/portal.ts` or `src/lib/dates.ts`.
 
    If the routes in `src/App.tsx` no longer match the list at the top of `scripts/audit.mjs`, update the list. That is part of the fix, not a finding.
 
@@ -89,6 +95,6 @@ Say, in this order:
 
 Only when the report's last line was `RESULT: ALL CHECKS RAN. Nothing found.` and steps 3 to 6 found nothing either, the summary is these two sentences, with the numbers from the report filled in:
 
-"The site is clean. Build passed, <N> pages checked at desktop and phone widths with 0 issues, accessibility passed on <A> of <A> pages, <D> dependency advisories (no new ones), <C> new commits reviewed."
+"The site is clean. Build passed, <N> pages checked at desktop and phone widths and again with the database down, 0 issues; accessibility passed on <A> of <A> pages; all <L> private database checks closed; <T> of <T> membership tests passed; <D> dependency advisories (no new ones); <C> new commits reviewed."
 
 If the build failed on `main`, lead with that: what failed, the error in a code block, and that nothing else was checked.
