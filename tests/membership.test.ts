@@ -14,7 +14,18 @@ process.env.TZ = 'America/New_York'; // Florida time; npm test also sets it.
 import { afterEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { toISODate, todayISO } from '../src/lib/dates.ts';
-import { GRACE_DAYS, dateState, formatDate, graceEnd, overallState, type MyOrganization, type Profile } from '../src/lib/portal.ts';
+import {
+  GRACE_DAYS,
+  RENEWAL_WINDOW_DAYS,
+  dateState,
+  formatDate,
+  graceEnd,
+  inRenewalWindow,
+  overallState,
+  renewalOpens,
+  type MyOrganization,
+  type Profile,
+} from '../src/lib/portal.ts';
 
 // Pin "now" to a local Florida date and time.
 function at(y: number, m: number, d: number, hh = 12, mm = 0) {
@@ -89,6 +100,42 @@ describe('the grace end date', () => {
   it('is 90 calendar days after the paid-through date', () => {
     assert.equal(toISODate(graceEnd('2026-10-31')), '2027-01-29');
     assert.equal(toISODate(graceEnd('2026-09-30')), '2026-12-29');
+  });
+});
+
+describe('the renewal window (when the portal asks for payment)', () => {
+  it('opens 60 days before the paid-through date', () => {
+    assert.equal(RENEWAL_WINDOW_DAYS, 60);
+    assert.equal(toISODate(renewalOpens('2027-06-30')), '2027-05-01');
+    assert.equal(toISODate(renewalOpens('2026-12-31')), '2026-11-01');
+  });
+
+  it('is closed for a member paid up well ahead', () => {
+    at(2026, 10, 20);
+    assert.equal(inRenewalWindow('2027-06-30'), false);
+  });
+
+  it('is closed the evening before it opens and open the next morning', () => {
+    at(2027, 4, 30, 23, 59);
+    assert.equal(inRenewalWindow('2027-06-30'), false);
+    at(2027, 5, 1, 0, 1);
+    assert.equal(inRenewalWindow('2027-06-30'), true);
+  });
+
+  it('stays open through the last evening of the term', () => {
+    at(2027, 6, 30, 23, 59);
+    assert.equal(inRenewalWindow('2027-06-30'), true);
+  });
+
+  it('is not the renewal window once the term has ended (grace takes over)', () => {
+    at(2027, 7, 1, 8);
+    assert.equal(inRenewalWindow('2027-06-30'), false);
+    assert.equal(dateState('2027-06-30'), 'grace');
+  });
+
+  it('is closed with no paid-through date', () => {
+    assert.equal(inRenewalWindow(null), false);
+    assert.equal(inRenewalWindow(''), false);
   });
 });
 

@@ -150,7 +150,7 @@ export default function HeroSpotlight({
                   <h2 className="font-disp font-bold uppercase leading-[0.96] text-[clamp(40px,5vw,60px)] max-w-[18ch] [text-wrap:balance] whitespace-pre-line line-clamp-4">
                     {s.title}
                   </h2>
-                  {s.body && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{s.body}</p>}
+                  {s.body && <SlideBody body={s.body} />}
                   {/* Either button can be switched off per slide in the
                       Spotlights panel (board request, Oct 2026). */}
                   {(showLink || showJoin) && (
@@ -241,6 +241,44 @@ export default function HeroSpotlight({
 
 // The welcome slide's own look: the gold-rule kicker, the page's one h1 with
 // its last line in gold, and the red join button ahead of the board's button.
+// A slide's text as typed in the Spotlights panel. Ordinary lines show as a
+// paragraph (line breaks kept, six lines at most). Lines that start with "- "
+// become a gold checklist in two columns, and "- Title: text" puts the title
+// in bold, so a slide like "What members get" is plain text the board edits
+// like any other slide.
+function SlideBody({ body }: { body: string }) {
+  const lines = body.split('\n');
+  const items = lines
+    .filter((l) => /^\s*-\s+/.test(l))
+    .map((l) => {
+      const t = l.replace(/^\s*-\s+/, '');
+      const at = t.indexOf(': ');
+      return at > 0 ? { title: t.slice(0, at), text: t.slice(at + 2) } : { title: '', text: t };
+    });
+  const prose = lines.filter((l) => !/^\s*-\s+/.test(l)).join('\n').trim();
+  return (
+    <>
+      {prose && <p className="text-[18px] text-[#BCCBE7] max-w-[52ch] my-8 whitespace-pre-line line-clamp-6">{prose}</p>}
+      {items.length > 0 && (
+        <ul className={`grid sm:grid-cols-2 gap-x-7 gap-y-3.5 max-w-[640px] ${prose ? 'mb-8' : 'my-8'}`}>
+          {items.map((it, i) => (
+            <li key={i} className="flex gap-3 items-start">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden className="flex-none mt-0.5">
+                <circle cx="10" cy="10" r="9" stroke="#DFAF37" strokeWidth="1.6" />
+                <path d="M6 10.3l2.6 2.5L14 7.4" stroke="#F5CE5A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="min-w-0 text-[14.5px] leading-snug">
+                {it.title && <b className="block text-white text-[15.5px]">{it.title}</b>}
+                <span className="text-[#BCCBE7]">{it.text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
 function WelcomeSlide({ s, link, showJoin }: { s: Spotlight; link: React.ReactNode; showJoin: boolean }) {
   const lines = s.title.split('\n').map((l) => l.trim()).filter(Boolean);
   const gold = lines.length > 1 ? lines.pop() : undefined;

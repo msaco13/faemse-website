@@ -90,6 +90,50 @@ export async function fetchSiteNews(): Promise<{ items: NewsItem[]; live: boolea
   return { items: sampleNews, live: false };
 }
 
+// Whether any news is posted. The header and footer show "News" only once
+// there is something to read (board, 2026-10-20). One count per page load,
+// shared by every caller, and the last answer remembered per browser so the
+// menu doesn't change shape a moment after it first draws.
+const HAS_NEWS_KEY = 'faemse:has-news';
+let hasNewsPromise: Promise<boolean> | null = null;
+function fetchHasNews(): Promise<boolean> {
+  hasNewsPromise ??= (async () => {
+    try {
+      const { count, error } = await withTimeout(
+        supabase.from('news_posts').select('id', { count: 'exact', head: true }),
+      );
+      const has = !error && (count ?? 0) > 0;
+      try {
+        localStorage.setItem(HAS_NEWS_KEY, has ? '1' : '0');
+      } catch {
+        /* storage blocked: fine */
+      }
+      return has;
+    } catch {
+      return false;
+    }
+  })();
+  return hasNewsPromise;
+}
+
+export function useHasNews(): boolean {
+  const [has, setHas] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(HAS_NEWS_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    let on = true;
+    fetchHasNews().then((h) => on && setHas(h));
+    return () => {
+      on = false;
+    };
+  }, []);
+  return has;
+}
+
 export function useSiteEvents(): Loaded<EventItem> {
   const [state, setState] = useState<Loaded<EventItem>>({ items: [], live: false, loaded: false });
   useEffect(() => {

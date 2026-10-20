@@ -19,7 +19,6 @@ const Bylaws = lazy(() => import('./pages/Bylaws'));
 const Membership = lazy(() => import('./pages/Membership'));
 const Events = lazy(() => import('./pages/Events'));
 const News = lazy(() => import('./pages/News'));
-const Resources = lazy(() => import('./pages/Resources'));
 const Sponsors = lazy(() => import('./pages/Sponsors'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Login = lazy(() => import('./pages/Login'));
@@ -154,31 +153,15 @@ export default function App() {
             <Route path="/bylaws" element={<Bylaws />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/events" element={<Events />} />
+            {/* Public (board decision 2026-10-20): news is how visitors find
+                reasons to join. Shows real posts only. */}
+            <Route path="/news" element={<News />} />
             {/* Members only (board decision 2026-10-13): visitors get the
                 banner and a sign-in / join notice. Each head matches the
                 page's own PageHead. */}
-            <Route
-              path="/news"
-              element={
-                <MembersOnly
-                  what="Association news"
-                  head={{ id: 'news', eyebrow: 'Association news', title: 'The latest', sub: "State policy updates in plain English, board news, awards, and resources for Florida's EMS education community." }}
-                >
-                  <News />
-                </MembersOnly>
-              }
-            />
-            <Route
-              path="/resources"
-              element={
-                <MembersOnly
-                  what="The resource shelf"
-                  head={{ id: 'resources', eyebrow: 'The reference shelf', title: 'Resources', sub: 'What FAEMSE has built for educators, plus the organizations, standards, and references every Florida EMS educator should have bookmarked.' }}
-                >
-                  <Resources />
-                </MembersOnly>
-              }
-            />
+            {/* The members' Resources page moved into the portal (board,
+                2026-10-20); old links land on its Resources tab. */}
+            <Route path="/resources" element={<Navigate to="/members/resources" replace />} />
             <Route path="/sponsors" element={<Sponsors />} />
             <Route
               path="/jobs"
@@ -212,7 +195,9 @@ export default function App() {
             <Route path="/admin/hubs/*" element={<OldHubsAddress />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/members" element={<Members />} />
+            {/* The member portal and its tabs: /members, /members/resources,
+                /members/jobs, /members/account, /members/board (admins). */}
+            <Route path="/members/:tab?" element={<Members />} />
             <Route path="/payment-complete" element={<PaymentComplete />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

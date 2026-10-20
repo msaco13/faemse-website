@@ -79,15 +79,34 @@ association's Supabase organization.
 - `organizations`, `organization_members`, `contacts` — institutional and
   corporate memberships with their seated representatives (cap enforced by
   trigger), and the listserv-only people without a login.
-- **Members-only pages (board decision 2026-10-13):** News, Q&A, Jobs and
-  Resources. Their header tabs stay up for everyone as a teaser; for
+- **Site structure (board decisions 2026-10-20).** One header, two states
+  (`src/components/Header.tsx`). Visitors: Membership · Events · News ·
+  Program map · Foundation · About, then Contact, Member sign in, Join.
+  Signed-in members: the same without Membership, with a gold "My portal"
+  button and Sign out (a lapsed member keeps Membership and gets Renew).
+  News appears in the header and footer only once a post exists. The
+  members-only features are no longer header tabs: they live in the member
+  portal, and visitors learn about them from the homepage's "What members
+  get" slide (a Spotlights row; lines starting "- Title: text" render as a
+  checklist). **News is public** (real posts only, no samples).
+- **The member portal** is `/members` with tabs, one address each:
+  `/members` (Home: Start here tiles, what's new, the member's directory
+  listing, and the Foundation scholarship band, which reads the Foundation
+  slide so its deadlines change in one place), `/members/resources` (program
+  hubs, Q&A and videos once published, the library once stocked, the
+  reference shelf), `/members/jobs` (jobs and classes on one board; the tab
+  shows only when something is posted), `/members/account` (profile,
+  directory, password, dues history, organizations, bylaws link) and
+  `/members/board` (admins: the admin workspace). The banner's membership
+  card asks for payment only when it is due: the last 60 days before the
+  paid-through date (`inRenewalWindow` in `src/lib/portal.ts`, tested), the
+  grace period, or lapsed. The old members' Resources page redirects to
+  `/members/resources`.
+- **Members-only pages (board decision 2026-10-13):** Q&A and Jobs. For
   visitors who aren't current members the pages show a sign-in / join
-  notice instead of content
-  (`src/components/MembersOnly.tsx`, wrapped around the routes in
-  `src/App.tsx`). The homepage still shows news headlines and cards for
-  these pages to everyone, as a teaser. This locks the pages, not the data:
-  `news_posts` and `jobs` stay publicly readable because the homepage reads
-  news while signed out. The pages are out of `public/sitemap.xml`.
+  notice instead of content (`src/components/MembersOnly.tsx`, wrapped
+  around the routes in `src/App.tsx`). This locks the pages, not the data:
+  `jobs` stays publicly readable. The pages are out of `public/sitemap.xml`.
 - `events`, `news_posts` — the public calendar and news, editable from the
   portal's **Site content** panel (admins only). Schema:
   `supabase/migrations/20260830_editable_content.sql` — paste it once into the
@@ -155,8 +174,7 @@ association's Supabase organization.
   table name predates the change): current members and admins read, admins
   write, signed-out visitors get nothing. Read at `/hubs` in three click
   levels (pillars, subsections, content) under a row of pill tabs, one per
-  hub. Signed-in current members see a "Members only" tab in the header in
-  place of Membership; admins see both tabs. Each draft's "Maintenance
+  hub, reached from the portal's Resources tab. Each draft's "Maintenance
   notes" section shows to admins only (hidden in the page; the row itself is
   readable by members). Body is Markdown ("##" pillar, "###" subsection; see
   `src/lib/hubs.ts`). Schema and policies:

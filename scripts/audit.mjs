@@ -27,10 +27,11 @@ const SLOW_MS = Number(process.env.AUDIT_SLOW_MS ?? 3000);
 const PUBLIC = [
   '/', '/about', '/board', '/bylaws', '/membership', '/events', '/news', '/resources', '/sponsors',
   '/jobs', '/classes', '/qa', '/videos', '/program-directors', '/programs', '/hubs', '/contact',
-  '/login', '/members', '/payment-complete', '/privacy', '/terms', '/admin/hubs',
+  '/login', '/members', '/members/resources', '/members/account', '/payment-complete', '/privacy', '/terms',
+  '/admin/hubs',
 ];
 const NOT_FOUND = '/this-page-does-not-exist';
-const MEMBER = ['/members', '/news', '/resources', '/jobs', '/qa', '/hubs'];
+const MEMBER = ['/members', '/members/resources', '/members/jobs', '/members/account', '/jobs', '/qa', '/hubs'];
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
   { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true },
@@ -89,7 +90,7 @@ async function newContext(vp, { dbDown = false } = {}) {
 }
 
 const knownPaths = new Set([...PUBLIC, NOT_FOUND]);
-const isKnown = (p) => knownPaths.has(p) || p.startsWith('/hubs/');
+const isKnown = (p) => knownPaths.has(p) || p.startsWith('/hubs/') || p.startsWith('/members/');
 
 async function checkPage(ctx, path, vp, label = path) {
   const page = await ctx.newPage();

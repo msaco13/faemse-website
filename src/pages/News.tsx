@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { useSiteNews } from '../lib/content';
 import { T } from '../lib/text';
@@ -10,7 +11,9 @@ const tagChip: Record<string, string> = {
 };
 
 export default function News() {
-  const { items: news, live, loaded } = useSiteNews();
+  // Public, real posts only (board, 2026-10-20): no sample posts for visitors.
+  const { items, live, loaded } = useSiteNews();
+  const news = live ? items : [];
   return (
     <>
       <PageHead
@@ -21,11 +24,6 @@ export default function News() {
       />
       <section className="py-20 bg-white">
         <div className="wrap max-w-[860px] space-y-6">
-          {loaded && !live && (
-            <p className="inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              <T id="news.sample">Sample posts — real news coming</T>
-            </p>
-          )}
           {!loaded && (
             <div className="card p-8 text-muted" aria-busy="true">
               <T id="news.loading">Loading the latest…</T>
@@ -58,10 +56,13 @@ export default function News() {
               )}
             </article>
           ))}
-          {loaded && !live && (
-            <p className="text-muted text-[14px]">
-              <T id="news.note">Sample posts shown for the concept — real association news will populate this page.</T>
-            </p>
+          {loaded && news.length === 0 && (
+            <div className="card p-8 text-muted">
+              <T id="news.empty">No news has been posted yet. Upcoming meetings are on the calendar.</T>{' '}
+              <Link to="/events" className="font-bold text-brand-blue hover:underline">
+                <T id="news.empty.link">See the calendar →</T>
+              </Link>
+            </div>
           )}
         </div>
       </section>

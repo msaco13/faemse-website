@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { T, useText } from '../lib/text';
 import HeroCrest from './HeroCrest';
 
@@ -10,8 +10,10 @@ import HeroCrest from './HeroCrest';
 // document title and meta description follow the edited wording too.
 // `dynamicTitle` opts the title out of editing when it is computed per
 // visitor (the member portal's "Welcome, <name>").
-// `crest` adds the homepage's spinning ghost crest at the right end of the
-// banner (the member portal).
+// `crest` adds the homepage's spinning ghost crest, large and faint, running
+// off the banner's right edge (the member portal). `aside` puts a card on the
+// right of the title (the portal's membership card); the title's text sets
+// the banner's height either way.
 export default function PageHead({
   id,
   eyebrow,
@@ -19,6 +21,7 @@ export default function PageHead({
   sub,
   dynamicTitle = false,
   crest = false,
+  aside,
 }: {
   id: string;
   eyebrow: string;
@@ -26,6 +29,7 @@ export default function PageHead({
   sub?: string;
   dynamicTitle?: boolean;
   crest?: boolean;
+  aside?: ReactNode;
 }) {
   const editedTitle = useText(`${id}.title`, title);
   const liveTitle = dynamicTitle ? title : editedTitle;
@@ -67,18 +71,21 @@ export default function PageHead({
           </div>
         </div>
       )}
-      <div className="wrap relative py-16 md:py-20">
-        <p className="eyebrow !text-brand-goldsoft">
-          <T id={`${id}.eyebrow`}>{eyebrow}</T>
-        </p>
-        <h1 className="font-disp font-bold uppercase leading-[0.95] text-[clamp(40px,6vw,72px)] mt-3">
-          {dynamicTitle ? title : <T id={`${id}.title`}>{title}</T>}
-        </h1>
-        {sub && (
-          <p className="text-[#BCCBE7] text-lg max-w-[60ch] mt-4">
-            <T id={`${id}.sub`}>{sub}</T>
+      <div className={`wrap relative py-16 md:py-20 ${aside ? 'flex flex-wrap items-center justify-between gap-x-10 gap-y-8' : ''}`}>
+        <div className={aside ? 'flex-[1_1_420px] min-w-0' : ''}>
+          <p className="eyebrow !text-brand-goldsoft">
+            <T id={`${id}.eyebrow`}>{eyebrow}</T>
           </p>
-        )}
+          <h1 className="font-disp font-bold uppercase leading-[0.95] text-[clamp(40px,6vw,72px)] mt-3">
+            {dynamicTitle ? title : <T id={`${id}.title`}>{title}</T>}
+          </h1>
+          {sub && (
+            <p className="text-[#BCCBE7] text-lg max-w-[60ch] mt-4">
+              <T id={`${id}.sub`}>{sub}</T>
+            </p>
+          )}
+        </div>
+        {aside && <div className="flex-[0_1_380px] min-w-0">{aside}</div>}
       </div>
     </section>
   );

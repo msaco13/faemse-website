@@ -182,6 +182,27 @@ export function dateState(expires: string | null | undefined): MembershipState {
   return graceEnd(expires) >= today ? 'grace' : 'lapsed';
 }
 
+// The portal's membership card asks for payment only when it is due: in the
+// last 60 days before the paid-through date, in grace, or lapsed. Before
+// that, a paid-up member sees "Renewal opens <date>" and a quiet "Renew
+// early" link instead of a red button on every visit (board, 2026-10-20).
+// Renewing early still adds twelve months to the current date.
+export const RENEWAL_WINDOW_DAYS = 60;
+
+export function renewalOpens(iso: string): Date {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  d.setDate(d.getDate() - RENEWAL_WINDOW_DAYS);
+  return d;
+}
+
+// True from the first day of the renewal window through the paid-through date.
+export function inRenewalWindow(iso: string | null | undefined): boolean {
+  if (!iso || dateState(iso) !== 'current') return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return renewalOpens(iso) <= today;
+}
+
 export function membershipState(p: Profile | null): MembershipState {
   return dateState(p?.expires_at);
 }
