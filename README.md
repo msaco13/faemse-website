@@ -119,7 +119,9 @@ association's Supabase organization.
 - `jobs`, `class_listings` — the public job and class boards. Every row
   carries `expires_on`; the public site hides expired listings automatically
   (RLS filter), while admins keep seeing them in the portal so recurring
-  postings can be reposted by editing dates instead of retyped.
+  postings can be reposted by editing dates instead of retyped. No samples:
+  an outage shows the visitor's saved copy (closed listings dropped) with
+  its date, or a "can't load right now" message.
 - `qa_entries` — the Q&A archive (distilled listserv threads). Questions are
   public via the `get_qa_index()` RPC; full rows (answers) are readable only
   by current members/admins via RLS. Full-text search index included.
@@ -132,8 +134,10 @@ association's Supabase organization.
   button, show-from and stop-after dates. A video plays muted on loop behind
   the slide (direct MP4/WebM, or a YouTube/Vimeo link as a background embed);
   the photo is the still frame for reduced-motion and data-saver visitors.
-  Board-editable from the portal's Boards & library panel; the hero falls
-  back to a bundled evergreen set if the table is unreachable.
+  Board-editable from the portal's Boards & library panel. If the table is
+  unreachable, the hero shows the visitor's saved copy of the real slides
+  (expired ones dropped), or the bundled welcome slide alone; never made-up
+  slides (board, 2026-10-20).
 - Storage bucket `media` — public-read, admin-write. The spotlight form's
   Upload buttons put photos and clips here (50 MB cap, images and
   MP4/WebM/MOV only) so the board never needs outside hosting. Guidance in
@@ -600,8 +604,9 @@ DNS at it. See PLAN.md §10 phase 5.
 
 ## Monitoring
 
-The site fails soft: when a live read is refused it shows its bundled sample
-content (or, for the calendar, a saved copy) instead of an error, so an
+The site fails soft: when a live read is refused it shows the visitor's
+saved copy (calendar, slides, jobs, classes) or bundled sample content
+(Q&A, videos) instead of an error, so an
 outage that only affects signed-out
 visitors is invisible to anyone testing while signed in. Two things watch
 for that:

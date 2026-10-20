@@ -241,65 +241,8 @@ export const news = [
   },
 ];
 
-// SAMPLE job postings — the board replaces these with real openings as it
-// hears of them. Placement is one of the three CoAEMSP program metrics, so
-// the job board is public on purpose.
-export const sampleJobs = [
-  {
-    posted: longDate(shift(-21)),
-    closes: longDate(shift(75)),
-    title: 'Paramedic Program Director',
-    employer: 'State College EMS Academy',
-    location: 'Tampa, FL',
-    description:
-      'CAAHEP-accredited program seeks a director. Bachelor’s required (master’s preferred), CoAEMSP workshop within 15 months, Florida instructor credentials.',
-    applyUrl: '',
-  },
-  {
-    posted: longDate(shift(-13)),
-    closes: longDate(shift(90)),
-    title: 'EMT Lead Instructor (nights)',
-    employer: 'Gulf Coast Technical College',
-    location: 'Fort Myers, FL',
-    description:
-      'Evening cohort, three nights a week. Teaching experience preferred; mentorship from the senior faculty provided.',
-    applyUrl: '',
-  },
-  {
-    posted: longDate(shift(-8)),
-    closes: longDate(shift(45)),
-    title: 'Clinical Coordinator',
-    employer: 'Broward Fire Academy',
-    location: 'Davie, FL',
-    description:
-      'Owns clinical site agreements, student rotations, and preceptor relationships across three hospital systems.',
-    applyUrl: '',
-  },
-];
-
-// SAMPLE class listings — schools email offerings and the board posts them.
-export const sampleClasses = [
-  {
-    posted: longDate(shift(-18)),
-    starts: longDate(shift(120)),
-    closes: longDate(shift(120)),
-    title: 'Spring Paramedic Cohort — applications open',
-    provider: 'Central Florida EMS Institute',
-    location: 'Orlando, FL',
-    description: 'Day program, 12 months, NREMT-P eligible. Application window closes when the cohort fills.',
-    contact: 'admissions@example.edu',
-  },
-  {
-    posted: longDate(shift(-11)),
-    starts: longDate(shift(33)),
-    closes: longDate(shift(33)),
-    title: 'EMS Instructor Level A/B Course',
-    provider: 'Suncoast Training Group',
-    location: 'St. Petersburg, FL',
-    description: 'State-recognized instructor qualification course. Two weekends plus online modules.',
-    contact: 'training@example.com',
-  },
-];
+// No sample jobs or classes either (board, 2026-10-20): an outage shows the
+// visitor's saved copy of the real boards instead (lib/postings.ts).
 
 // SAMPLE Q&A entries — the archive launches with distilled listserv threads.
 export const sampleQa = [
@@ -359,39 +302,6 @@ export const welcomeSlide = {
   tags: defaultSlideTags,
   welcome: true,
 };
-
-// Evergreen homepage spotlights, used only if the spotlights table can't be
-// reached. The live set (board-editable) lives in Supabase.
-export const fallbackSpotlights = [
-  welcomeSlide,
-  {
-    kicker: 'EMS Educator of the Year',
-    title: 'Honoring the educators who raise the standard.',
-    body: 'Every year FAEMSE honors the educators whose students are measurably better for having been in their classroom. Nominations are open to Active members.',
-    imageUrl: '',
-    videoUrl: '',
-    linkUrl: '/about',
-    linkLabel: 'About the award',
-  },
-  {
-    kicker: 'New program director?',
-    title: 'Your compliance clocks are already running.',
-    body: 'Thirty days to notify CoAEMSP, fifteen months for the required workshop — and a first-90-days checklist built by directors who have done the job.',
-    imageUrl: '',
-    videoUrl: '',
-    linkUrl: '/program-directors',
-    linkLabel: 'Read the starter guide',
-  },
-  {
-    kicker: 'The archive',
-    title: 'Questions answered once. Kept for good.',
-    body: 'Real questions from Florida educators, distilled by the board and searchable by topic — so knowledge stops evaporating with the listserv.',
-    imageUrl: '',
-    videoUrl: '',
-    linkUrl: '/qa',
-    linkLabel: 'Search the archive',
-  },
-];
 
 export const faq = [
   {

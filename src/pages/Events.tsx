@@ -1,4 +1,5 @@
 import PageHead from '../components/PageHead';
+import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { EventItem, splitEvents, useSiteEvents } from '../lib/content';
 import { T } from '../lib/text';
 
@@ -66,22 +67,14 @@ export default function Events() {
       <section className="py-20 bg-paper">
         <div className="wrap">
           {down && savedAt && (
-            <p className="mb-5 text-[14.5px] text-brand-goldink bg-[#FBF3D9] px-4 py-3 rounded-xl" role="status">
-              <b>
-                <T id="events.saved.lead">Saved copy from</T>{' '}
-                {new Date(savedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
-              </b>{' '}
-              <T id="events.saved.note">The live calendar couldn't be reached, so confirm dates before you travel.</T>
-            </p>
+            <SavedCopyNote id="events" savedAt={savedAt} note="The live calendar couldn't be reached, so confirm dates before you travel." />
           )}
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
               <T id="events.loading">Loading the calendar…</T>
             </div>
           ) : down && !savedAt ? (
-            <div className="card p-8 text-muted" role="status">
-              <T id="events.down">The calendar can't load right now. Try again in a few minutes.</T>
-            </div>
+            <CantLoad id="events" what="calendar" />
           ) : upcoming.length > 0 ? (
             <div className="card overflow-hidden shadow-[0_18px_50px_rgba(10,33,59,.08)]">
               {upcoming.map((e) => (
