@@ -5,7 +5,7 @@
 // fall back to their bundled samples.
 
 import { useEffect, useState } from 'react';
-import { sampleQa, sampleVideos, welcomeSlide } from '../content/data';
+import { board as bundledBoard, sampleQa, sampleVideos, sponsors as bundledSponsors, welcomeSlide } from '../content/data';
 import { todayISO } from './dates';
 import { supabase } from './supabase';
 
@@ -289,6 +289,77 @@ export function useClasses(): Loaded<ClassItem> {
     }
     return null;
   }, { key: 'faemse:classes', current: notClosed });
+}
+
+// --- Board of Directors page -------------------------------------------------
+// From board_members (Admin tab → Board page). Until the first answer, and if
+// the database can't be reached with no saved copy, the list bundled with the
+// site (content/data.ts, real as of Oct 2026) stands in: real people, never
+// samples.
+
+export type BoardSection = 'officer' | 'director' | 'staff';
+export const BOARD_SECTIONS: BoardSection[] = ['officer', 'director', 'staff'];
+
+export type BoardSeat = {
+  id?: string;
+  section: BoardSection;
+  role: string;
+  name: string;
+  blurb: string;
+  sort_order: number;
+};
+
+const bundledSeats: BoardSeat[] = bundledBoard.map((m, i) => ({ section: m.kind, role: m.role, name: m.name, blurb: m.blurb, sort_order: (i + 1) * 10 }));
+
+export function sortSeats(seats: BoardSeat[]): BoardSeat[] {
+  return [...seats].sort((a, b) => BOARD_SECTIONS.indexOf(a.section) - BOARD_SECTIONS.indexOf(b.section) || a.sort_order - b.sort_order);
+}
+
+export function useBoardSeats(): Loaded<BoardSeat> {
+  const state = useLoaded<BoardSeat>(
+    async () => {
+      try {
+        const { data, error } = await withTimeout(supabase.from('board_members').select('id, section, role, name, blurb, sort_order'));
+        if (!error && data) return { live: true, items: sortSeats(data as BoardSeat[]) };
+      } catch {
+        /* fall back below */
+      }
+      return null;
+    },
+    { key: 'faemse:board', showFirst: true },
+  );
+  return state.items.length === 0 && (!state.loaded || (state.down && !state.savedAt)) ? { ...state, items: bundledSeats } : state;
+}
+
+// --- Corporate sponsors -------------------------------------------------------
+// From sponsors (Admin tab → Sponsors): the homepage band and the Sponsors
+// page. Same fallback as the board page.
+
+export type Sponsor = { id?: string; name: string; url: string; logo: string; sort_order: number };
+
+const bundledSponsorList: Sponsor[] = bundledSponsors.map((s, i) => ({ name: s.name, url: s.url, logo: s.logo ?? '', sort_order: (i + 1) * 10 }));
+
+// `logo` is a logo bundled with the site (public/sponsors/<logo>.webp) or the
+// full address of an uploaded one; empty means the name is shown instead.
+export function sponsorLogoSrc(logo: string): string | null {
+  if (!logo) return null;
+  return /^(https?:)?\//.test(logo) ? logo : `${import.meta.env.BASE_URL}sponsors/${logo}.webp`;
+}
+
+export function useSponsors(): Loaded<Sponsor> {
+  const state = useLoaded<Sponsor>(
+    async () => {
+      try {
+        const { data, error } = await withTimeout(supabase.from('sponsors').select('id, name, url, logo, sort_order').order('sort_order', { ascending: true }));
+        if (!error && data) return { live: true, items: data as Sponsor[] };
+      } catch {
+        /* fall back below */
+      }
+      return null;
+    },
+    { key: 'faemse:sponsors', showFirst: true },
+  );
+  return state.items.length === 0 && (!state.loaded || (state.down && !state.savedAt)) ? { ...state, items: bundledSponsorList } : state;
 }
 
 // --- Q&A archive ------------------------------------------------------------

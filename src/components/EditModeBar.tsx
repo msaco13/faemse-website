@@ -1,18 +1,21 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useSiteText } from '../lib/text';
 
 // The admin-only control for in-page text editing. Renders nothing at all for
 // visitors and for signed-in members who are not board admins, so the public
 // site is unchanged. Writes are gated server-side by RLS (is_admin()) — this
-// bar only decides what an admin is shown.
+// bar only decides what an admin is shown. It stays off the Admin page, whose
+// launch pad has the same switch and list and would sit under it.
 
 export default function EditModeBar() {
   const { canEdit, editing, setEditing, overrides, reset, needsSetup } = useSiteText();
   const [openList, setOpenList] = useState(false);
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
+  const { pathname } = useLocation();
 
-  if (!canEdit) return null;
+  if (!canEdit || pathname === '/admin') return null;
 
   const ids = Object.keys(overrides).sort();
 

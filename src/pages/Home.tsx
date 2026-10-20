@@ -6,10 +6,10 @@ import HeroSpotlight from '../components/HeroSpotlight';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
-import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
+import { CONTENT_VERIFIED, honors, presidentMessage, tiers } from '../content/data';
 import BoardStrip from '../components/BoardStrip';
 import { useSiteNews } from '../lib/content';
-import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
+import { backgroundEmbedUrl, isVideoFile, useSponsors, useSpotlights, type Spotlight } from '../lib/postings';
 import { slug, T, useText } from '../lib/text';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
@@ -111,6 +111,7 @@ function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
 export default function Home() {
   const newsState = useSiteNews();
   const spotlights = useSpotlights();
+  const sponsors = useSponsors().items;
   // The active spotlight's photo (if it has one) becomes the hero backdrop.
   const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
   const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);

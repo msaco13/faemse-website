@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { MembershipState, Profile } from '../../lib/portal';
-import { dateState, GRACE_DAYS } from '../../lib/portal';
+import { dateState, GRACE_DAYS, graceEnd, renewalOpens } from '../../lib/portal';
+import { toISODate, todayISO } from '../../lib/dates';
+import { membersCsv, type ExportRow } from '../../lib/memberExport';
+import { useBoardSeats } from '../../lib/postings';
 import { matchesQuery } from '../../lib/search';
 import AddPerson from '../AddPerson';
 import MemberEditor from './MemberEditor';
@@ -64,6 +67,15 @@ function shortDate(iso: string): string {
 
 const tierLabel: Record<string, string> = { active: 'Active', institutional: 'Institutional', corporate: 'Corporate', honorary: 'Honorary' };
 
+// Which membership the paid-through date comes from: their own dues or an
+// organization they represent.
+function coveredBy(p: Profile, seats: SeatInfo[], best: { date: string | null }): string {
+  if (p.tier === 'honorary') return 'Honorary';
+  if (!best.date) return '';
+  if (best.date === p.expires_at) return 'Own dues';
+  return seats.find((s) => s.expires_at === best.date)?.name ?? '';
+}
+
 export default function PeoplePane({
   members,
   seatsByProfile,
@@ -79,6 +91,7 @@ export default function PeoplePane({
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const boardSeats = useBoardSeats().items;
 
   const rows = useMemo(
     () =>
@@ -146,6 +159,38 @@ export default function PeoplePane({
   const current = Math.min(page, pages);
   const slice = visible.slice((current - 1) * PAGE, current * PAGE);
 
+  // Export to Excel (board, 2026-10-20): the list as filtered and searched
+  // right now, so "Past due or lapsed" then Export gives just those people.
+  function exportList() {
+    const rows: ExportRow[] = visible.map(({ m, seats, status, best }) => {
+      const paid = best.date ? best.date.slice(0, 10) : '';
+      return {
+        name: m.full_name ?? '',
+        email: m.email ?? '',
+        phone: m.phone ?? '',
+        agency: m.agency ?? '',
+        county: m.county ?? '',
+        certification: m.cert_level ?? '',
+        tier: tierLabel[m.tier ?? ''] ?? m.tier ?? '',
+        position: boardSeats.find((b) => b.id && b.id === m.board_seat_id)?.role ?? '',
+        status: statusLabel[status],
+        paidThrough: paid,
+        renewalOpens: paid ? toISODate(renewalOpens(paid)) : '',
+        graceEnds: paid ? toISODate(graceEnd(paid)) : '',
+        coveredBy: coveredBy(m, seats, best),
+        listed: m.show_in_directory !== false,
+        listserv: !m.listserv_opt_out,
+        admin: m.role === 'admin',
+      };
+    });
+    const blob = new Blob([membersCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `faemse-members-${todayISO()}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   function pick(f: Filter) {
     setFilter(f);
     setPage(1);
@@ -179,9 +224,19 @@ export default function PeoplePane({
         <h3 className="font-disp font-bold uppercase text-2xl">
           People <span className="ml-2 font-body normal-case tracking-normal text-[13px] font-normal text-muted">{members.length} logins</span>
         </h3>
-        <button onClick={() => setAdding(!adding)} className={`${adding ? 'btn-outline' : 'btn-red'} !py-2 !px-4 text-[13px]`}>
-          {adding ? 'Close' : '+ Add a person'}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportList}
+            disabled={visible.length === 0}
+            className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60"
+            title="Downloads a spreadsheet of the people listed below, with status, paid-through, renewal and grace dates"
+          >
+            Export {visible.length === members.length ? 'all' : visible.length} to Excel
+          </button>
+          <button onClick={() => setAdding(!adding)} className={`${adding ? 'btn-outline' : 'btn-red'} !py-2 !px-4 text-[13px]`}>
+            {adding ? 'Close' : '+ Add a person'}
+          </button>
+        </div>
       </div>
 
       {adding && (

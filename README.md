@@ -84,6 +84,20 @@ association's Supabase organization.
 - `organizations`, `organization_members`, `contacts` — institutional and
   corporate memberships with their seated representatives (cap enforced by
   trigger), and the listserv-only people without a login.
+- **Admin tab (board decision 2026-10-20).** Administrators get an Admin
+  link after About, opening `/admin` (`src/pages/Admin.tsx`): one place for
+  everything an admin can change. It is the same workspace as the portal's
+  Board tools tab (`src/components/admin/AdminWorkspace.tsx`), so nothing
+  moved. Pages: page wording & pictures (the launch pad: edit-mode switch,
+  every page one click away, every saved wording change with Reset, and a
+  flag on changes no page uses any more, from the `virtual:text-ids` list
+  built in `vite.config.ts`), the board page (`board_members`; seats link to
+  member accounts, which shows their position in the directory), sponsors
+  (`sponsors`; logos upload to the `media` bucket), the bylaws text, and the
+  program hubs (saving applies the hub rules in `src/lib/hubDraft.ts`).
+  Members: inbox, people (with Export to Excel: a CSV with status,
+  paid-through, renewal and grace dates), organizations. Then site content
+  and dues & tools as before. Schema: `supabase/migrations/20261020_admin_editors.sql`.
 - **Site structure (board decisions 2026-10-20).** One header, two states
   (`src/components/Header.tsx`). Visitors: Membership · Events · News ·
   Program map · Foundation · About, then Contact, Member sign in, Join.

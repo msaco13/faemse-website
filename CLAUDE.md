@@ -20,6 +20,10 @@
   generated, so nothing needs renumbering by hand.
 - Each draft's "Maintenance notes" section stays in the text: the site shows
   it to admins only (`forViewer` in `src/lib/hubs.ts`).
+- Admins edit hubs themselves in Admin → Program hubs, which applies the two
+  rules above and the faemse.org spelling fix on every save
+  (`src/lib/hubDraft.ts`, tested in `tests/hubDraft.test.ts`). A change to
+  these rules changes that file and its tests too.
 
 ## Membership rules have tests
 

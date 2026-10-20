@@ -1,10 +1,13 @@
 import PageHead from '../components/PageHead';
-import { mailto, sponsors } from '../content/data';
+import { mailto } from '../content/data';
+import { sponsorLogoSrc, useSponsors } from '../lib/postings';
 import { T } from '../lib/text';
 
 // The association's corporate sponsors are its Corporate members (bylaws
 // 2.02.03). A sponsor without a logo on file is shown by name until one comes.
+// The list comes from the Admin tab's sponsors editor.
 export default function Sponsors() {
+  const { items: sponsors } = useSponsors();
   return (
     <>
       <PageHead
@@ -17,9 +20,10 @@ export default function Sponsors() {
         <div className="wrap">
           <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 list-none p-0 m-0">
             {sponsors.map((s) => {
-              const inner = s.logo ? (
+              const logo = sponsorLogoSrc(s.logo);
+              const inner = logo ? (
                 <img
-                  src={`${import.meta.env.BASE_URL}sponsors/${s.logo}.webp`}
+                  src={logo}
                   alt={s.name}
                   loading="lazy"
                   className="max-h-[72px] w-auto max-w-[85%] object-contain"
@@ -32,7 +36,7 @@ export default function Sponsors() {
               const cls = 'card p-5 grid place-items-center min-h-[120px] text-center transition-all';
               // A card is a link to the sponsor's site when one is on file.
               return (
-                <li key={s.name}>
+                <li key={s.id ?? s.name}>
                   {s.url ? (
                     <a
                       href={s.url}

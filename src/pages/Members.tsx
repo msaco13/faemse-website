@@ -9,7 +9,7 @@ import { useSiteNews } from '../lib/content';
 import { useHubList } from '../lib/hubs';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
 import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens, sortDirectory } from '../lib/portal';
-import { useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
+import { useBoardSeats, useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
 import { arrivedByPasswordLink } from '../lib/recovery';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
@@ -42,6 +42,7 @@ export default function Members() {
   const { tab } = useParams<{ tab?: string }>();
   const hubs = useHubList(!!session);
   const spotlights = useSpotlights();
+  const boardSeats = useBoardSeats().items;
   const news = useSiteNews();
   const jobs = useJobs();
   const classes = useClasses();
@@ -238,6 +239,8 @@ export default function Members() {
   const latestPost = news.live ? news.items[0] : undefined;
   const latestHub = [...hubList].sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
   const qaPublished = qa.items.filter((q) => q.published !== false);
+  // The board seat this member holds, if an admin linked one (Admin → Board page).
+  const mySeat = profile?.board_seat_id ? boardSeats.find((b) => b.id === profile.board_seat_id) : undefined;
   const foundation = spotlights.items.find((s) => /faemsefoundation\.org/i.test(s.linkUrl));
   const longDay = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -501,7 +504,7 @@ export default function Members() {
                         <span className="min-w-0">
                           <b className="block text-[16px]">
                             {profile?.full_name || 'Your name'}
-                            {profile?.faemse_position && <span className={positionTag}>{profile.faemse_position}</span>}
+                            {mySeat && <span className={positionTag}>{mySeat.role}</span>}
                           </b>
                           <span className="text-[13.5px] text-muted">{[profile?.cert_level, profile?.agency, profile?.county].filter(Boolean).join(' · ') || 'Add your certification, agency and county'}</span>
                         </span>

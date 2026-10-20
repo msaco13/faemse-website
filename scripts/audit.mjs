@@ -28,7 +28,7 @@ const PUBLIC = [
   '/', '/about', '/board', '/bylaws', '/membership', '/events', '/news', '/resources', '/sponsors',
   '/jobs', '/classes', '/qa', '/videos', '/program-directors', '/programs', '/hubs', '/contact',
   '/login', '/members', '/members/resources', '/members/account', '/payment-complete', '/privacy', '/terms',
-  '/admin/hubs',
+  '/admin', '/admin/hubs',
 ];
 const NOT_FOUND = '/this-page-does-not-exist';
 const MEMBER = ['/members', '/members/resources', '/members/jobs', '/members/account', '/jobs', '/qa', '/hubs'];

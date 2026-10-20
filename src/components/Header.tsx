@@ -18,11 +18,13 @@ import { useMemberStatus } from '../lib/useMemberStatus';
 //            keeps Membership and gets a Renew button.
 // News shows only once a post exists. Foundation is the one link that leaves
 // the site (its own 501(c)(3), its own website): plain label, no arrow, new
-// tab. About sits last (board request, 2026-10-13).
+// tab. About sits last among the public links (board request, 2026-10-13);
+// administrators also get Admin right after it (board, 2026-10-20): every
+// admin editor in one place.
 type NavItem = { to: string; label: string; textId: string; external?: boolean };
 const FOUNDATION_URL = 'https://www.faemsefoundation.org';
 
-function navFor(member: boolean, hasNews: boolean): NavItem[] {
+function navFor(member: boolean, hasNews: boolean, admin: boolean): NavItem[] {
   return [
     ...(member ? [] : [{ to: '/membership', label: 'Membership', textId: 'membership' }]),
     { to: '/events', label: 'Events', textId: 'events' },
@@ -30,6 +32,7 @@ function navFor(member: boolean, hasNews: boolean): NavItem[] {
     { to: '/programs', label: 'Program map', textId: 'programs' },
     { to: FOUNDATION_URL, label: 'Foundation', textId: 'foundation', external: true },
     { to: '/about', label: 'About', textId: 'about' },
+    ...(admin ? [{ to: '/admin', label: 'Admin', textId: 'admin' }] : []),
   ];
 }
 
@@ -57,7 +60,7 @@ export default function Header() {
   const status = useMemberStatus();
   const hasNews = useHasNews();
   const member = status.current;
-  const items = navFor(member, hasNews);
+  const items = navFor(member, hasNews, status.admin);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
