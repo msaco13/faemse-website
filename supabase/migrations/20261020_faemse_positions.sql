@@ -9,6 +9,11 @@
 -- (admin_update_profile); update_my_profile never touches it. The member
 -- directory shows it next to the name.
 
+-- Adding a column briefly locks profiles, which every signed-in page reads.
+-- Give up after 5 seconds rather than queue behind live traffic and hold
+-- the site up; just run it again.
+set lock_timeout = '5s';
+
 alter table public.profiles add column if not exists faemse_position text;
 
 -- get_directory gains a column, so it is dropped and made again. A migration

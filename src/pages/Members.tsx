@@ -8,7 +8,7 @@ import { mailto, resourceCategories } from '../content/data';
 import { useSiteNews } from '../lib/content';
 import { useHubList } from '../lib/hubs';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
-import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens } from '../lib/portal';
+import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens, sortDirectory } from '../lib/portal';
 import { useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
 import { arrivedByPasswordLink } from '../lib/recovery';
 import { useSettings } from '../lib/settings';
@@ -168,7 +168,7 @@ export default function Members() {
       supabase.rpc('my_organizations'),
     ]);
     if (prof) setProfile(prof as Profile);
-    setDirectory((dir ?? []) as DirectoryEntry[]);
+    setDirectory(sortDirectory((dir ?? []) as DirectoryEntry[]));
     if (pays) setPayments(pays as Payment[]);
     if (orgs) setMyOrgs(orgs as MyOrganization[]);
   }

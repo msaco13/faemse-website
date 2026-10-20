@@ -99,6 +99,29 @@ export type DirectoryEntry = {
   faemse_position?: string | null;
 };
 
+// The surname a name sorts under: its last word, skipping a trailing
+// suffix ("Jr.", "III"), so "Ana de la Cruz" sorts under Cruz.
+const SUFFIX = /^(jr|sr|ii|iii|iv|v|md|phd|rn|np)\.?$/i;
+export function lastName(fullName: string | null | undefined): string {
+  const words = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
+  while (words.length > 1 && SUFFIX.test(words[words.length - 1].replace(/,$/, ''))) words.pop();
+  return (words[words.length - 1] ?? '').replace(/,$/, '');
+}
+
+// Directory order (board, 2026-10-20): FAEMSE positions first, by rank (the
+// order of FAEMSE_POSITIONS), then everyone by last name, then first name.
+export function sortDirectory(entries: DirectoryEntry[]): DirectoryEntry[] {
+  const rank = (e: DirectoryEntry) => {
+    const i = e.faemse_position ? FAEMSE_POSITIONS.indexOf(e.faemse_position) : -1;
+    // A position not on the list still sorts ahead of members without one.
+    return i >= 0 ? i : e.faemse_position ? FAEMSE_POSITIONS.length : FAEMSE_POSITIONS.length + 1;
+  };
+  const byName = (a: string, b: string) => a.localeCompare(b, 'en', { sensitivity: 'base' });
+  return [...entries].sort(
+    (a, b) => rank(a) - rank(b) || byName(lastName(a.full_name), lastName(b.full_name)) || byName(a.full_name ?? '', b.full_name ?? ''),
+  );
+}
+
 export type Application = {
   id: string;
   created_at: string;
