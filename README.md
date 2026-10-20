@@ -79,25 +79,49 @@ association's Supabase organization.
 - `organizations`, `organization_members`, `contacts` — institutional and
   corporate memberships with their seated representatives (cap enforced by
   trigger), and the listserv-only people without a login.
-- **Members-only pages (board decision 2026-10-13):** News, Q&A, Jobs and
-  Resources. Their header tabs stay up for everyone as a teaser; for
+- **Site structure (board decisions 2026-10-20).** One header, two states
+  (`src/components/Header.tsx`). Visitors: Membership · Events · News ·
+  Program map · Foundation · About, then Contact, Member sign in, Join.
+  Signed-in members: the same without Membership, with a gold "My portal"
+  button and Sign out (a lapsed member keeps Membership and gets Renew).
+  News appears in the header and footer only once a post exists. The
+  members-only features are no longer header tabs: they live in the member
+  portal, and visitors learn about them from the homepage's "What members
+  get" slide (a Spotlights row; lines starting "- Title: text" render as a
+  checklist). **News is public** (real posts only, no samples).
+- **The member portal** is `/members` with tabs, one address each:
+  `/members` (Home: Start here tiles, what's new, the member's directory
+  listing, and the Foundation scholarship band, which reads the Foundation
+  slide so its deadlines change in one place), `/members/resources` (program
+  hubs, Q&A and videos once published, the library once stocked, the
+  reference shelf), `/members/jobs` (jobs and classes on one board; the tab
+  shows only when something is posted), `/members/account` (profile,
+  directory, password, dues history, organizations, bylaws link) and
+  `/members/board` (admins: the admin workspace). The banner's membership
+  card asks for payment only when it is due: the last 60 days before the
+  paid-through date (`inRenewalWindow` in `src/lib/portal.ts`, tested), the
+  grace period, or lapsed. The old members' Resources page redirects to
+  `/members/resources`.
+- **Members-only pages (board decision 2026-10-13):** Q&A and Jobs. For
   visitors who aren't current members the pages show a sign-in / join
-  notice instead of content
-  (`src/components/MembersOnly.tsx`, wrapped around the routes in
-  `src/App.tsx`). The homepage still shows news headlines and cards for
-  these pages to everyone, as a teaser. This locks the pages, not the data:
-  `news_posts` and `jobs` stay publicly readable because the homepage reads
-  news while signed out. The pages are out of `public/sitemap.xml`.
+  notice instead of content (`src/components/MembersOnly.tsx`, wrapped
+  around the routes in `src/App.tsx`). This locks the pages, not the data:
+  `jobs` stays publicly readable. The pages are out of `public/sitemap.xml`.
 - `events`, `news_posts` — the public calendar and news, editable from the
   portal's **Site content** panel (admins only). Schema:
   `supabase/migrations/20260830_editable_content.sql` — paste it once into the
-  dashboard SQL Editor to install. Until the tables exist (or while they are
-  empty), the public site falls back to the bundled sample listings with a
-  visible "sample" label.
+  dashboard SQL Editor to install. Neither ever shows samples to visitors
+  (board, 2026-10-20). An empty calendar says nothing is scheduled; when the
+  database can't be reached, the calendar shows the visitor's last saved copy
+  of the real one with its date (kept in the browser on every good read), or
+  a plain "can't load right now" message if there is none. News shows real
+  posts only.
 - `jobs`, `class_listings` — the public job and class boards. Every row
   carries `expires_on`; the public site hides expired listings automatically
   (RLS filter), while admins keep seeing them in the portal so recurring
-  postings can be reposted by editing dates instead of retyped.
+  postings can be reposted by editing dates instead of retyped. No samples:
+  an outage shows the visitor's saved copy (closed listings dropped) with
+  its date, or a "can't load right now" message.
 - `qa_entries` — the Q&A archive (distilled listserv threads). Questions are
   public via the `get_qa_index()` RPC; full rows (answers) are readable only
   by current members/admins via RLS. Full-text search index included.
@@ -110,8 +134,10 @@ association's Supabase organization.
   button, show-from and stop-after dates. A video plays muted on loop behind
   the slide (direct MP4/WebM, or a YouTube/Vimeo link as a background embed);
   the photo is the still frame for reduced-motion and data-saver visitors.
-  Board-editable from the portal's Boards & library panel; the hero falls
-  back to a bundled evergreen set if the table is unreachable.
+  Board-editable from the portal's Boards & library panel. If the table is
+  unreachable, the hero shows the visitor's saved copy of the real slides
+  (expired ones dropped), or the bundled welcome slide alone; never made-up
+  slides (board, 2026-10-20).
 - Storage bucket `media` — public-read, admin-write. The spotlight form's
   Upload buttons put photos and clips here (50 MB cap, images and
   MP4/WebM/MOV only) so the board never needs outside hosting. Guidance in
@@ -155,8 +181,7 @@ association's Supabase organization.
   table name predates the change): current members and admins read, admins
   write, signed-out visitors get nothing. Read at `/hubs` in three click
   levels (pillars, subsections, content) under a row of pill tabs, one per
-  hub. Signed-in current members see a "Members only" tab in the header in
-  place of Membership; admins see both tabs. Each draft's "Maintenance
+  hub, reached from the portal's Resources tab. Each draft's "Maintenance
   notes" section shows to admins only (hidden in the page; the row itself is
   readable by members). Body is Markdown ("##" pillar, "###" subsection; see
   `src/lib/hubs.ts`). Schema and policies:
@@ -579,8 +604,10 @@ DNS at it. See PLAN.md §10 phase 5.
 
 ## Monitoring
 
-The site fails soft: when a live read is refused it shows its bundled sample
-content instead of an error, so an outage that only affects signed-out
+The site fails soft: when a live read is refused it shows the visitor's
+saved copy (calendar, slides, jobs, classes) or bundled sample content
+(Q&A, videos) instead of an error, so an
+outage that only affects signed-out
 visitors is invisible to anyone testing while signed in. Two things watch
 for that:
 

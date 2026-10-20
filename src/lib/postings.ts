@@ -1,10 +1,11 @@
 // Live postings (jobs, classes, Q&A, teaching videos, member library) from
-// Supabase, with bundled samples as fallback — same contract as lib/content.ts:
-// the public site never renders empty or breaks when tables are missing,
-// unreachable, or not yet populated.
+// Supabase. The homepage slides, jobs and classes never fall back to samples
+// (board, 2026-10-20): when the database can't be reached they show the
+// visitor's last saved copy of the real ones, or nothing. Q&A and videos still
+// fall back to their bundled samples.
 
 import { useEffect, useState } from 'react';
-import { fallbackSpotlights, sampleClasses, sampleJobs, sampleQa, sampleVideos, welcomeSlide } from '../content/data';
+import { sampleQa, sampleVideos, welcomeSlide } from '../content/data';
 import { todayISO } from './dates';
 import { supabase } from './supabase';
 
@@ -17,6 +18,8 @@ export type JobItem = {
   location: string;
   description: string;
   applyUrl: string;
+  // ISO closing date, so a saved copy can drop listings that have closed.
+  closesOn?: string;
 };
 
 export type ClassItem = {
@@ -29,6 +32,7 @@ export type ClassItem = {
   location: string;
   description: string;
   contact: string;
+  closesOn?: string;
 };
 
 // Public index row: question only. Members load full entries with answers.
@@ -61,6 +65,8 @@ export type Spotlight = {
   // The welcome slide (is_welcome): same fields, its own look. See
   // HeroSpotlight.
   welcome?: boolean;
+  // ISO last day the slide runs (null: no end), so a saved copy can drop it.
+  expiresOn?: string | null;
 };
 
 export type VideoIndexItem = {
@@ -81,7 +87,9 @@ export type LibraryItem = {
   url: string;
 };
 
-export type Loaded<T> = { items: T[]; live: boolean; loaded: boolean };
+// `down`: the database couldn't be reached; `items` are then the saved copy
+// from `savedAt` (empty when this browser has none).
+export type Loaded<T> = { items: T[]; live: boolean; loaded: boolean; down?: boolean; savedAt?: string | null };
 
 function withTimeout<T>(p: PromiseLike<T>, ms = 5000): Promise<T> {
   return Promise.race([
@@ -105,34 +113,52 @@ function monthYear(iso: string): string {
   });
 }
 
-// `cacheKey` keeps the last live answer in localStorage and renders it on the
-// next visit before the fetch returns, so content that sits in the first
-// screen (the hero spotlights) doesn't pop in and shove the page a moment
-// after first paint. The fresh answer still replaces it when it arrives.
-function useLoaded<T>(fetcher: () => Promise<{ items: T[]; live: boolean }>, cacheKey?: string): Loaded<T> {
+// A fetcher answers null when the database can't be reached.
+type Fetched<T> = { items: T[]; live: boolean } | null;
+type SaveOptions<T> = {
+  // localStorage key for the saved copy of the last live answer.
+  key: string;
+  // Render the saved copy before the fetch returns, so content in the first
+  // screen (the hero spotlights) doesn't pop in and shove the page a moment
+  // after first paint. The fresh answer still replaces it when it arrives.
+  showFirst?: boolean;
+  // Whether a saved item still belongs on the page today (not closed or
+  // expired since it was saved).
+  current?: (item: T) => boolean;
+};
+
+function readSaved<T>(save: SaveOptions<T>): { savedAt: string; items: T[] } | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(save.key) ?? 'null');
+    if (!saved || typeof saved.savedAt !== 'string' || !Array.isArray(saved.items)) return null;
+    return { savedAt: saved.savedAt, items: save.current ? (saved.items as T[]).filter(save.current) : saved.items };
+  } catch {
+    return null;
+  }
+}
+
+function useLoaded<T>(fetcher: () => Promise<Fetched<T>>, save?: SaveOptions<T>): Loaded<T> {
   const [state, setState] = useState<Loaded<T>>(() => {
-    if (cacheKey) {
-      try {
-        const raw = localStorage.getItem(cacheKey);
-        if (raw) return { items: JSON.parse(raw) as T[], live: true, loaded: false };
-      } catch {
-        /* storage blocked: start empty, as before */
-      }
-    }
-    return { items: [], live: false, loaded: false };
+    const saved = save?.showFirst ? readSaved(save) : null;
+    return saved ? { items: saved.items, live: true, loaded: false } : { items: [], live: false, loaded: false };
   });
   useEffect(() => {
     let on = true;
     fetcher().then((r) => {
       if (!on) return;
-      setState({ ...r, loaded: true });
-      if (cacheKey && r.live) {
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(r.items));
-        } catch {
-          /* storage full or blocked: nothing to do */
+      if (r) {
+        setState({ ...r, loaded: true, down: false, savedAt: null });
+        if (save && r.live) {
+          try {
+            localStorage.setItem(save.key, JSON.stringify({ savedAt: new Date().toISOString(), items: r.items }));
+          } catch {
+            /* storage full or blocked: nothing to do */
+          }
         }
+        return;
       }
+      const saved = save ? readSaved(save) : null;
+      setState({ items: saved?.items ?? [], live: false, loaded: true, down: true, savedAt: saved?.savedAt ?? null });
     });
     return () => {
       on = false;
@@ -142,9 +168,11 @@ function useLoaded<T>(fetcher: () => Promise<{ items: T[]; live: boolean }>, cac
   return state;
 }
 
+const notClosed = (item: { closesOn?: string }) => !item.closesOn || item.closesOn >= todayISO();
+
 // --- Homepage spotlights ----------------------------------------------------
-// Active rows only (RLS also enforces the window). Falls back to the bundled
-// evergreen set so the hero never rotates through nothing.
+// Active rows only (RLS also enforces the window). With none (or the database
+// down and no saved copy), the hero shows the bundled welcome slide alone.
 
 export function useSpotlights(): Loaded<Spotlight> {
   return useLoaded<Spotlight>(async () => {
@@ -178,6 +206,7 @@ export function useSpotlights(): Loaded<Spotlight> {
             .map((n) => String(r[`tag_${n}`] ?? '').trim())
             .filter(Boolean),
           welcome: r.is_welcome === true,
+          expiresOn: r.expires_on ?? null,
         }));
         // Before the is_welcome column exists (the code can deploy a minute
         // ahead of the database change), keep showing the bundled welcome
@@ -189,8 +218,12 @@ export function useSpotlights(): Loaded<Spotlight> {
     } catch {
       /* fall back below */
     }
-    return { live: false, items: fallbackSpotlights };
-  }, 'faemse:spotlights:v2');
+    return null;
+  }, {
+    key: 'faemse:spotlights:v3',
+    showFirst: true,
+    current: (s) => !s.expiresOn || s.expiresOn.slice(0, 10) >= todayISO(),
+  });
 }
 
 // --- Jobs (public; RLS hides expired rows from the public site) -------------
@@ -213,17 +246,16 @@ export function useJobs(): Loaded<JobItem> {
             location: r.location,
             description: r.description,
             applyUrl: r.apply_url,
+            closesOn: String(r.expires_on).slice(0, 10),
           })),
         };
       }
-      // The table exists and is genuinely empty → show empty, not samples,
-      // so a cleared board never resurrects sample listings.
       if (!error && data) return { live: true, items: [] };
     } catch {
       /* fall back below */
     }
-    return { live: false, items: sampleJobs };
-  });
+    return null;
+  }, { key: 'faemse:jobs', current: notClosed });
 }
 
 // --- Classes (public) -------------------------------------------------------
@@ -247,6 +279,7 @@ export function useClasses(): Loaded<ClassItem> {
             location: r.location,
             description: r.description,
             contact: r.contact,
+            closesOn: String(r.expires_on).slice(0, 10),
           })),
         };
       }
@@ -254,8 +287,8 @@ export function useClasses(): Loaded<ClassItem> {
     } catch {
       /* fall back below */
     }
-    return { live: false, items: sampleClasses };
-  });
+    return null;
+  }, { key: 'faemse:classes', current: notClosed });
 }
 
 // --- Q&A archive ------------------------------------------------------------

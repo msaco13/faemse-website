@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import Seal from './Seal';
 import { contact } from '../content/data';
+import { useHasNews } from '../lib/content';
 import { T } from '../lib/text';
 
 export default function Footer() {
+  const hasNews = useHasNews();
   return (
     <footer className="velvet bg-ink2 text-[#93A6C9] text-[14.5px] pb-8">
       <div className="gold-braid opacity-70" aria-hidden />
@@ -59,15 +61,17 @@ export default function Footer() {
           </div>
           <div>
             <h2 className="font-disp font-semibold text-white text-[15px] tracking-[0.2em] uppercase mb-4">
-              <T id="footer.col.educators">For educators</T>
+              <T id="footer.col.visit">Visit</T>
             </h2>
+            {/* Public pages only: the members-only features live in the portal,
+                and "Member benefits" tells visitors what they are (board,
+                2026-10-20). News appears once a post exists, as in the header. */}
             <ul className="space-y-2.5">
+              <li><Link className="hover:text-white" to="/events"><T id="footer.link.events">Events</T></Link></li>
+              {hasNews && <li><Link className="hover:text-white" to="/news"><T id="footer.link.news">News</T></Link></li>}
               <li><Link className="hover:text-white" to="/programs"><T id="footer.link.programs">Program map</T></Link></li>
-              <li><Link className="hover:text-white" to="/qa"><T id="footer.link.qa">Q&amp;A archive</T></Link></li>
-              <li><Link className="hover:text-white" to="/videos"><T id="footer.link.videos">Teaching videos</T></Link></li>
-              <li><Link className="hover:text-white" to="/jobs"><T id="footer.link.jobs">Job board</T></Link></li>
-              <li><Link className="hover:text-white" to="/classes"><T id="footer.link.classes">Class board</T></Link></li>
-              <li><Link className="hover:text-white" to="/program-directors"><T id="footer.link.program-directors">Director guide</T></Link></li>
+              <li><Link className="text-brand-goldsoft font-semibold hover:text-white" to="/membership"><T id="footer.link.benefits">Member benefits</T></Link></li>
+              <li><Link className="hover:text-white" to="/contact"><T id="footer.link.contact">Contact</T></Link></li>
             </ul>
           </div>
           <div>

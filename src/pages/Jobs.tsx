@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { mailto } from '../content/data';
 import { useJobs } from '../lib/postings';
 import { T } from '../lib/text';
@@ -10,7 +11,7 @@ import { T } from '../lib/text';
 // one of the three CoAEMSP program metrics, so this board sits close to the
 // accreditation material (cross-linked below).
 export default function Jobs() {
-  const { items, live, loaded } = useJobs();
+  const { items, loaded, down, savedAt } = useJobs();
 
   return (
     <>
@@ -22,16 +23,16 @@ export default function Jobs() {
       />
       <section className="py-20 bg-paper">
         <div className="wrap">
-          {loaded && !live && (
-            <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              <T id="jobs.sample">Sample listings — real openings post here</T>
-            </p>
+          {down && savedAt && (
+            <SavedCopyNote id="jobs" savedAt={savedAt} note="The live job board couldn't be reached, so check with the employer that an opening is still available." />
           )}
 
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
               <T id="jobs.loading">Loading openings…</T>
             </div>
+          ) : down && !savedAt ? (
+            <CantLoad id="jobs" what="job board" />
           ) : items.length === 0 ? (
             <div className="card p-8 text-muted">
               <T id="jobs.empty">

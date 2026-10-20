@@ -319,8 +319,8 @@ export default function ContentManager() {
           {adding === 'event' && <div className="mb-4"><EventForm onDone={done} onCancel={() => setAdding(null)} /></div>}
           {events.length === 0 ? (
             <p className="text-muted text-[14.5px]">
-              No events yet — until the first one is added, the public site shows its sample
-              calendar with a &ldquo;sample&rdquo; label.
+              No events yet. Until the first one is added, the public calendar says nothing is
+              scheduled.
             </p>
           ) : (
             <div className="border border-line rounded-2xl overflow-hidden">
@@ -381,8 +381,8 @@ export default function ContentManager() {
           {adding === 'news' && <div className="mb-4"><NewsForm onDone={done} onCancel={() => setAdding(null)} /></div>}
           {posts.length === 0 ? (
             <p className="text-muted text-[14.5px]">
-              No posts yet — until the first one is published, the public site shows its sample
-              posts with a &ldquo;sample&rdquo; label.
+              No posts yet. Until the first one is published, the News link stays out of the
+              menus and the News page says nothing has been posted.
             </p>
           ) : (
             <div className="border border-line rounded-2xl overflow-hidden">

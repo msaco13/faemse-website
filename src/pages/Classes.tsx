@@ -1,4 +1,5 @@
 import PageHead from '../components/PageHead';
+import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { mailto } from '../content/data';
 import { useClasses } from '../lib/postings';
 import { T } from '../lib/text';
@@ -6,7 +7,7 @@ import { T } from '../lib/text';
 // Schools email upcoming offerings; the board posts them. Same pattern as the
 // job board: public, expiring, hidden automatically after the closing date.
 export default function Classes() {
-  const { items, live, loaded } = useClasses();
+  const { items, loaded, down, savedAt } = useClasses();
 
   return (
     <>
@@ -18,16 +19,16 @@ export default function Classes() {
       />
       <section className="py-20 bg-paper">
         <div className="wrap">
-          {loaded && !live && (
-            <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              <T id="classes.sample">Sample listings — real offerings post here</T>
-            </p>
+          {down && savedAt && (
+            <SavedCopyNote id="classes" savedAt={savedAt} note="The live class board couldn't be reached, so confirm details with the program before you sign up." />
           )}
 
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
               <T id="classes.loading">Loading listings…</T>
             </div>
+          ) : down && !savedAt ? (
+            <CantLoad id="classes" what="class board" />
           ) : items.length === 0 ? (
             <div className="card p-8 text-muted">
               <T id="classes.empty">Nothing listed right now — new offerings post here as programs announce them.</T>

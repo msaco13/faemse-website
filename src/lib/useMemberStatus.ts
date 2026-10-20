@@ -12,9 +12,11 @@ export type MemberStatus = {
   // Board admin. Also only a UI signal: every admin-only write is gated by
   // is_admin() in the database, so flipping this in a browser gains nothing.
   admin: boolean;
+  // For the header's "My portal" button: the member's initials.
+  name: string;
 };
 
-const SIGNED_OUT: MemberStatus = { checked: true, signedIn: false, current: false, admin: false };
+const SIGNED_OUT: MemberStatus = { checked: true, signedIn: false, current: false, admin: false, name: '' };
 
 export function useMemberStatus(): MemberStatus {
   const [status, setStatus] = useState<MemberStatus>({ ...SIGNED_OUT, checked: false });
@@ -50,6 +52,7 @@ export function useMemberStatus(): MemberStatus {
             // window, so the paywall must not appear before the server's does.
             current: p?.role === 'admin' || ['current', 'grace'].includes(overallState(p, myOrgs)),
             admin: p?.role === 'admin',
+            name: p?.full_name ?? p?.email ?? '',
           });
       } catch {
         on && setStatus(SIGNED_OUT);

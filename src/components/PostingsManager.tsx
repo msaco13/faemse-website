@@ -103,7 +103,7 @@ const SECTIONS: Section[] = [
     table: 'jobs',
     title: 'Job board',
     addLabel: '+ Add job',
-    emptyNote: 'No jobs yet — until the first real posting, the public board shows labeled samples.',
+    emptyNote: 'No jobs yet. Until the first one is posted, the job board says nothing is listed.',
     orderBy: { column: 'posted_on', ascending: false },
     expiresKey: 'expires_on',
     fields: [
@@ -125,7 +125,7 @@ const SECTIONS: Section[] = [
     table: 'class_listings',
     title: 'Class board',
     addLabel: '+ Add class',
-    emptyNote: 'No classes yet — until the first real listing, the public board shows labeled samples.',
+    emptyNote: 'No classes yet. Until the first one is posted, the class board says nothing is listed.',
     orderBy: { column: 'expires_on', ascending: true },
     expiresKey: 'expires_on',
     fields: [

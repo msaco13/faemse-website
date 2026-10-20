@@ -7,7 +7,8 @@ import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
-import { splitEvents, useSiteEvents, useSiteNews } from '../lib/content';
+import BoardStrip from '../components/BoardStrip';
+import { useSiteNews } from '../lib/content';
 import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
 import { slug, T, useText } from '../lib/text';
 
@@ -108,20 +109,15 @@ function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
 }
 
 export default function Home() {
-  const eventsState = useSiteEvents();
   const newsState = useSiteNews();
   const spotlights = useSpotlights();
   // The active spotlight's photo (if it has one) becomes the hero backdrop.
   const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
   const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);
   const mapFaded = !!(activeSpotlight?.imageUrl || activeSpotlight?.videoUrl);
-  const upcoming = splitEvents(eventsState.items).upcoming;
-  // The live wire only shows genuinely live data — a sample or stale "latest"
-  // would announce the site is dead, which is worse than no strip at all.
-  const latestPost = newsState.live ? newsState.items[0] : undefined;
-  const nextMeeting = eventsState.live ? upcoming[0] : undefined;
-  const boardAria = useText('home.board.aria', 'On the board');
-  const wireAria = useText('home.wire.aria', 'Latest from the association');
+  // News is public (board, 2026-10-20) and shows only real posts: with none
+  // yet, the section stays off rather than filling the page with samples.
+  const posts = newsState.live ? newsState.items : [];
   const sponsorsAria = useText('home.sponsors.aria', 'Sponsors');
   const vitalsAria = useText('home.vitals.aria', 'Association statistics');
   const sealAlt = useText('home.cta.alt', 'Seal of the Florida Association of EMS Educators');
@@ -236,76 +232,8 @@ export default function Home() {
         />
       </section>
 
-      {/* On the board — the next three dates, straight from the calendar the
-          board edits. */}
-      <section className="velvet bg-[#071A32] border-t border-white/10 text-white" aria-label={boardAria}>
-        {/* min-h: the row is this tall once the dates arrive; holding it from
-            the start keeps the page from stepping down when they do. */}
-        {/* minmax(0,1fr): a long event title wraps instead of widening its
-            column and pushing the row past the screen edge. */}
-        <div className="wrap grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] items-stretch lg:min-h-[82px]">
-          <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
-            <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
-            <T id="home.board.label">On the board</T>
-            {eventsState.loaded && !eventsState.live && (
-              <span className="ml-2 text-[11px] font-bold tracking-widest text-brand-goldsoft"><T id="home.board.sample">SAMPLE</T></span>
-            )}
-          </div>
-          {eventsState.loaded && upcoming.length === 0 && (
-            <p className="lg:col-span-3 flex items-center px-0 lg:px-6 py-4 text-[14px] text-[#93A6C9]">
-              <T id="home.board.empty">The 2026–27 calendar is being finalized — check back soon.</T>
-            </p>
-          )}
-          {upcoming.slice(0, 3).map((e) => (
-            <Link
-              key={e.id ?? e.title}
-              to="/events"
-              className="flex gap-4 items-center py-3.5 lg:px-6 lg:border-r border-white/10 max-lg:border-b max-lg:border-white/5 hover:bg-white/5"
-            >
-              <div className="flex-none w-[50px] text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
-                <b className="block text-[21px] gold-text">{e.day}</b>
-                <span className="text-xs tracking-[0.14em] text-brand-goldsoft">{e.month}</span>
-              </div>
-              <div className="min-w-0">
-                <b className="block text-[15px] leading-snug text-white">{e.title}</b>
-                <span className="block text-[13px] text-[#93A6C9] truncate">{e.location}</span>
-              </div>
-            </Link>
-          ))}
-          <Link to="/events" className="flex items-center py-4 lg:pl-7 text-[13.5px] font-bold text-brand-bluesoft hover:text-white whitespace-nowrap">
-            <T id="home.board.cta">Full calendar →</T>
-          </Link>
-        </div>
-      </section>
-
-      {/* The live wire — latest update + next meeting, straight from the
-          content tables the board edits. Hidden entirely until live data
-          exists; it must never fake freshness. */}
-      {(latestPost || nextMeeting) && (
-        <section className="velvet bg-[#071A32] border-t border-white/10" aria-label={wireAria}>
-          <div className="wrap flex flex-wrap items-center gap-x-8 gap-y-2 py-3.5 text-[14px]">
-            <span className="flex items-center gap-2 font-disp font-semibold text-[12px] tracking-[0.24em] uppercase text-brand-goldsoft">
-              <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)] animate-pulse" />
-              <T id="home.wire.label">Live wire</T>
-            </span>
-            {latestPost && (
-              <Link to="/news" className="text-[#BCCBE7] hover:text-white min-w-0">
-                <b className="text-white"><T id="home.wire.latest">Latest:</T></b> {latestPost.title}
-                <span className="text-[#7C90B6]"> · {latestPost.date}</span>
-              </Link>
-            )}
-            {nextMeeting && (
-              <Link to="/events" className="text-[#BCCBE7] hover:text-white">
-                <b className="text-white"><T id="home.wire.next">Next up:</T></b> {nextMeeting.title}
-                <span className="text-[#7C90B6]">
-                  {' '}
-                  · {nextMeeting.month} {nextMeeting.day}
-                </span>
-              </Link>
-            )}
-          </div>
-        </section>
-      )}
+      {/* On the board: the next three dates (shared with the member portal). */}
+      <BoardStrip />
 
       <div className="bg-ink2 pt-px">
         <div className="gold-braid" aria-hidden />
@@ -389,72 +317,50 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* The working library — the sections that make the site useful between
-          meetings: the archive, the videos, the guide, and the boards. */}
-      <section className="bg-white py-24">
-        <div className="wrap">
-          <div className="mb-11">
-            <p className="eyebrow"><T id="home.between.eyebrow">Between meetings</T></p>
-            <h2 className="h-sec">
-              <T id="home.between.h2a">The association,</T>
-              <br />
-              <T id="home.between.h2b">open all year</T>
-            </h2>
-            <p className="text-muted text-[17px] max-w-[62ch]">
-              <T id="home.between.lede">
-                FAEMSE meets in person a few times a year — the rest of the year lives here:
-                answers that stop evaporating, a director&apos;s guide that didn&apos;t exist before,
-                and the boards every program watches.
-              </T>
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                tag: 'The archive',
-                title: 'Questions & answers',
-                text: 'Real listserv questions, answered once by the board and kept — searchable by topic.',
-                to: '/qa',
-                cta: 'Search the archive',
-              },
-              {
-                tag: 'The reference shelf',
-                title: 'Resources & library',
-                text: 'Standards, state and federal links, and the members-only document library — one shelf, organized by tag.',
-                to: '/resources',
-                cta: 'Open the shelf',
-              },
-              {
-                tag: 'Free guide',
-                title: 'New program director?',
-                text: 'The compliance clocks already running, and your first 90 days — Florida-specific.',
-                to: '/program-directors',
-                cta: 'Read the guide',
-              },
-              {
-                tag: 'Member boards',
-                title: 'Jobs & classes',
-                text: 'Open positions and upcoming offerings statewide, posted by the board, never stale.',
-                to: '/jobs',
-                cta: 'See the openings',
-              },
-            ].map((c, i) => (
-              <Reveal key={c.title} delay={i * 90} className="flex">
-                <Link
-                  to={c.to}
-                  className="card p-7 flex flex-col border-t-[3px] border-t-brand-blue/60 transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_70px_rgba(47,107,255,.16)]"
-                >
-                  <p className="text-[11.5px] font-bold tracking-[0.14em] uppercase text-brand-blue mb-2"><T id={`home.between.${slug(c.title)}.tag`}>{c.tag}</T></p>
-                  <h3 className="font-disp font-bold uppercase text-[21px] leading-tight mb-2"><T id={`home.between.${slug(c.title)}.title`}>{c.title}</T></h3>
-                  <p className="text-muted text-[14px] flex-1 mb-4"><T id={`home.between.${slug(c.title)}.text`}>{c.text}</T></p>
-                  <span className="font-bold text-brand-blue text-[14.5px]"><T id={`home.between.${slug(c.title)}.cta`}>{c.cta}</T> →</span>
+          {/* The dues tiers, in the same section as the reasons to join: one
+              membership pitch on the page instead of two (board, 2026-10-20). */}
+          <div className="grid md:grid-cols-3 gap-6 mt-14">
+            {tiers.map((t) => (
+              <div
+                key={t.name}
+                className={
+                  t.featured
+                    ? 'relative rounded-[20px] p-8 text-body bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2560E8)_border-box] shadow-[0_30px_70px_rgba(10,33,59,.16)]'
+                    : 'card rounded-[20px] p-8'
+                }
+              >
+                {t.featured && (
+                  <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2 font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-[0_8px_24px_rgba(223,175,55,.4)]">
+                    <T id="home.tiers.popular">MOST POPULAR</T>
+                  </span>
+                )}
+                <h3 className="font-disp font-bold uppercase text-2xl"><T id={`tiers.${slug(t.name)}.name`}>{t.name}</T></h3>
+                <p className="text-[13.5px] mb-5 text-muted"><T id={`tiers.${slug(t.name)}.who`}>{t.who}</T></p>
+                <p className="font-disp font-bold text-[54px] leading-none [font-variant-numeric:tabular-nums]">
+                  {t.price}
+                  <small className="text-[17px] font-body font-semibold text-muted">
+                    {' '}
+                    <T id={`tiers.${slug(t.name)}.per`}>{t.per}</T>
+                  </small>
+                </p>
+                <ul className="my-6 space-y-3 text-[14.5px]">
+                  {t.perks.map((p) => (
+                    <li key={p} className="flex gap-2.5">
+                      <span className="text-brand-golddeep font-bold">✓</span>
+                      <T id={`tiers.${slug(t.name)}.perk.${slug(p)}`}>{p}</T>
+                    </li>
+                  ))}
+                </ul>
+                <Link to="/membership" className={t.featured ? 'btn-red w-full' : 'btn-outline w-full'}>
+                  <T id="home.tiers.cta">Learn more</T>
                 </Link>
-              </Reveal>
+              </div>
             ))}
           </div>
+          <Link to="/membership" className="inline-block mt-8 font-bold text-brand-blue hover:underline">
+            <T id="home.tiers.all">All membership options, including Honorary →</T>
+          </Link>
         </div>
       </section>
 
@@ -526,11 +432,13 @@ export default function Home() {
       </section>
       )}
 
+      {/* News preview: real posts only; off until the first one, and its
+          divider with it, so no empty white strip sits between the dark bands. */}
+      {posts.length > 0 && (
+      <>
       <div className="bg-white">
         <PulseDivider />
       </div>
-
-      {/* News preview */}
       <section className="bg-white py-24">
         <div className="wrap">
           <div className="flex flex-wrap items-end justify-between gap-6 mb-11">
@@ -543,18 +451,13 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {newsState.items.slice(0, 3).map((n, i) => (
+            {posts.slice(0, 3).map((n, i) => (
               <Reveal key={n.id ?? n.title} delay={i * 110} className="flex">
               <article
                 className="card overflow-hidden flex flex-col transition-all hover:-translate-y-1.5 hover:shadow-[0_30px_80px_rgba(10,33,59,.16)]"
               >
                 <div className="p-6 flex flex-col flex-1">
                   <p className="text-[12.5px] font-bold tracking-[0.08em] uppercase text-muted mb-2">
-                    {!newsState.live && (
-                      <span className="mr-2 px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]">
-                        <T id="home.news.sample">Sample</T>
-                      </span>
-                    )}
                     {n.date} · {n.tag}
                   </p>
                   <h3 className="text-[18.5px] font-bold leading-snug mb-2">{n.title}</h3>
@@ -569,58 +472,8 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Membership CTA */}
-      <section className="velvet relative overflow-hidden text-white py-24 bg-[radial-gradient(900px_600px_at_20%_0%,#143257_0%,#0A213B_55%,#04152A_100%)]">
-        <div className="wrap relative">
-          <div className="mb-11">
-            <p className="eyebrow !text-brand-bluesoft"><T id="home.tiers.eyebrow">Membership</T></p>
-            <h2 className="h-sec text-white">
-              <T id="home.tiers.h2a">The best $50 an</T>
-              <br />
-              <T id="home.tiers.h2b">educator spends this year</T>
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {tiers.map((t) => (
-              <div
-                key={t.name}
-                className={
-                  t.featured
-                    ? 'relative rounded-[20px] p-8 text-body bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516_55%,#2560E8)_border-box] shadow-[0_40px_90px_rgba(4,10,22,.5)]'
-                    : 'rounded-[20px] p-8 bg-white/5 border border-white/10 backdrop-blur'
-                }
-              >
-                {t.featured && (
-                  <span className="absolute -top-3.5 left-8 bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2 font-disp font-bold text-[13px] tracking-[0.18em] px-4 py-1.5 rounded-full shadow-[0_8px_24px_rgba(223,175,55,.4)]">
-                    <T id="home.tiers.popular">MOST POPULAR</T>
-                  </span>
-                )}
-                <h3 className="font-disp font-bold uppercase text-2xl"><T id={`tiers.${slug(t.name)}.name`}>{t.name}</T></h3>
-                <p className={`text-[13.5px] mb-5 ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}><T id={`tiers.${slug(t.name)}.who`}>{t.who}</T></p>
-                <p className="font-disp font-bold text-[54px] leading-none [font-variant-numeric:tabular-nums]">
-                  {t.price}
-                  <small className={`text-[17px] font-body font-semibold ${t.featured ? 'text-muted' : 'text-[#93A6C9]'}`}>
-                    {' '}
-                    <T id={`tiers.${slug(t.name)}.per`}>{t.per}</T>
-                  </small>
-                </p>
-                <ul className={`my-6 space-y-3 text-[14.5px] ${t.featured ? '' : 'text-[#C4D1EA]'}`}>
-                  {t.perks.map((p, i) => (
-                    <li key={p} className="flex gap-2.5">
-                      <span className="text-brand-green font-bold">✓</span>
-                      <T id={`tiers.${slug(t.name)}.perk.${slug(p)}`}>{p}</T>
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/membership" className={t.featured ? 'btn-red w-full' : 'btn-glass w-full'}>
-                  <T id="home.tiers.cta">Learn more</T>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      </>
+      )}
 
       {/* Final CTA */}
       <section className="velvet relative overflow-hidden text-white text-center bg-[radial-gradient(900px_600px_at_50%_120%,#143257_0%,#0A213B_55%,#04152A_100%)]">

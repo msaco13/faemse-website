@@ -1,4 +1,5 @@
 import PageHead from '../components/PageHead';
+import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { EventItem, splitEvents, useSiteEvents } from '../lib/content';
 import { T } from '../lib/text';
 
@@ -52,7 +53,7 @@ function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
 }
 
 export default function Events() {
-  const { items, live, loaded } = useSiteEvents();
+  const { items, loaded, down, savedAt } = useSiteEvents();
   const { upcoming, past } = splitEvents(items);
 
   return (
@@ -61,23 +62,19 @@ export default function Events() {
         id="events"
         eyebrow="Calendar"
         title="Upcoming across Florida"
-        sub={
-          live || !loaded
-            ? 'Workshops, competitions, and statewide membership meetings.'
-            : 'Sample listings shown while the association finalizes the 2026–27 calendar.'
-        }
+        sub="Workshops, competitions, and statewide membership meetings."
       />
       <section className="py-20 bg-paper">
         <div className="wrap">
-          {loaded && !live && (
-            <p className="mb-5 inline-block text-[12px] font-bold tracking-[0.12em] uppercase text-brand-goldink bg-[#FBF3D9] px-3.5 py-1.5 rounded-full">
-              <T id="events.sample">Sample calendar — dates being confirmed</T>
-            </p>
+          {down && savedAt && (
+            <SavedCopyNote id="events" savedAt={savedAt} note="The live calendar couldn't be reached, so confirm dates before you travel." />
           )}
           {!loaded ? (
             <div className="card p-8 text-muted" aria-busy="true">
               <T id="events.loading">Loading the calendar…</T>
             </div>
+          ) : down && !savedAt ? (
+            <CantLoad id="events" what="calendar" />
           ) : upcoming.length > 0 ? (
             <div className="card overflow-hidden shadow-[0_18px_50px_rgba(10,33,59,.08)]">
               {upcoming.map((e) => (
