@@ -56,7 +56,9 @@ Deno.serve(async (req) => {
 
   // Another login already using the address would make the change fail with
   // a vague message; say plainly whose it is not, just that it is taken.
-  const { data: clash } = await admin.from('profiles').select('id').ilike('email', email).neq('id', id).limit(1);
+  // ilike for case, with its wildcards (_ and %, legal in addresses) escaped.
+  const exact = email.replace(/[\\%_]/g, (c) => `\\${c}`);
+  const { data: clash } = await admin.from('profiles').select('id').ilike('email', exact).neq('id', id).limit(1);
   if (clash && clash.length > 0) return json({ error: 'Another login already uses that email address.' }, 409);
 
   const { error: updErr } = await admin.auth.admin.updateUserById(id, { email, email_confirm: true });
