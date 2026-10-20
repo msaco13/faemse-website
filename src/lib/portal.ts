@@ -19,7 +19,20 @@ export type Profile = {
   website?: string | null;
   listserv_opt_out?: boolean | null;
   listserv_email?: string | null;
+  // Board or staff position, set by admins only; shown in the directory.
+  faemse_position?: string | null;
 };
+
+// The positions the admin member editor offers (bylaws Articles 5 and 6,
+// plus the Executive Director the board appoints).
+export const FAEMSE_POSITIONS = [
+  'President',
+  'President-Elect',
+  'Secretary',
+  'Immediate Past President',
+  'Member-at-Large',
+  'Executive Director',
+];
 
 // An institutional or corporate membership, held by the organization rather
 // than a person. Its representatives are current members while it is.
@@ -83,6 +96,7 @@ export type DirectoryEntry = {
   cert_level: string | null;
   county: string | null;
   agency: string | null;
+  faemse_position?: string | null;
 };
 
 export type Application = {

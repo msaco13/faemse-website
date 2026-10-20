@@ -72,7 +72,12 @@ association's Supabase organization.
   from the portal's Board admin panel.
 - `profiles` — member portal profiles (tier, expiration, directory listing,
   role, and since Sept 2026 phone, job title, organization type, alternate
-  email, website, listserv opt-out and special listserv email). `role =
+  email, website, listserv opt-out and special listserv email).
+  `faemse_position` (since Oct 2026) holds a board or staff position
+  (President, Secretary, Member-at-Large, Executive Director, ...); only
+  admins set it, from the member editor, and the member directory shows it
+  next to the name. It is separate from `job_title`, which holds people's
+  own jobs from the old roster. `role =
   'admin'` unlocks the admin panels on the Members page. A person's *own*
   membership lives here; institutional and corporate ones live on
   `organizations` (see "Organizations, contacts, and the listserv").

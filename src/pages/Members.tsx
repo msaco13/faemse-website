@@ -22,6 +22,9 @@ const stateBadge = {
   pending: { text: 'Membership pending verification', cls: 'text-brand-goldink bg-[#FBF3D9]' },
 } as const;
 
+// A board or staff position next to a name in the directory (set by admins).
+const positionTag = 'ml-2 inline-block align-middle text-[11px] font-bold tracking-[0.06em] uppercase px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]';
+
 export default function Members() {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
@@ -496,7 +499,10 @@ export default function Members() {
                           {(profile?.full_name ?? firstName).split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase()}
                         </span>
                         <span className="min-w-0">
-                          <b className="block text-[16px]">{profile?.full_name || 'Your name'}</b>
+                          <b className="block text-[16px]">
+                            {profile?.full_name || 'Your name'}
+                            {profile?.faemse_position && <span className={positionTag}>{profile.faemse_position}</span>}
+                          </b>
                           <span className="text-[13.5px] text-muted">{[profile?.cert_level, profile?.agency, profile?.county].filter(Boolean).join(' · ') || 'Add your certification, agency and county'}</span>
                         </span>
                       </div>
@@ -674,7 +680,10 @@ export default function Members() {
                     <ul className="divide-y divide-line max-h-[340px] overflow-y-auto pr-1">
                       {directory.map((d, i) => (
                         <li key={`${d.full_name}-${i}`} className="py-3">
-                          <b className="block text-[14.5px]">{d.full_name ?? 'Member'}</b>
+                          <b className="block text-[14.5px]">
+                            {d.full_name ?? 'Member'}
+                            {d.faemse_position && <span className={positionTag}>{d.faemse_position}</span>}
+                          </b>
                           <span className="text-[13px] text-muted">
                             {[d.cert_level, d.agency, d.county].filter(Boolean).join(' · ') || '—'}
                           </span>

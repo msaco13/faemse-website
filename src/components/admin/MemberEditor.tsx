@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Payment, Profile } from '../../lib/portal';
-import { dollars, duesCents, formatDate, PAYMENT_METHODS } from '../../lib/portal';
+import { dollars, duesCents, FAEMSE_POSITIONS, formatDate, PAYMENT_METHODS } from '../../lib/portal';
 import { supabase } from '../../lib/supabase';
 
 // The editor that opens under a person's row in the People table: the same
@@ -14,6 +14,7 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
   const [tier, setTier] = useState(member.tier ?? 'active');
   const [role, setRole] = useState<'member' | 'admin'>(member.role ?? 'member');
   const [onList, setOnList] = useState(!member.listserv_opt_out);
+  const [position, setPosition] = useState(member.faemse_position ?? '');
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   const [saved, setSaved] = useState(false);
@@ -24,6 +25,9 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
   useEffect(() => {
     setOnList(!member.listserv_opt_out);
   }, [member.listserv_opt_out]);
+  useEffect(() => {
+    setPosition(member.faemse_position ?? '');
+  }, [member.faemse_position]);
 
   async function save() {
     setSaving(true);
@@ -37,7 +41,10 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
     });
     const { error: extraErr } = error
       ? { error }
-      : await supabase.rpc('admin_update_profile', { p_target: member.id, p_patch: { listserv_opt_out: !onList } });
+      : await supabase.rpc('admin_update_profile', {
+          p_target: member.id,
+          p_patch: { listserv_opt_out: !onList, faemse_position: position },
+        });
     setSaving(false);
     if (error || extraErr) setErr((error ?? extraErr)?.message ?? 'Could not save');
     else {
@@ -84,7 +91,7 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
 
   return (
     <div className="bg-paper/70 border-t border-line px-5 py-4">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto_auto] gap-3 items-end">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1.3fr_auto_auto] gap-3 items-end">
         <label className="block">
           <span className="block text-[11px] font-bold uppercase tracking-wide text-muted mb-1">Paid through</span>
           <input type="date" value={expires} onChange={(e) => setExpires(e.target.value)} className={`${small} w-full`} />
@@ -103,6 +110,18 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
           <select value={role} onChange={(e) => setRole(e.target.value as 'member' | 'admin')} className={`${small} w-full`}>
             <option value="member">Member</option>
             <option value="admin">Admin</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="block text-[11px] font-bold uppercase tracking-wide text-muted mb-1">FAEMSE position</span>
+          <select value={position} onChange={(e) => setPosition(e.target.value)} className={`${small} w-full`}>
+            <option value="">None</option>
+            {/* A position saved before the list changed still shows. */}
+            {[...FAEMSE_POSITIONS, ...(position && !FAEMSE_POSITIONS.includes(position) ? [position] : [])].map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
         </label>
         <label className="flex items-center gap-1.5 text-[13px] font-semibold pb-2 whitespace-nowrap">
