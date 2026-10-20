@@ -205,70 +205,12 @@ function shift(days: number): Date {
 }
 const longDate = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 const monthYear = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-const ymd = (d: Date) => ({
-  day: String(d.getDate()).padStart(2, '0'),
-  month: MONTHS[d.getMonth()],
-  year: String(d.getFullYear()),
-});
-
-// SAMPLE listings — replace with the association's real 2026-27 calendar.
-export const events = [
-  {
-    ...ymd(shift(-19)),
-    title: 'Summer Membership Meeting',
-    detail: 'Association business, state updates, open floor',
-    location: 'Virtual · Zoom',
-    tag: 'Meeting',
-    tagColor: 'blue',
-    url: '',
-  },
-  {
-    ...ymd(shift(24)),
-    title: 'Educator & Student Success Workshop',
-    detail: 'Full-day, hands-on · CE hours available',
-    location: 'Orlando, FL',
-    tag: 'Workshop',
-    tagColor: 'red',
-    url: '',
-  },
-  {
-    ...ymd(shift(37)),
-    title: 'NREMT Pass-Rate Strategies',
-    detail: 'What high-performing programs do differently',
-    location: 'Webinar',
-    tag: 'Free · Members',
-    tagColor: 'green',
-    url: '',
-  },
-  {
-    ...ymd(shift(66)),
-    title: 'ALS Student Competition',
-    detail: 'Team scenarios, judged by veteran educators',
-    location: 'Tampa, FL',
-    tag: 'Competition',
-    tagColor: 'gold',
-    url: '',
-  },
-];
+// No sample events (board, 2026-10-20): a made-up meeting can be taken for a
+// real one. The calendar falls back to the visitor's last saved copy of the
+// real one instead (lib/content.ts).
 
 export function eventDate(e: { day: string; month: string; year: string }): Date {
   return new Date(Number(e.year), MONTHS.indexOf(e.month.toUpperCase()), Number(e.day));
-}
-
-export function upcomingEvents(): typeof events {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return [...events]
-    .filter((e) => eventDate(e) >= today)
-    .sort((a, b) => eventDate(a).getTime() - eventDate(b).getTime());
-}
-
-export function pastEvents(): typeof events {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return [...events]
-    .filter((e) => eventDate(e) < today)
-    .sort((a, b) => eventDate(b).getTime() - eventDate(a).getTime());
 }
 
 // SAMPLE posts — replace with real association news.

@@ -1,9 +1,9 @@
-// Live site content (events + news) from Supabase, with the bundled samples
-// as a fallback so the public site never renders empty or breaks when the
-// tables are missing, unreachable, or not yet populated.
+// Live site content (events + news) from Supabase. News falls back to the
+// bundled samples (the public pages show real posts only); the calendar falls
+// back to the visitor's last saved copy of the real one, never to samples.
 
 import { useEffect, useState } from 'react';
-import { events as sampleEvents, eventDate, news as sampleNews, MONTHS } from '../content/data';
+import { eventDate, news as sampleNews, MONTHS } from '../content/data';
 import { supabase } from './supabase';
 
 export type EventItem = {
@@ -29,6 +29,10 @@ export type NewsItem = {
 };
 
 type Loaded<T> = { items: T[]; live: boolean; loaded: boolean };
+
+// The calendar. When the database can't be reached, `down` is set and the
+// items are the saved copy from `savedAt` (empty if this browser has none).
+export type SiteEvents = Loaded<EventItem> & { down: boolean; savedAt: string | null };
 
 // A hung network call must not blank the public site — race the fetch.
 function withTimeout<T>(p: PromiseLike<T>, ms = 5000): Promise<T> {
@@ -66,16 +70,46 @@ function toNewsItem(r: { id: string; published_on: string; tag: string; title: s
   };
 }
 
-export async function fetchSiteEvents(): Promise<{ items: EventItem[]; live: boolean }> {
+// Every good read of the calendar is kept in this browser, so an outage shows
+// the real calendar as last seen, with its date, rather than nothing.
+const EVENTS_KEY = 'faemse:events';
+type EventRow = Parameters<typeof toEventItem>[0];
+
+function saveEvents(rows: EventRow[]) {
+  try {
+    localStorage.setItem(EVENTS_KEY, JSON.stringify({ savedAt: new Date().toISOString(), rows }));
+  } catch {
+    /* storage blocked: fine */
+  }
+}
+
+function savedEvents(): { savedAt: string; rows: EventRow[] } | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(EVENTS_KEY) ?? 'null');
+    return saved && typeof saved.savedAt === 'string' && Array.isArray(saved.rows) ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSiteEvents(): Promise<Omit<SiteEvents, 'loaded'>> {
   try {
     const { data, error } = await withTimeout(
       supabase.from('events').select('*').order('starts_on', { ascending: true }),
     );
-    if (!error && data && data.length > 0) return { items: data.map(toEventItem), live: true };
+    if (!error && data) {
+      saveEvents(data);
+      return { items: data.map(toEventItem), live: true, down: false, savedAt: null };
+    }
   } catch {
     /* fall back below */
   }
-  return { items: sampleEvents, live: false };
+  const saved = savedEvents();
+  try {
+    return { items: saved ? saved.rows.map(toEventItem) : [], live: false, down: true, savedAt: saved?.savedAt ?? null };
+  } catch {
+    return { items: [], live: false, down: true, savedAt: null };
+  }
 }
 
 export async function fetchSiteNews(): Promise<{ items: NewsItem[]; live: boolean }> {
@@ -134,8 +168,8 @@ export function useHasNews(): boolean {
   return has;
 }
 
-export function useSiteEvents(): Loaded<EventItem> {
-  const [state, setState] = useState<Loaded<EventItem>>({ items: [], live: false, loaded: false });
+export function useSiteEvents(): SiteEvents {
+  const [state, setState] = useState<SiteEvents>({ items: [], live: false, loaded: false, down: false, savedAt: null });
   useEffect(() => {
     let on = true;
     fetchSiteEvents().then((r) => on && setState({ ...r, loaded: true }));

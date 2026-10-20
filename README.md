@@ -110,9 +110,12 @@ association's Supabase organization.
 - `events`, `news_posts` — the public calendar and news, editable from the
   portal's **Site content** panel (admins only). Schema:
   `supabase/migrations/20260830_editable_content.sql` — paste it once into the
-  dashboard SQL Editor to install. Until the tables exist (or while they are
-  empty), the public site falls back to the bundled sample listings with a
-  visible "sample" label.
+  dashboard SQL Editor to install. Neither ever shows samples to visitors
+  (board, 2026-10-20). An empty calendar says nothing is scheduled; when the
+  database can't be reached, the calendar shows the visitor's last saved copy
+  of the real one with its date (kept in the browser on every good read), or
+  a plain "can't load right now" message if there is none. News shows real
+  posts only.
 - `jobs`, `class_listings` — the public job and class boards. Every row
   carries `expires_on`; the public site hides expired listings automatically
   (RLS filter), while admins keep seeing them in the portal so recurring
@@ -598,7 +601,8 @@ DNS at it. See PLAN.md §10 phase 5.
 ## Monitoring
 
 The site fails soft: when a live read is refused it shows its bundled sample
-content instead of an error, so an outage that only affects signed-out
+content (or, for the calendar, a saved copy) instead of an error, so an
+outage that only affects signed-out
 visitors is invisible to anyone testing while signed in. Two things watch
 for that:
 

@@ -19,11 +19,16 @@ export default function BoardStrip() {
         <div className="flex items-center gap-2.5 py-4 lg:pr-7 font-disp font-semibold text-[14px] tracking-[0.22em] uppercase text-brand-bluesoft lg:border-r border-white/10 max-lg:border-b">
           <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" aria-hidden />
           <T id="home.board.label">On the board</T>
-          {eventsState.loaded && !eventsState.live && (
-            <span className="ml-2 text-[11px] font-bold tracking-widest text-brand-goldsoft"><T id="home.board.sample">SAMPLE</T></span>
+          {eventsState.down && eventsState.savedAt && (
+            <span className="ml-2 text-[11px] font-bold tracking-widest text-brand-goldsoft"><T id="home.board.saved">SAVED COPY</T></span>
           )}
         </div>
-        {eventsState.loaded && upcoming.length === 0 && (
+        {eventsState.down && !eventsState.savedAt && (
+          <p className="lg:col-span-3 flex items-center px-0 lg:px-6 py-4 text-[14px] text-[#93A6C9]">
+            <T id="home.board.down">The calendar can't load right now. Check back in a few minutes.</T>
+          </p>
+        )}
+        {eventsState.loaded && !(eventsState.down && !eventsState.savedAt) && upcoming.length === 0 && (
           <p className="lg:col-span-3 flex items-center px-0 lg:px-6 py-4 text-[14px] text-[#93A6C9]">
             <T id="home.board.empty">The 2026–27 calendar is being finalized — check back soon.</T>
           </p>
