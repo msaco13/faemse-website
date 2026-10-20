@@ -265,6 +265,7 @@ export default function Members() {
       <PageHead
         id="members"
         dynamicTitle
+        crest
         eyebrow="Member portal"
         title={`Welcome, ${firstName}`}
         sub="Your member home — resources, meetings, and association business in one place."

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { T, useText } from '../lib/text';
+import HeroCrest from './HeroCrest';
 
 // Dark page banner shared by every inner page. Also owns the document title
 // and meta description for its route.
@@ -9,18 +10,22 @@ import { T, useText } from '../lib/text';
 // document title and meta description follow the edited wording too.
 // `dynamicTitle` opts the title out of editing when it is computed per
 // visitor (the member portal's "Welcome, <name>").
+// `crest` adds the homepage's spinning ghost crest at the right end of the
+// banner (the member portal).
 export default function PageHead({
   id,
   eyebrow,
   title,
   sub,
   dynamicTitle = false,
+  crest = false,
 }: {
   id: string;
   eyebrow: string;
   title: string;
   sub?: string;
   dynamicTitle?: boolean;
+  crest?: boolean;
 }) {
   const editedTitle = useText(`${id}.title`, title);
   const liveTitle = dynamicTitle ? title : editedTitle;
@@ -55,6 +60,13 @@ export default function PageHead({
         className="absolute -right-40 -top-44 w-[560px] h-[560px] rounded-full opacity-[.13] blur-[85px] pointer-events-none bg-[radial-gradient(circle,rgba(245,206,90,.95),transparent_62%)]"
         aria-hidden
       />
+      {crest && (
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div className="wrap relative h-full">
+            <HeroCrest banner />
+          </div>
+        </div>
+      )}
       <div className="wrap relative py-16 md:py-20">
         <p className="eyebrow !text-brand-goldsoft">
           <T id={`${id}.eyebrow`}>{eyebrow}</T>

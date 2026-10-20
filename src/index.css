@@ -129,6 +129,10 @@
 .hero-crest-face img{width:100%;height:100%;display:block}
 .hero-crest-face.back{transform:rotateY(180deg)}
 @keyframes hero-crest-spin{to{transform:rotateY(360deg)}}
+/* In a page banner (PageHead `crest`, the member portal): flush with the right
+   page margin (the wrap's 1.5rem padding), centered top to bottom, 300px to
+   fill the space beside the banner's text. */
+.hero-crest--banner{left:auto;right:1.5rem;top:50%;translate:0 -50%;width:300px;height:300px}
 @media (max-width:767px){.hero-crest{display:none}}
 @media (prefers-reduced-motion:reduce){.hero-crest-coin{animation:none}}
 

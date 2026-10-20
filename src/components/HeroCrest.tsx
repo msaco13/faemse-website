@@ -21,7 +21,12 @@ import { SEAL_LARGE } from './Seal';
 
 const ID = 'hero.crest';
 
-export default function HeroCrest({ faded }: { faded: boolean }) {
+// `banner`: the same crest at the right end of a page banner (PageHead's
+// `crest` option, used by the member portal). Same image slot, spin, and
+// ghosting; sized and placed by CSS (".hero-crest--banner") to fill the empty
+// space beside the banner's text. The edit button stays on the homepage,
+// where the crest is edited for both places.
+export default function HeroCrest({ faded = false, banner = false }: { faded?: boolean; banner?: boolean }) {
   const fallback = useMemo(() => ({ src: SEAL_LARGE, size: 560 }), []);
   const { src, size, custom } = useMedia(ID, fallback);
   const { editing } = useSiteText();
@@ -30,8 +35,8 @@ export default function HeroCrest({ faded }: { faded: boolean }) {
     <>
       <div
         aria-hidden
-        className={`hero-crest${faded ? ' is-faded' : ''}`}
-        style={{ width: size, height: size }}
+        className={`hero-crest${banner ? ' hero-crest--banner' : ''}${faded ? ' is-faded' : ''}`}
+        style={banner ? undefined : { width: size, height: size }}
       >
         <div className="hero-crest-coin">
           <div className="hero-crest-face">
@@ -42,7 +47,7 @@ export default function HeroCrest({ faded }: { faded: boolean }) {
           </div>
         </div>
       </div>
-      {editing && (
+      {editing && !banner && (
         <button
           type="button"
           onClick={() => openEditor({ id: ID, fallback, label: 'Hero crest (spinning seal)', square: true })}
