@@ -4,7 +4,7 @@ import { useSettings } from '../../lib/settings';
 import { supabase } from '../../lib/supabase';
 import ContactsAdmin from '../ContactsAdmin';
 import ContentManager from '../ContentManager';
-import { DuesLedger, ListservExport, MemberImport, OnlineDuesSwitch, RemindersSwitch, VotingRollExport } from '../DuesAdmin';
+import { DuesLedger, ListservExport, MemberImport, OnlineDuesSwitch, PortalSwitch, RemindersSwitch, VotingRollExport } from '../DuesAdmin';
 import OrganizationsAdmin from '../OrganizationsAdmin';
 import PostingsManager from '../PostingsManager';
 import InboxPane from './InboxPane';
@@ -128,7 +128,8 @@ export default function AdminWorkspace() {
             );
           })}
           <div className="hidden md:block mt-auto pt-3 border-t border-white/10 text-[11.5px] px-2.5">
-            Online dues <b className="text-brand-goldsoft">{settings.online_dues ? 'On' : 'Off'}</b> · Reminders{' '}
+            Portal <b className="text-brand-goldsoft">{settings.portal_open ? 'Open' : 'Closed'}</b> · Online dues{' '}
+            <b className="text-brand-goldsoft">{settings.online_dues ? 'On' : 'Off'}</b> · Reminders{' '}
             <b className="text-brand-goldsoft">{settings.reminders_paused ? 'Held' : 'Running'}</b>
           </div>
         </nav>
@@ -172,6 +173,7 @@ export default function AdminWorkspace() {
                   Membership runs twelve months from the later of today and the current paid-through date, whichever way a payment is
                   recorded.
                 </p>
+                <PortalSwitch />
                 <DuesLedger refreshKey={refreshKey} />
                 <ListservExport />
                 <VotingRollExport />

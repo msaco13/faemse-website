@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Seal from '../components/Seal';
+import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { T, useText } from '../lib/text';
 
 export default function Login() {
+  // Until the board opens the member portal (2026-10-20) this page is for
+  // board admins; the header no longer links to it.
+  const portalOpen = useSettings().portal_open === true;
   const navigate = useNavigate();
   const [status, setStatus] = useState<'idle' | 'working' | 'error' | 'reset-sent'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -93,6 +97,15 @@ export default function Login() {
           </p>
           <h1 className="font-disp font-bold uppercase text-[44px] leading-none mt-2"><T id="login.h1">Sign in</T></h1>
         </div>
+
+        {!portalOpen && (
+          <p className="mb-6 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-[14px] leading-relaxed text-[#C9D6EE]" role="note">
+            <T id="login.closed">
+              The member portal opens soon, and every member gets an email with sign-in instructions when it does. Until
+              then this page is for board administrators.
+            </T>
+          </p>
+        )}
 
         {justReset && (
           <p

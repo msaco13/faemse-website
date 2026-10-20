@@ -46,7 +46,10 @@ export default function Members() {
   const videos = useVideos(!!session);
   const pwPlaceholder = useText('members.password.placeholder', 'New password (8+ characters)');
   const pwAria = useText('members.password.aria', 'New password, at least 8 characters');
-  const { online_dues: onlineDues } = useSettings();
+  const { online_dues: onlineDues, portal_open: portalOpen } = useSettings();
+  // Set once the profile has been read, so a closed portal never flashes
+  // the wrong view at an admin before their role is known.
+  const [loaded, setLoaded] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paying, setPaying] = useState(false);
   const [payErr, setPayErr] = useState('');
@@ -168,6 +171,7 @@ export default function Members() {
     setDirectory((dir ?? []) as DirectoryEntry[]);
     if (pays) setPayments(pays as Payment[]);
     if (orgs) setMyOrgs(orgs as MyOrganization[]);
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -405,6 +409,53 @@ export default function Members() {
     </Link>
   );
   const iconStroke = { stroke: '#F5CE5A', strokeWidth: 1.7 };
+
+  // The portal stays closed until the board opens it (board, 2026-10-20;
+  // Board tools → Dues & tools → Member portal). Admins get the full portal;
+  // anyone else who signs in sees that it opens soon, their own paid-through
+  // date and how to renew. The database refuses the members-only content
+  // too (is_current_member() is admins-only while closed).
+  if (!portalOpen && !isAdmin) {
+    if (!loaded) return null;
+    const until = [profile?.expires_at, ...myOrgs.map((o) => o.expires_at)].filter((d): d is string => Boolean(d)).sort().pop();
+    return (
+      <>
+        <PageHead id="members.closed" eyebrow="Member portal" title="Opening soon" />
+        <section className="py-16 bg-paper min-h-[40vh]">
+          <div className="wrap max-w-[760px]">
+            {settingPassword && passwordCard}
+            <div className="card p-8 md:p-10 border-t-[3px] border-t-brand-gold/70">
+              <h2 className="font-disp font-bold uppercase text-2xl mb-3">
+                <T id="members.closed.h2">The member portal opens soon</T>
+              </h2>
+              <p className="text-muted text-[15.5px] mb-4">
+                <T id="members.closed.p1">
+                  The board is finishing the member portal. When it opens, every member gets an email with sign-in
+                  instructions. Your membership is not affected in the meantime.
+                </T>
+              </p>
+              {until && (
+                <p className="text-[15.5px] mb-4">
+                  <T id="members.closed.until">Your membership is paid through</T> <b>{formatDate(until)}</b>.
+                </p>
+              )}
+              <p className="text-muted text-[15px] mb-6">
+                <T id="members.closed.renew">To renew or pay dues, use the form on the Membership page.</T>
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/membership" className="btn-red">
+                  <T id="members.closed.cta">Membership page</T>
+                </Link>
+                <button type="button" onClick={onSignOut} className="btn-outline">
+                  <T id="members.closed.signout">Sign out</T>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </>
+    );
+  }
 
   return (
     <>

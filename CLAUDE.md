@@ -32,6 +32,12 @@
 - The same rules also live in the database (`is_current_member()`) and the
   renewal reminders (`supabase/functions/renewal-reminders`). A change to a
   term changes all three.
+- `is_current_member()` also requires the member portal to be open for
+  anyone but admins (`site_settings.settings.portal_open`, the Member portal
+  switch in Dues & tools; closed until the launch email, board 2026-10-20).
+  That is a launch switch, not a membership term: the date tests don't cover
+  it, and the site, the reminders and the payment emails all read it through
+  `get_settings()`.
 
 ## Database access rules
 

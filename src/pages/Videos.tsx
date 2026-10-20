@@ -3,6 +3,7 @@ import PageHead from '../components/PageHead';
 import { mailto } from '../content/data';
 import { embedUrl, useVideoIndex, useVideos } from '../lib/postings';
 import { slug, T } from '../lib/text';
+import { useSettings } from '../lib/settings';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // The differentiator: nobody teaches EMS instructors how to teach. Short
@@ -32,9 +33,13 @@ const tracks = [
 export default function Videos() {
   const status = useMemberStatus();
   const index = useVideoIndex();
-  const full = useVideos(status.checked && status.current);
+  // Until the board opens the member portal (2026-10-20) only admins get the
+  // member view, and nobody is offered a sign-in.
+  const portalOpen = useSettings().portal_open === true;
+  const member = status.current && (portalOpen || status.admin);
+  const full = useVideos(status.checked && member);
 
-  const memberView = status.current && full.loaded && full.live;
+  const memberView = member && full.loaded && full.live;
   const items = memberView ? full.items : index.items;
   const loaded = memberView ? full.loaded : index.loaded;
   const inDevelopment = loaded && items.length === 0;
@@ -107,7 +112,7 @@ export default function Videos() {
             </>
           ) : (
             <>
-              {status.checked && !status.current && (
+              {status.checked && !member && (
                 <div className="card p-7 mb-8 border-t-[3px] border-t-brand-gold/70 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h2 className="font-disp font-bold uppercase text-xl mb-1"><T id="videos.gate.h2">Watching is a member benefit</T></h2>
@@ -122,9 +127,11 @@ export default function Videos() {
                     <Link to="/membership" className="btn-red !py-2.5 !px-5">
                       <T id="videos.gate.join">Join — $50/yr</T>
                     </Link>
-                    <Link to="/login" className="btn-outline !py-2.5 !px-5">
-                      <T id="videos.gate.signin">Member sign in</T>
-                    </Link>
+                    {portalOpen && (
+                      <Link to="/login" className="btn-outline !py-2.5 !px-5">
+                        <T id="videos.gate.signin">Member sign in</T>
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}

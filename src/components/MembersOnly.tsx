@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import PageHead from './PageHead';
+import { useSettings } from '../lib/settings';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // Members-only pages (News, Q&A, Jobs, Resources since 2026-10-13, board
@@ -26,7 +27,11 @@ export default function MembersOnly({
   children: ReactNode;
 }) {
   const status = useMemberStatus();
-  if (status.checked && status.current) return <>{children}</>;
+  // Closed until the board opens the portal (board, 2026-10-20): admins only,
+  // and the notice says it opens soon rather than inviting a sign-in.
+  const portalOpen = useSettings().portal_open === true;
+  if (status.checked && status.current && (portalOpen || status.admin)) return <>{children}</>;
+  const closed = status.checked && !portalOpen;
   return (
     <>
       <PageHead {...head} />
@@ -40,15 +45,21 @@ export default function MembersOnly({
             <div className="card p-8 md:p-10 border-t-[3px] border-t-brand-gold/70">
               <p className="eyebrow mb-2">Members only</p>
               <h2 className="font-disp font-bold uppercase text-[clamp(26px,3.4vw,36px)] leading-none mb-3">
-                {status.signedIn ? 'For current members' : 'Sign in to continue'}
+                {closed ? 'Opening soon' : status.signedIn ? 'For current members' : 'Sign in to continue'}
               </h2>
               <p className="text-muted text-[16px] max-w-[60ch] mb-7">
-                {status.signedIn
-                  ? `${what} is for current FAEMSE members. Renew your membership to open it again.`
-                  : `${what} is for FAEMSE members. Sign in with your member login, or join to get access.`}
+                {closed
+                  ? `${what} is part of the member portal, which opens soon. Every member gets an email with sign-in instructions when it does.`
+                  : status.signedIn
+                    ? `${what} is for current FAEMSE members. Renew your membership to open it again.`
+                    : `${what} is for FAEMSE members. Sign in with your member login, or join to get access.`}
               </p>
               <div className="flex flex-wrap gap-3">
-                {status.signedIn ? (
+                {closed ? (
+                  <Link to="/membership" className="btn-red">
+                    Membership
+                  </Link>
+                ) : status.signedIn ? (
                   <Link to="/membership" className="btn-red">
                     Renew your membership
                   </Link>

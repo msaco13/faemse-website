@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Seal from './Seal';
 import { useHasNews } from '../lib/content';
+import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { T, useText } from '../lib/text';
 import { useMemberStatus } from '../lib/useMemberStatus';
@@ -56,7 +57,13 @@ export default function Header() {
   const portalAria = useText('nav.portal.aria', 'My portal');
   const status = useMemberStatus();
   const hasNews = useHasNews();
-  const member = status.current;
+  // Until the board opens the member portal (Board tools → Dues & tools,
+  // board 2026-10-20), only admins are shown a way in: no "Member sign in",
+  // no "My portal". Admins sign in at /login directly. Signed-in members see
+  // the visitor menu and a Sign out button.
+  const portalOpen = useSettings().portal_open === true;
+  const canPortal = status.admin || portalOpen;
+  const member = status.current && canPortal;
   const items = navFor(member, hasNews);
 
   useEffect(() => {
@@ -136,7 +143,15 @@ export default function Header() {
           <Link to="/contact" className="hidden xl:block font-semibold text-[15px] text-[#D6E1F5]/90 hover:text-white">
             <T id="nav.contact">Contact</T>
           </Link>
-          {status.signedIn ? (
+          {status.signedIn && !canPortal ? (
+            <button
+              type="button"
+              onClick={signOut}
+              className="hidden xl:block font-semibold text-[14px] text-[#D6E1F5] border-[1.5px] border-white/25 rounded-full px-4 py-2.5 hover:text-white hover:border-white/50"
+            >
+              <T id="nav.signout">Sign out</T>
+            </button>
+          ) : status.signedIn ? (
             <>
               <span className="hidden xl:block">{portalPill(false)}</span>
               <span className="xl:hidden">{portalPill(true)}</span>
@@ -156,6 +171,7 @@ export default function Header() {
             </>
           ) : (
             <>
+              {canPortal && (
               <Link
                 to="/login"
                 className="hidden xl:flex items-center gap-1.5 font-semibold text-[15px] text-brand-goldsoft hover:text-white"
@@ -168,6 +184,7 @@ export default function Header() {
                 </svg>
                 <T id="nav.members">Member sign in</T>
               </Link>
+              )}
               <Link to="/membership" className="btn-red !px-4 sm:!px-5 !py-3">
                 <T id="nav.join">Join</T>
               </Link>
@@ -221,24 +238,26 @@ export default function Header() {
             ))}
             {status.signedIn ? (
               <>
-                <li>
-                  <NavLink to="/members" onClick={() => setOpen(false)} className="block py-3 font-bold text-brand-goldsoft border-b border-white/5">
-                    <T id="nav.portal">My portal</T>
-                  </NavLink>
-                </li>
+                {canPortal && (
+                  <li>
+                    <NavLink to="/members" onClick={() => setOpen(false)} className="block py-3 font-bold text-brand-goldsoft border-b border-white/5">
+                      <T id="nav.portal">My portal</T>
+                    </NavLink>
+                  </li>
+                )}
                 <li>
                   <button type="button" onClick={signOut} className="block w-full text-left py-3 font-semibold text-[#D6E1F5]">
                     <T id="nav.signout">Sign out</T>
                   </button>
                 </li>
               </>
-            ) : (
+            ) : canPortal ? (
               <li>
                 <NavLink to="/login" onClick={() => setOpen(false)} className="block py-3 font-bold text-brand-goldsoft">
                   <T id="nav.members">Member sign in</T>
                 </NavLink>
               </li>
-            )}
+            ) : null}
           </ul>
         </div>
       )}

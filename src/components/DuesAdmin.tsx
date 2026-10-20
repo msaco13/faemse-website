@@ -82,6 +82,63 @@ export function DuesLedger({ refreshKey }: { refreshKey: number }) {
   );
 }
 
+// The member portal's front door (board, 2026-10-20): closed until the
+// launch email. While closed, only admins see the portal or any way into it;
+// the database refuses members-only content to everyone else, and reminder
+// and payment emails send people to the Membership page instead.
+export function PortalSwitch() {
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  useEffect(() => {
+    fetchSettings().then((s) => setOn(s.portal_open === true));
+  }, []);
+  async function toggle() {
+    if (on === null) return;
+    const ask = on
+      ? 'Close the member portal? Members lose access right away; admins keep it.'
+      : 'Open the member portal to every current member? They can sign in right away, and reminder and payment emails start inviting them in.';
+    if (!window.confirm(ask)) return;
+    setBusy(true);
+    setErr('');
+    const error = await saveSettings({ portal_open: !on });
+    setBusy(false);
+    if (error) setErr(error);
+    else setOn(!on);
+  }
+  return (
+    <div className="border-2 border-brand-gold/50 rounded-2xl p-5 mb-8 flex flex-wrap items-start gap-4 bg-[#FFFCF2]">
+      <div className="flex-1 min-w-[260px]">
+        <b className="block text-[14.5px]">Member portal</b>
+        <p className="text-muted text-[13.5px] mt-1 max-w-[70ch]">
+          <b>Closed</b> until the launch email: only admins can see the portal, the program hubs, the directory and the
+          other member pages. Everyone else who signs in sees &ldquo;opens soon&rdquo; and their paid-through date, the
+          header shows no sign-in link, and renewal reminders and payment emails point to the Membership page instead.
+          Joining and renewing by card keep working.
+        </p>
+        <p className="text-muted text-[13.5px] mt-2 max-w-[70ch]">
+          <b>Open</b> lets every current member in. Flip it when the launch email goes out.
+        </p>
+        {err && (
+          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+            {err}
+          </p>
+        )}
+      </div>
+      <button
+        onClick={toggle}
+        disabled={busy || on === null}
+        aria-pressed={on ?? false}
+        className={`rounded-full px-5 py-2 text-[13px] font-bold border transition-colors disabled:opacity-60 ${
+          on ? 'bg-[#0E7A4A] border-[#0E7A4A] text-white' : 'bg-white border-line text-muted hover:border-ink'
+        }`}
+      >
+        {on === null ? '…' : on ? 'Open' : 'Closed'}
+      </button>
+    </div>
+  );
+}
+
 export function OnlineDuesSwitch() {
   const [on, setOn] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);

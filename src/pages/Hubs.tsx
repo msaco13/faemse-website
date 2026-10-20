@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import Markdown from '../components/Markdown';
 import PageHead from '../components/PageHead';
 import { forViewer, HUBS_PATH, leaves, parseHub, useHubDoc, useHubList, type Hub, type HubDoc, type HubListing } from '../lib/hubs';
+import { useSettings } from '../lib/settings';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // The program hubs (Program Directors and its companions), for current
@@ -263,8 +264,12 @@ function HubView({ hubSlug, sectionSlug, subSlug, admin }: { hubSlug: string; se
 export default function Hubs() {
   const { hub, section, sub } = useParams();
   const status = useMemberStatus();
+  const portalOpen = useSettings().portal_open === true;
   let body: ReactNode;
   if (!status.checked) body = <Notice>Checking your access…</Notice>;
+  // Closed until the board opens the member portal (board, 2026-10-20).
+  else if (!portalOpen && !status.admin)
+    body = <Notice>The program hubs are part of the member portal, which opens soon. Every member gets an email with sign-in instructions when it does.</Notice>;
   else if (!status.signedIn)
     body = (
       <Notice>

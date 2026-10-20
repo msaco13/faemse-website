@@ -134,8 +134,14 @@ async function loginFor(supabase: Admin, email: string, fullName: string, tier?:
 
 // How the email tells someone to get into the portal: a set-password link
 // for a login made just now (the same one Forgot password sends), otherwise
-// the sign-in page.
+// the sign-in page. While the portal is closed (board, 2026-10-20: until the
+// launch email) it invites nobody in; the login still gets made, ready for
+// launch.
 async function passwordLines(supabase: Admin, email: string, created: boolean): Promise<string[]> {
+  const { data: settings } = await supabase.rpc('get_settings');
+  if ((settings as { portal_open?: boolean } | null)?.portal_open !== true) {
+    return ['The member portal opens soon. Every member gets an email with sign-in instructions when it does.'];
+  }
   if (!created) {
     return [`Sign in at ${SITE}/login with this email address. If you have not set a password yet, use "Forgot password" there.`];
   }
@@ -196,6 +202,14 @@ Deno.serve(async (req) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  // Until the board opens the member portal (2026-10-20) the emails below
+  // don't describe or invite anyone into it; logins are still made, ready
+  // for launch. passwordLines() checks the same switch.
+  const { data: settingsRow } = await supabase.rpc('get_settings');
+  const portalOpen = (settingsRow as { portal_open?: boolean } | null)?.portal_open === true;
+  const portalLines = portalOpen
+    ? ['The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.', '']
+    : [];
   const note = `Stripe ${s.payment_intent ?? s.id}${s.customer_details?.email ? ` · ${s.customer_details.email}` : ''}`;
   const applicationId = s.metadata?.application_id;
 
@@ -305,13 +319,12 @@ Deno.serve(async (req) => {
         `Thank you. Your payment of ${dollars(s.amount_total)} went through and ${orgName}'s ${tierLabel} membership is paid through ${through}.`,
         '',
         repNames.length
-          ? `Seated under it: you as coordinator, plus ${repNames.join(', ')}. Each of them is getting an email with their own sign-in details.`
+          ? `Seated under it: you as coordinator, plus ${repNames.join(', ')}. Each of them is getting an email${portalOpen ? ' with their own sign-in details' : ' too'}.`
           : `Seated under it: you as coordinator. The membership covers up to five people; email info@faemse.org whenever you want representatives added.`,
         '',
         ...(await passwordLines(supabase, email, created)),
         '',
-        'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
-        '',
+        ...portalLines,
         'Questions? Just reply to this email.',
         '',
         'The FAEMSE board',
@@ -324,12 +337,11 @@ Deno.serve(async (req) => {
         [
           `Hi ${r.name.split(' ')[0] || 'there'},`,
           '',
-          `${app.full_name} listed you as a representative under ${orgName}'s FAEMSE ${tierLabel} membership, which is paid through ${through}. That makes you a member of the Florida Association of EMS Educators, with your own portal login.`,
+          `${app.full_name} listed you as a representative under ${orgName}'s FAEMSE ${tierLabel} membership, which is paid through ${through}. That makes you a member of the Florida Association of EMS Educators${portalOpen ? ', with your own portal login' : ''}.`,
           '',
           ...(await passwordLines(supabase, r.email, r.created)),
           '',
-          'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
-          '',
+          ...portalLines,
           'Questions? Just reply to this email.',
           '',
           'The FAEMSE board',
@@ -384,8 +396,7 @@ Deno.serve(async (req) => {
       '',
       ...(await passwordLines(supabase, email, created)),
       '',
-      'The member portal has the Q&A archive, teaching videos, the member library, the directory and the job and class boards.',
-      '',
+      ...portalLines,
       'Questions? Just reply to this email.',
       '',
       'The FAEMSE board',
@@ -405,7 +416,11 @@ Deno.serve(async (req) => {
       app.organization ? `Organization: ${app.organization}` : '',
       `Tier: ${tierLabel}`,
       `Paid through: ${through}`,
-      created ? 'A portal login was created and they were emailed a set-password link.' : 'They already had a portal login; it was extended.',
+      created
+        ? portalOpen
+          ? 'A portal login was created and they were emailed a set-password link.'
+          : 'A portal login was created; no sign-in link was sent because the portal is closed.'
+        : 'They already had a portal login; it was extended.',
       ...orgLine,
       '',
       `The application is marked approved and the payment is in the Dues ledger: ${SITE}/members`,

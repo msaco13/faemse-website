@@ -1,7 +1,9 @@
 // Site-wide switches the board flips in the portal (site_settings.settings).
 // Public and non-sensitive by design: `online_dues` shows or hides the "Pay
-// dues online" button (and the server refuses checkout when it is off), and
-// `reminders_paused` holds the daily renewal-reminder emails. Cached per
+// dues online" button (and the server refuses checkout when it is off),
+// `reminders_paused` holds the daily renewal-reminder emails, and
+// `portal_open` opens the member portal to members (board, 2026-10-20:
+// closed until launch; missing counts as closed, so admins only). Cached per
 // browser so the button doesn't pop in after first paint.
 
 import { useEffect, useState } from 'react';
@@ -10,6 +12,7 @@ import { supabase } from './supabase';
 export type SiteSettings = {
   online_dues?: boolean;
   reminders_paused?: boolean;
+  portal_open?: boolean;
 };
 
 const CACHE_KEY = 'faemse:settings';

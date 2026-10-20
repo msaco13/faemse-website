@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Seal from '../components/Seal';
 import { T, useText } from '../lib/text';
+import { useSettings } from '../lib/settings';
 
 // Where Stripe sends people after a successful dues payment (board request,
 // 2026-09-30: a clear "it worked" page rather than a banner on the page they
@@ -10,6 +11,8 @@ import { T, useText } from '../lib/text';
 export default function PaymentComplete() {
   const docTitle = useText('paid.doctitle', 'Payment received');
   const fromForm = new URLSearchParams(window.location.search).get('from') === 'form';
+  // No portal invitation until the board opens it (2026-10-20).
+  const portalOpen = useSettings().portal_open === true;
 
   useEffect(() => {
     document.title = `${docTitle} · FAEMSE`;
@@ -34,7 +37,15 @@ export default function PaymentComplete() {
         <p className="text-[#DCE6F7] text-[18px] leading-relaxed mb-4">
           <T id="paid.lead">Your payment went through and your FAEMSE membership is active for the next twelve months.</T>
         </p>
-        {fromForm ? (
+        {fromForm && !portalOpen ? (
+          <p className="text-[#BCCBE7] text-[15.5px] leading-relaxed mb-8">
+            <T id="paid.next.closed">
+              Within a minute you will get a confirmation email from notifications@faemse.org, and Stripe sends your receipt
+              separately. The member portal opens soon; every member gets an email with sign-in instructions when it does.
+              Check your spam folder if an email has not arrived.
+            </T>
+          </p>
+        ) : fromForm ? (
           <p className="text-[#BCCBE7] text-[15.5px] leading-relaxed mb-8">
             <T id="paid.next.form">
               Within a minute you will get an email from notifications@faemse.org. If you are new, it has a link to set your
@@ -50,9 +61,11 @@ export default function PaymentComplete() {
           </p>
         )}
         <div className="flex flex-wrap justify-center gap-3">
-          <Link to={fromForm ? '/login' : '/members'} className="btn-gold">
-            {fromForm ? <T id="paid.cta.login">Sign in to the portal</T> : <T id="paid.cta.portal">Back to the portal</T>}
-          </Link>
+          {!(fromForm && !portalOpen) && (
+            <Link to={fromForm ? '/login' : '/members'} className="btn-gold">
+              {fromForm ? <T id="paid.cta.login">Sign in to the portal</T> : <T id="paid.cta.portal">Back to the portal</T>}
+            </Link>
+          )}
           <Link to="/" className="btn-glass">
             <T id="paid.cta.home">Back to home</T>
           </Link>

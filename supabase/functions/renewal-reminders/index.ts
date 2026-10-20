@@ -64,27 +64,42 @@ function subjectFor(days: number, what: string): string {
   return `FAEMSE renewal reminder — ${days} days left`;
 }
 
-function howToRenew(onlineDues: boolean): string[] {
-  return onlineDues
-    ? [
-        'Renewing takes two minutes: sign in to the member portal and choose',
-        '"Pay dues online". Your membership extends a full year from your current',
-        'expiration date, so renewing early never costs you time:',
-        '',
-        PORTAL,
-        '',
-        'First time signing in? Your login is this email address. Use "Forgot',
-        'password" on the sign-in page to set your password.',
-        '',
-        'Prefer to pay by check? Submit the renewal form and the board will follow up:',
-        RENEW_FORM,
-      ]
-    : [
-        'Renewing takes a couple of minutes and keeps your access to the Q&A archive,',
-        'teaching videos, member library, and directory:',
-        '',
-        RENEW_FORM,
-      ];
+// While the member portal is closed (board, 2026-10-20: until the launch
+// email) the reminders never invite anyone to sign in: they send people to
+// the Membership page, whose renewal form takes card payment when online
+// dues are on, and they don't promise member pages nobody can open yet.
+function howToRenew(onlineDues: boolean, portalOpen: boolean): string[] {
+  if (onlineDues && portalOpen) {
+    return [
+      'Renewing takes two minutes: sign in to the member portal and choose',
+      '"Pay dues online". Your membership extends a full year from your current',
+      'expiration date, so renewing early never costs you time:',
+      '',
+      PORTAL,
+      '',
+      'First time signing in? Your login is this email address. Use "Forgot',
+      'password" on the sign-in page to set your password.',
+      '',
+      'Prefer to pay by check? Submit the renewal form and the board will follow up:',
+      RENEW_FORM,
+    ];
+  }
+  if (onlineDues) {
+    return [
+      'Renewing takes two minutes on the membership page: choose "I\'m renewing"',
+      'and pay by card. Your membership extends a full year from your current',
+      'expiration date, so renewing early never costs you time:',
+      '',
+      RENEW_FORM,
+    ];
+  }
+  return [
+    portalOpen
+      ? 'Renewing takes a couple of minutes and keeps your access to the Q&A archive,\nteaching videos, member library, and directory:'
+      : 'Renewing takes a couple of minutes:',
+    '',
+    RENEW_FORM,
+  ];
 }
 
 Deno.serve(async (req) => {
@@ -99,13 +114,14 @@ Deno.serve(async (req) => {
   const results: Record<string, unknown>[] = [];
 
   const { data: settings } = await supabase.rpc('get_settings');
-  const s = (settings ?? {}) as { online_dues?: boolean; reminders_paused?: boolean };
+  const s = (settings ?? {}) as { online_dues?: boolean; reminders_paused?: boolean; portal_open?: boolean };
   if (s.reminders_paused === true) {
     return new Response(JSON.stringify({ ran_at: today.toISOString(), paused: true, results: [] }), {
       headers: { 'Content-Type': 'application/json' },
     });
   }
   const onlineDues = s.online_dues === true;
+  const portalOpen = s.portal_open === true;
 
   // One send, with the claim-then-send dance that makes re-runs safe.
   async function send(
@@ -154,7 +170,7 @@ Deno.serve(async (req) => {
         '',
         `Your FAEMSE membership expires on ${when} — ${left} from now.`,
         '',
-        ...howToRenew(onlineDues),
+        ...howToRenew(onlineDues, portalOpen),
         '',
         'Questions? Just reply to this email.',
         '',
@@ -182,8 +198,12 @@ Deno.serve(async (req) => {
         '',
         `${o.name}'s ${o.kind} membership in FAEMSE expires on ${when} — ${left} from now.`,
         '',
-        'Renewing keeps every representative’s access to the Q&A archive, teaching videos,',
-        'member library, and directory. Renew on the membership form: choose "I\'m renewing",',
+        ...(portalOpen
+          ? [
+              'Renewing keeps every representative’s access to the Q&A archive, teaching videos,',
+              'member library, and directory. Renew on the membership form: choose "I\'m renewing",',
+            ]
+          : ['Renewing keeps your organization’s membership current. Renew on the membership', 'form: choose "I\'m renewing",']),
         'pick your membership type, enter the organization name, and list the people you',
         'want seated this year, up to four plus you. They do not have to be the same people',
         'as last year.',

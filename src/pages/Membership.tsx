@@ -27,7 +27,7 @@ export default function Membership() {
   // the membership within seconds), ?paid=0 means they backed out; the
   // application is still on file for the board either way.
   const [paidNotice, setPaidNotice] = useState<'success' | 'cancelled' | null>(null);
-  const { online_dues: onlineDues } = useSettings();
+  const { online_dues: onlineDues, portal_open: portalOpen } = useSettings();
   const isOrg = tier === 'institutional' || tier === 'corporate';
 
   useEffect(() => {
@@ -220,7 +220,8 @@ export default function Membership() {
                 is collected on this form.
               </T>
             )}
-            {onlineDues && (
+            {/* No portal invitation until the board opens it (2026-10-20). */}
+            {onlineDues && portalOpen && (
               <>
                 {' '}
                 <T id="membership.apply.online">Already have a portal login? You can also renew in the</T>{' '}
