@@ -692,8 +692,8 @@ export default function Members() {
                   <div className="card p-8">
                     <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="members.dues.title">Membership dues</T></h2>
                     <p className="text-[15px] mb-2">
-                      <T id="members.dues.tier">Your tier:</T> <b className="capitalize">{profile?.tier ?? 'active'}</b> · {dollars(dues)}
-                      <T id="members.dues.peryear"> a year</T>
+                      <T id="members.dues.tier">Your tier:</T> <b className="capitalize">{profile?.tier ?? 'active'}</b> · {dollars(dues)}{' '}
+                      <T id="members.dues.peryear">a year</T>
                       {profile?.expires_at && (
                         <>
                           {' · '}

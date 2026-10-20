@@ -99,10 +99,10 @@ let hasNewsPromise: Promise<boolean> | null = null;
 function fetchHasNews(): Promise<boolean> {
   hasNewsPromise ??= (async () => {
     try {
-      const { count, error } = await withTimeout(
-        supabase.from('news_posts').select('id', { count: 'exact', head: true }),
+      const { data, error } = await withTimeout(
+        supabase.from('news_posts').select('id').limit(1),
       );
-      const has = !error && (count ?? 0) > 0;
+      const has = !error && (data?.length ?? 0) > 0;
       try {
         localStorage.setItem(HAS_NEWS_KEY, has ? '1' : '0');
       } catch {

@@ -14,22 +14,31 @@ export type DocState =
   | { status: 'missing' }
   | { status: 'error'; message: string };
 
+// What a reader sees when the database can't be reached, in place of the raw
+// browser error ("Failed to fetch"). The fetch gives up after 5 seconds so the
+// page never sits on "Loading" during an outage.
+const UNREACHABLE = 'This document could not be loaded right now. Please try again in a few minutes.';
+
+function withTimeout<T>(p: PromiseLike<T>, ms = 5000): Promise<T> {
+  return Promise.race([
+    Promise.resolve(p),
+    new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)),
+  ]);
+}
+
 export function useDocument(slug: string, enabled: boolean): DocState {
   const [state, setState] = useState<DocState>({ status: 'loading' });
   useEffect(() => {
     if (!enabled) return;
     let alive = true;
-    supabase
-      .from('documents')
-      .select('slug,title,body,updated_at')
-      .eq('slug', slug)
-      .maybeSingle()
+    withTimeout(supabase.from('documents').select('slug,title,body,updated_at').eq('slug', slug).maybeSingle())
       .then(({ data, error }) => {
         if (!alive) return;
-        if (error) setState({ status: 'error', message: error.message });
+        if (error) setState({ status: 'error', message: UNREACHABLE });
         else if (!data) setState({ status: 'missing' });
         else setState({ status: 'ready', doc: data as Doc });
-      });
+      })
+      .catch(() => alive && setState({ status: 'error', message: UNREACHABLE }));
     return () => {
       alive = false;
     };
