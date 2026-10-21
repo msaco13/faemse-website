@@ -634,7 +634,7 @@ export default function Members() {
                   <p className="text-muted text-[14px] mb-5">
                     <T id="members.profile.text">What fellow members see about you in the directory.</T>
                   </p>
-                  <form onSubmit={onSaveProfile}>
+                  <form key={profile?.id ?? 'loading'} onSubmit={onSaveProfile}>
                     <div className="grid sm:grid-cols-2 gap-4 mb-4">
                       <label className="block">
                         <span className={label}><T id="members.profile.name">Full name</T></span>
