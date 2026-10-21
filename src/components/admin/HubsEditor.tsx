@@ -73,7 +73,7 @@ export default function HubsEditor() {
         &ldquo;How to use this hub&rdquo; section, its &ldquo;Companion hub to …&rdquo; line and its byline, as the board decided.
       </p>
       {err && (
-        <p className="text-brand-red font-semibold text-[13.5px] mb-4" role="alert">
+        <p className="text-brand-redink font-semibold text-[13.5px] mb-4" role="alert">
           {err}
         </p>
       )}
@@ -201,7 +201,7 @@ function HubForm({ hub, onSaved }: { hub: Listing; onSaved: () => void }) {
           </span>
         )}
         {err && (
-          <span className="text-brand-red text-[13px] font-semibold" role="alert">
+          <span className="text-brand-redink text-[13px] font-semibold" role="alert">
             {err}
           </span>
         )}

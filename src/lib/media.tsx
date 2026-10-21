@@ -315,7 +315,7 @@ function MediaEditor({ active, onClose }: { active: Active; onClose: () => void 
         </div>
 
         {err && (
-          <p className="mt-3 text-[13.5px] font-semibold text-brand-red" role="alert">
+          <p className="mt-3 text-[13.5px] font-semibold text-brand-redink" role="alert">
             {err}
           </p>
         )}
@@ -331,7 +331,7 @@ function MediaEditor({ active, onClose }: { active: Active; onClose: () => void 
             <button
               onClick={onReset}
               disabled={busy !== ''}
-              className="text-[13px] font-semibold text-muted hover:text-brand-red disabled:opacity-60"
+              className="text-[13px] font-semibold text-muted hover:text-brand-redink disabled:opacity-60"
             >
               Restore original
             </button>

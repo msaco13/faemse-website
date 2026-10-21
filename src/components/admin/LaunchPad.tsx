@@ -149,7 +149,7 @@ export default function LaunchPad() {
         <h3 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-1">Wording changed from the original</h3>
         <p className="text-muted text-[13.5px] mb-3">Every change anyone has saved, newest first. Reset puts the original wording back.</p>
         {err && (
-          <p className="text-brand-red font-semibold text-[13px] mb-2" role="alert">
+          <p className="text-brand-redink font-semibold text-[13px] mb-2" role="alert">
             {err}
           </p>
         )}

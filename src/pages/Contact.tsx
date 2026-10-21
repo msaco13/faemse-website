@@ -122,7 +122,7 @@ export default function Contact() {
               </p>
             )}
             {status === 'error' && (
-              <p className="mt-4 text-brand-red font-semibold" role="alert">
+              <p className="mt-4 text-brand-redink font-semibold" role="alert">
                 <T id="contact.form.error">Something went wrong sending your message. Please try again in a minute.</T>
               </p>
             )}

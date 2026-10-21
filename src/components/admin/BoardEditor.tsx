@@ -86,7 +86,7 @@ export default function BoardEditor({ members, onChanged }: { members: Profile[]
       </datalist>
 
       {err && (
-        <p className="text-brand-red font-semibold text-[13.5px] mb-4" role="alert">
+        <p className="text-brand-redink font-semibold text-[13.5px] mb-4" role="alert">
           {err}
         </p>
       )}
@@ -245,7 +245,7 @@ function SeatRow({
         <button onClick={() => onMove(1)} disabled={last} className="btn-outline !py-1.5 !px-3 text-[13px] disabled:opacity-40" aria-label={`Move ${seat.name} down`}>
           ↓
         </button>
-        <button onClick={onRemove} className="ml-auto text-[13px] font-semibold text-brand-red hover:underline">
+        <button onClick={onRemove} className="ml-auto text-[13px] font-semibold text-brand-redink hover:underline">
           Remove seat
         </button>
         {msg && !err && (
@@ -254,7 +254,7 @@ function SeatRow({
           </span>
         )}
         {err && (
-          <span className="text-brand-red text-[12.5px] font-semibold" role="alert">
+          <span className="text-brand-redink text-[12.5px] font-semibold" role="alert">
             {err}
           </span>
         )}
@@ -321,7 +321,7 @@ function AddSeat({ seats, onDone, onCancel }: { seats: Seat[]; onDone: () => voi
           Cancel
         </button>
         {err && (
-          <span className="text-brand-red text-[12.5px] font-semibold" role="alert">
+          <span className="text-brand-redink text-[12.5px] font-semibold" role="alert">
             {err}
           </span>
         )}

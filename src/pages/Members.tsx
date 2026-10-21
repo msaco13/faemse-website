@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import AdminWorkspace from '../components/admin/AdminWorkspace';
+import SponsorBand from '../components/SponsorBand';
+import SponsorWall from '../components/SponsorWall';
 import BoardStrip from '../components/BoardStrip';
 import PageHead from '../components/PageHead';
 import { contactPath, resourceCategories } from '../content/data';
@@ -219,15 +221,18 @@ export default function Members() {
   const canPayOnline = Boolean(onlineDues) && ownDues;
   const isMember = mState === 'current' || mState === 'grace';
 
-  // Which tab: /members, /members/resources, /members/jobs, /members/account,
-  // /members/board (admins). Jobs & classes appears only when something is
-  // posted; anything unknown falls back to Home.
+  // Which tab: /members, /members/resources, /members/sponsors,
+  // /members/jobs, /members/account, /members/board (admins). Jobs & classes
+  // appears only when something is posted; anything unknown falls back to
+  // Home. Corporate sponsors (board, 2026-10-21) shows the still sponsor
+  // wall; every other tab has the moving sponsor band across the bottom.
   const jobsLive = jobs.live ? jobs.items : [];
   const classesLive = classes.live ? classes.items : [];
   const showJobs = jobsLive.length + classesLive.length > 0;
   const tabs = [
     { key: 'home', to: '/members', label: 'Home' },
     { key: 'resources', to: '/members/resources', label: 'Resources' },
+    { key: 'sponsors', to: '/members/sponsors', label: 'Corporate sponsors' },
     ...(showJobs ? [{ key: 'jobs', to: '/members/jobs', label: 'Jobs & classes' }] : []),
     { key: 'account', to: '/members/account', label: 'My account' },
     ...(isAdmin ? [{ key: 'board', to: '/members/board', label: 'Board tools' }] : []),
@@ -666,7 +671,7 @@ export default function Members() {
                       <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{profileMsg}</p>
                     )}
                     {profileStatus === 'error' && (
-                      <p className="mt-3 text-brand-red font-semibold text-[14px]" role="alert">{profileMsg}</p>
+                      <p className="mt-3 text-brand-redink font-semibold text-[14px]" role="alert">{profileMsg}</p>
                     )}
                   </form>
                 </div>
@@ -786,13 +791,18 @@ export default function Members() {
 
           {active === 'board' && isAdmin && <AdminWorkspace />}
 
-          {!isMember && active !== 'account' && (
+          {active === 'sponsors' && <SponsorWall />}
+
+          {/* The sponsors are public, so their tab carries no members-only note. */}
+          {!isMember && active !== 'account' && active !== 'sponsors' && (
             <p className="mt-8 text-muted text-[14px]">
               <T id="members.limited">Member resources open when your membership is current.</T>
             </p>
           )}
         </div>
       </section>
+
+      {active !== 'sponsors' && <SponsorBand where="portal" />}
     </>
   );
 }

@@ -37,7 +37,7 @@ function Shell({ children }: { children: ReactNode }) {
 
 function Notice({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'error' }) {
   return (
-    <div className={`card p-7 text-[15px] ${tone === 'error' ? 'text-brand-red font-semibold' : 'text-muted'}`} role={tone === 'error' ? 'alert' : 'status'}>
+    <div className={`card p-7 text-[15px] ${tone === 'error' ? 'text-brand-redink font-semibold' : 'text-muted'}`} role={tone === 'error' ? 'alert' : 'status'}>
       {children}
     </div>
   );

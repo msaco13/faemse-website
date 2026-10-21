@@ -387,7 +387,7 @@ export default function Membership() {
               </p>
             )}
             {status === 'error' && (
-              <p className="mt-4 text-brand-red font-semibold" role="alert">
+              <p className="mt-4 text-brand-redink font-semibold" role="alert">
                 <T id="membership.form.error.retry">
                   Something went wrong submitting the application. Please try again in a minute, or
                 </T>{' '}

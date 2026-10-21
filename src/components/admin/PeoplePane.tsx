@@ -253,7 +253,7 @@ export default function PeoplePane({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4" role="group" aria-label="Quick filters">
         {tile('current', counts.current, 'Current', 'text-[#0E7A4A]')}
         {tile('due', counts.due, `Due within ${GRACE_DAYS} days`, 'text-[#8A5A00]')}
-        {tile('behind', counts.behind, 'Past due or lapsed', 'text-brand-red')}
+        {tile('behind', counts.behind, 'Past due or lapsed', 'text-brand-redink')}
         {tile('admins', counts.admins, 'Board admins', '')}
       </div>
 

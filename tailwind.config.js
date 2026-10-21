@@ -18,6 +18,11 @@ export default {
           bluesoft: '#7FA5EE',
           bluedeep: '#1A3F94',
           red: '#E5404A',
+          // Red for text on white or the paper grey: error messages, Remove
+          // links, Past due. brand-red is 3.9:1 on white, under the 4.5:1
+          // WCAG AA asks of small text; this is 6.3:1 (2026-10-21). Keep
+          // brand-red for buttons, borders and large display numbers.
+          redink: '#B8232D',
           redhot: '#FF5A62',
           green: '#3ADB8F',
           gold: '#DFAF37',

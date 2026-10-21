@@ -3,8 +3,10 @@ import { sponsorLogoSrc, type Sponsor } from '../../lib/postings';
 import { supabase } from '../../lib/supabase';
 
 // Admin → Sponsors (board, 2026-10-20): the corporate sponsors shown in the
-// homepage band and on the Sponsors page, in this order. A sponsor without a
-// logo shows by name. Logos upload to the site's media storage.
+// homepage band, the member portal (band and Corporate sponsors tab) and on
+// the Sponsors page, in this order. A sponsor without a logo shows by name
+// (with its initials in the band and portal). Logos upload to the site's
+// media storage.
 
 type Row = Sponsor & { id: string };
 
@@ -82,12 +84,13 @@ export default function SponsorsEditor() {
         </a>
       </div>
       <p className="text-muted text-[13.5px] mb-5 max-w-[78ch]">
-        The corporate sponsors in the homepage band and on the Sponsors page, in this order. A sponsor without a logo shows by name;
-        one without a website shows without a link. Changes publish when you save.
+        The corporate sponsors in the homepage band, the member portal (the band across the bottom and the Corporate sponsors tab) and
+        on the Sponsors page, in this order. A sponsor without a logo shows its initials in the band and the portal, and its name on the
+        Sponsors page; one without a website shows without a link. Changes publish when you save.
       </p>
 
       {err && (
-        <p className="text-brand-red font-semibold text-[13.5px] mb-4" role="alert">
+        <p className="text-brand-redink font-semibold text-[13.5px] mb-4" role="alert">
           {err}
         </p>
       )}
@@ -161,7 +164,7 @@ function LogoPicker({ logo, setLogo, name }: { logo: string; setLogo: (l: string
           </button>
         )}
         {err && (
-          <span className="text-brand-red text-[12px] font-semibold" role="alert">
+          <span className="text-brand-redink text-[12px] font-semibold" role="alert">
             {err}
           </span>
         )}
@@ -217,7 +220,7 @@ function SponsorRow({ row, first, last, onMove, onRemove, onSaved }: { row: Row;
         <button onClick={() => onMove(1)} disabled={last} className="btn-outline !py-1.5 !px-3 text-[13px] disabled:opacity-40" aria-label={`Move ${row.name} down`}>
           ↓
         </button>
-        <button onClick={onRemove} className="ml-auto text-[13px] font-semibold text-brand-red hover:underline">
+        <button onClick={onRemove} className="ml-auto text-[13px] font-semibold text-brand-redink hover:underline">
           Remove sponsor
         </button>
         {msg && !err && (
@@ -226,7 +229,7 @@ function SponsorRow({ row, first, last, onMove, onRemove, onSaved }: { row: Row;
           </span>
         )}
         {err && (
-          <span className="text-brand-red text-[12.5px] font-semibold" role="alert">
+          <span className="text-brand-redink text-[12.5px] font-semibold" role="alert">
             {err}
           </span>
         )}
@@ -275,7 +278,7 @@ function AddSponsor({ after, onDone, onCancel }: { after: number; onDone: () => 
           Cancel
         </button>
         {err && (
-          <span className="text-brand-red text-[12.5px] font-semibold" role="alert">
+          <span className="text-brand-redink text-[12.5px] font-semibold" role="alert">
             {err}
           </span>
         )}

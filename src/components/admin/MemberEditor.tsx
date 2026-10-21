@@ -122,7 +122,7 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
         </div>
       </div>
       {err && (
-        <p className="text-brand-red text-[12.5px] font-semibold mt-2" role="alert">
+        <p className="text-brand-redink text-[12.5px] font-semibold mt-2" role="alert">
           {err}
         </p>
       )}
@@ -148,7 +148,7 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
           {paying ? 'Recording…' : `Record ${method === 'waived' ? 'waiver' : dollars(duesCents(member.tier))} · +1 year`}
         </button>
         {payMsg && (
-          <span className={`font-semibold ${payMsg.startsWith('Recorded') ? 'text-[#0E7A4A]' : 'text-brand-red'}`} role="status">
+          <span className={`font-semibold ${payMsg.startsWith('Recorded') ? 'text-[#0E7A4A]' : 'text-brand-redink'}`} role="status">
             {payMsg}
           </span>
         )}
@@ -252,7 +252,7 @@ function LoginEmail({ member, onChanged }: { member: Profile; onChanged: () => v
         </div>
       )}
       {err && (
-        <p className="text-brand-red font-semibold text-[12.5px] mt-1.5" role="alert">
+        <p className="text-brand-redink font-semibold text-[12.5px] mt-1.5" role="alert">
           {err}
         </p>
       )}

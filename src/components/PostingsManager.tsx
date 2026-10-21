@@ -285,7 +285,7 @@ function MediaInput({ field, initial }: { field: Field; initial: string }) {
         <img src={value} alt="" className="mt-2 h-20 rounded-lg object-cover border border-line" onError={(e) => ((e.currentTarget.style.display = 'none'))} />
       )}
       {err && (
-        <span className="block text-brand-red font-semibold text-[13px] mt-1" role="alert">
+        <span className="block text-brand-redink font-semibold text-[13px] mt-1" role="alert">
           {err}
         </span>
       )}
@@ -407,7 +407,7 @@ function RowForm({
           Cancel
         </button>
         {err && (
-          <span className="text-brand-red font-semibold text-[13px]" role="alert">
+          <span className="text-brand-redink font-semibold text-[13px]" role="alert">
             {err}
           </span>
         )}
@@ -508,7 +508,7 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
       )}
     >
       {loadError && (
-        <p className="text-brand-red font-semibold text-[14px] mb-3" role="alert">
+        <p className="text-brand-redink font-semibold text-[14px] mb-3" role="alert">
           {loadError}
         </p>
       )}
@@ -563,7 +563,7 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
                       {r.is_welcome !== true && (
                         <button
                           onClick={() => remove(r.id, sum.primary)}
-                          className="text-muted font-semibold text-[12.5px] hover:text-brand-red"
+                          className="text-muted font-semibold text-[12.5px] hover:text-brand-redink"
                         >
                           Delete
                         </button>

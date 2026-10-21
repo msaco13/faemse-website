@@ -2,14 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FloridaNetwork from '../components/FloridaNetwork';
 import HeroCrest from '../components/HeroCrest';
-import HeroSpotlight, { PlayPauseIcon } from '../components/HeroSpotlight';
+import HeroSpotlight from '../components/HeroSpotlight';
+import SponsorBand from '../components/SponsorBand';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
 import { CONTENT_VERIFIED, honors, presidentMessage, tiers } from '../content/data';
 import BoardStrip from '../components/BoardStrip';
 import { useSiteNews } from '../lib/content';
-import { backgroundEmbedUrl, isVideoFile, useSponsors, useSpotlights, type Spotlight } from '../lib/postings';
+import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
 import { slug, T, useText } from '../lib/text';
 
 function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
@@ -112,21 +113,16 @@ function HeroBackdrop({ spotlight, stopped }: { spotlight: Spotlight | null; sto
 export default function Home() {
   const newsState = useSiteNews();
   const spotlights = useSpotlights();
-  const sponsors = useSponsors().items;
   // The active spotlight's photo (if it has one) becomes the hero backdrop.
   const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
   const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);
   const mapFaded = !!(activeSpotlight?.imageUrl || activeSpotlight?.videoUrl);
-  // The two Pause buttons (WCAG 2.2.2): one under the slides, which also
-  // stills a slide's background clip, and one on the sponsor band.
+  // The slides' Pause button (WCAG 2.2.2) also stills a slide's background
+  // clip. The sponsor band has its own (components/SponsorBand).
   const [slidesStopped, setSlidesStopped] = useState(false);
-  const [sponsorsStopped, setSponsorsStopped] = useState(false);
   // News is public (board, 2026-10-20) and shows only real posts: with none
   // yet, the section stays off rather than filling the page with samples.
   const posts = newsState.live ? newsState.items : [];
-  const sponsorsAria = useText('home.sponsors.aria', 'Sponsors');
-  const sponsorsPause = useText('home.sponsors.aria.pause', 'Pause the sponsor names');
-  const sponsorsPlay = useText('home.sponsors.aria.play', 'Play the sponsor names');
   const vitalsAria = useText('home.vitals.aria', 'Association statistics');
   const sealAlt = useText('home.cta.alt', 'Seal of the Florida Association of EMS Educators');
   useEffect(() => {
@@ -153,75 +149,10 @@ export default function Home() {
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
         <HeroBackdrop spotlight={activeSpotlight} stopped={slidesStopped} />
-        {/* Sponsor marquee, at the top of the hero under the header's gold
-            line (board, Oct 2026). Transparent so it sits on the hero's own
-            backdrop; the hero's top padding is trimmed to make room, and
-            with the tighter spacing below, "On the board" lands on a
-            1440x900 opening screen. */}
-        <section className="relative z-10 pt-4 overflow-hidden" aria-label={sponsorsAria}>
-        {/* #93A6C9 keeps the band at 4.5:1 or better across the hero's
-            navy, glow included; the old #5E739C and #6E84AC fell to about
-            3:1 and 4:1. */}
-        <div className="px-6 mb-4 flex items-center justify-center gap-3">
-          <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#93A6C9]">
-            <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
-          </p>
-          <button
-            type="button"
-            onClick={() => setSponsorsStopped((v) => !v)}
-            aria-label={sponsorsStopped ? sponsorsPlay : sponsorsPause}
-            className="flex-none w-7 h-7 grid place-items-center rounded-full border border-white/15 bg-white/5 text-[#93A6C9] hover:text-white hover:bg-white/15 transition-colors motion-reduce:hidden"
-          >
-            <PlayPauseIcon playing={!sponsorsStopped} size={12} />
-          </button>
-        </div>
-        {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
-            time). It pauses under the pointer so a name can be clicked, while
-            a name has keyboard focus, and for good with the Pause button. */}
-        {/* Four copies, scrolled by a quarter (one copy's width, so the speed
-            is unchanged): the loop is seamless as long as three copies span
-            the viewport, about 7,500px with today's list. Two copies ran dry
-            on a 2,560px screen and showed an empty strip once per loop. */}
-        {/* The Pause button holds it with an inline style: a class loses to
-            the animation shorthand, which sets the play state back to
-            running. */}
-        <div
-          className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] motion-reduce:animate-none"
-          style={sponsorsStopped ? { animationPlayState: 'paused' } : undefined}
-        >
-          {[...sponsors, ...sponsors, ...sponsors, ...sponsors].map((s, i) => {
-            // The extra copies exist only to make the marquee loop seamless;
-            // hide them from screen readers and the tab order so sponsors aren't
-            // announced or tabbed through repeatedly.
-            const dup = i >= sponsors.length;
-            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#93A6C9] whitespace-nowrap';
-            const body = (
-              <>
-                <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
-                {s.name}
-              </>
-            );
-            return s.url ? (
-              <a
-                key={i}
-                href={s.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-hidden={dup || undefined}
-                tabIndex={dup ? -1 : undefined}
-                className={`${cls} hover:text-brand-goldsoft transition-colors`}
-              >
-                {body}
-              </a>
-            ) : (
-              <span key={i} aria-hidden={dup || undefined} className={cls}>
-                {body}
-              </span>
-            );
-          })}
-        </div>
-        <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-25%)}}`}</style>
-        </section>
+        {/* Sponsor band, at the top of the hero under the header's gold line
+            (board, Oct 2026), now with each sponsor's logo (2026-10-21). The
+            hero's top padding is trimmed to make room. */}
+        <SponsorBand where="home" />
         {/* minmax(0, …): the columns split the width by ratio only. With plain
             fr tracks, anything nowrap inside a column (the map's status chip
             as its wording changed) could widen that column, and the map,

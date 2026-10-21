@@ -17,7 +17,7 @@ export default function BylawsText({ open = false }: { open?: boolean }) {
     return <p className="text-muted text-[14.5px]"><T id="bylaws.full.missing">The bylaws text has not been loaded yet.</T></p>;
   }
   if (doc.status === 'error') {
-    return <p className="text-brand-red text-[14.5px] font-semibold" role="alert">{doc.message}</p>;
+    return <p className="text-brand-redink text-[14.5px] font-semibold" role="alert">{doc.message}</p>;
   }
   return (
     <>

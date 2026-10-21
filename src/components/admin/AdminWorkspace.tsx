@@ -165,7 +165,7 @@ export default function AdminWorkspace({ defaultTab = 'inbox' }: { defaultTab?: 
 
         <div className="p-5 md:p-7 min-w-0">
           {loadError && (
-            <p className="text-brand-red font-semibold text-[14px] mb-4" role="alert">
+            <p className="text-brand-redink font-semibold text-[14px] mb-4" role="alert">
               {loadError}
             </p>
           )}

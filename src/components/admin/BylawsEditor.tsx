@@ -124,7 +124,7 @@ export default function BylawsEditor() {
         </>
       )}
       {err && (
-        <p className="text-brand-red font-semibold text-[13.5px] mt-3" role="alert">
+        <p className="text-brand-redink font-semibold text-[13.5px] mt-3" role="alert">
           {err}
         </p>
       )}

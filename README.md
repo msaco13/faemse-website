@@ -581,16 +581,18 @@ leaving alone:
 |---|---|---|---|
 | `brand.blue` (links, eyebrows) | `#2F6BFF` | `#2560E8` | 4.49 → 5.36 on white, 4.15 → 4.95 on paper |
 | Videos track numerals | `brand-gold/70` | `brand-golddeep` | 1.63 → 3.37 (large text needs 3.0) |
+| Red text (errors, Remove, Past due) | `brand-red` | `brand-redink` (`#B8232D`) | 3.86 → 6.33 on white (2026-10-21) |
+| Sponsor band, footer copyright | `#5E739C`, `#6E84AC` | `#93A6C9`, `#7C90B6` | about 3–4.3 → 4.5 or better on the navy |
 
 Re-check after any color or type change. Serve `dist/` and run axe against
 each route; the quickest route is a Claude session, which has done exactly
 this twice.
 
-Two known items automated tools cannot catch, both currently **unaddressed**:
-the sponsor marquee scrolls continuously and only pauses on mouse hover, so a
-keyboard-only visitor cannot stop it (WCAG 2.2.2), and the hero slideshow
-auto-advances every 8 s, though it does pause on focus. Both stop entirely
-under `prefers-reduced-motion`. A pause button on the marquee would close it.
+Moving content (WCAG 2.2.2), which automated tools cannot judge: the hero
+slideshow and the sponsor band (`src/components/SponsorBand.tsx`, on the
+homepage and across the bottom of the member portal) each have a Pause
+button, also pause under the pointer and on keyboard focus, and stand still
+under `prefers-reduced-motion` (2026-10-21).
 
 ## Deploying
 

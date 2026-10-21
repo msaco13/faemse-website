@@ -234,7 +234,7 @@ export default function AddPerson({ onAdded }: { onAdded: () => void }) {
       </div>
 
       {err && (
-        <p className="mt-4 text-brand-red font-semibold text-[14px]" role="alert">
+        <p className="mt-4 text-brand-redink font-semibold text-[14px]" role="alert">
           {err}
         </p>
       )}
