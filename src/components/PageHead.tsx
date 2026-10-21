@@ -13,7 +13,9 @@ import HeroCrest from './HeroCrest';
 // `crest` adds the homepage's spinning ghost crest, large and faint, running
 // off the banner's right edge (the member portal). `aside` puts a card on the
 // right of the title (the portal's membership card); the title's text sets
-// the banner's height either way.
+// the banner's height either way. `wideAside` makes room for a bigger aside,
+// the Program map's Florida (board, 2026-10-21: the whole state on the
+// opening screen), and trims the banner's padding so it fits a laptop.
 export default function PageHead({
   id,
   eyebrow,
@@ -22,6 +24,7 @@ export default function PageHead({
   dynamicTitle = false,
   crest = false,
   aside,
+  wideAside = false,
 }: {
   id: string;
   eyebrow: string;
@@ -30,6 +33,7 @@ export default function PageHead({
   dynamicTitle?: boolean;
   crest?: boolean;
   aside?: ReactNode;
+  wideAside?: boolean;
 }) {
   const editedTitle = useText(`${id}.title`, title);
   const liveTitle = dynamicTitle ? title : editedTitle;
@@ -71,8 +75,11 @@ export default function PageHead({
           </div>
         </div>
       )}
-      <div className={`wrap relative py-16 md:py-20 ${aside ? 'flex flex-wrap items-center justify-between gap-x-10 gap-y-8' : ''}`}>
-        <div className={aside ? 'flex-[1_1_420px] min-w-0' : ''}>
+      {/* The title sits above the aside (z-10): the map's glow reaches about
+          9% past its box, and on a phone it lay over the subtitle and
+          washed it out. */}
+      <div className={`wrap relative ${wideAside ? 'py-12 md:py-14' : 'py-16 md:py-20'} ${aside ? `flex flex-wrap items-center justify-between gap-x-10 ${wideAside ? 'gap-y-12' : 'gap-y-8'}` : ''}`}>
+        <div className={aside ? 'relative z-10 flex-[1_1_420px] min-w-0' : ''}>
           <p className="eyebrow !text-brand-goldsoft">
             <T id={`${id}.eyebrow`}>{eyebrow}</T>
           </p>
@@ -85,7 +92,7 @@ export default function PageHead({
             </p>
           )}
         </div>
-        {aside && <div className="flex-[0_1_380px] min-w-0">{aside}</div>}
+        {aside && <div className={`${wideAside ? 'flex-[0_1_520px]' : 'flex-[0_1_380px]'} min-w-0`}>{aside}</div>}
       </div>
     </section>
   );

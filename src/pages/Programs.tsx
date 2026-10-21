@@ -36,17 +36,14 @@ export default function Programs() {
         eyebrow="The network"
         title="Where Florida trains its EMS workforce"
         sub={`${programs.length} EMT and paramedic programs in ${cities.length} cities, from Pensacola to Key West. Every one of them is FAEMSE's constituency.`}
+        // The map beside the title, about 520px wide, so the whole state is on
+        // the opening screen (board, 2026-10-21). It was 900px wide in a band
+        // of its own below the title, and only its top third showed before
+        // scrolling. The banner clips the map's 9% bleed (comets and halos
+        // near the coast), which on a phone would be a sideways scroll.
+        wideAside
+        aside={<FloridaNetwork className="w-full" labels="dense" />}
       />
-
-      {/* The map at full size, with its caption, chip, and zoom shortcuts. */}
-      {/* overflow-hidden: the map's drawing area bleeds 9% past its box on
-          purpose (comets and halos near the coast), which on a phone is a few
-          pixels past the viewport and a sideways scroll. */}
-      <section className="velvet overflow-hidden bg-[radial-gradient(1000px_620px_at_50%_-20%,#163659_0%,#0A213B_55%,#04152A_100%)] py-20">
-        <div className="wrap">
-          <FloridaNetwork className="w-full max-w-[900px] mx-auto" labels="dense" />
-        </div>
-      </section>
 
       <section className="bg-paper py-20">
         <div className="wrap">
