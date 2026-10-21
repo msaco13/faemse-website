@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { mailto } from '../content/data';
+import { contactPath } from '../content/data';
 import { sponsorLogoSrc, useSponsors } from '../lib/postings';
 import { T } from '../lib/text';
 
@@ -69,9 +70,9 @@ export default function Sponsors() {
                 </T>
               </p>
             </div>
-            <a href={mailto('Corporate%20sponsorship')} className="btn-gold">
+            <Link to={contactPath('Corporate sponsorship')} className="btn-gold">
               <T id="sponsors.become.cta">Get sponsorship info</T>
-            </a>
+            </Link>
           </div>
         </div>
       </section>

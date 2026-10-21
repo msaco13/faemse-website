@@ -77,8 +77,8 @@ type Session = {
 const SITE = 'https://faemse.org';
 const FROM = 'FAEMSE <notifications@faemse.org>';
 const DEFAULT_BOARD = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
-// Member-facing emails reply to the board directly: nobody on the project
-// holds a login for info@faemse.org (2026-10-01).
+// Member-facing emails reply to the board directly: the site prints no email
+// address (board, 2026-10-21; info@faemse.org has no mailbox).
 const REPLY_TO = DEFAULT_BOARD;
 const TIER_LABEL: Record<string, string> = { active: 'Active', institutional: 'Institutional', corporate: 'Corporate', honorary: 'Honorary' };
 
@@ -306,7 +306,7 @@ Deno.serve(async (req) => {
         '',
         repNames.length
           ? `Seated under it: you as coordinator, plus ${repNames.join(', ')}. Each of them is getting an email with their own sign-in details.`
-          : `Seated under it: you as coordinator. The membership covers up to five people; email info@faemse.org whenever you want representatives added.`,
+          : `Seated under it: you as coordinator. The membership covers up to five people; reply to this email whenever you want representatives added.`,
         '',
         ...(await passwordLines(supabase, email, created)),
         '',

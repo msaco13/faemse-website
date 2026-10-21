@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
-import { mailto } from '../content/data';
+import { contactPath } from '../content/data';
 import { useJobs } from '../lib/postings';
 import { T } from '../lib/text';
 
@@ -77,9 +77,9 @@ export default function Jobs() {
                 </T>
               </p>
             </div>
-            <a href={mailto('Job%20posting%20for%20the%20FAEMSE%20board')} className="btn-red">
+            <Link to={contactPath('Job posting for the FAEMSE board')} className="btn-red">
               <T id="jobs.send.cta">Send a posting</T>
-            </a>
+            </Link>
           </div>
 
           <p className="text-muted text-[14px] mt-6 max-w-[80ch]">

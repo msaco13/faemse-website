@@ -79,9 +79,9 @@ export default function Footer() {
               <T id="footer.col.contact">Get in touch</T>
             </h2>
             <p className="text-[#7C90B6] mb-2">{contact.address}</p>
-            <a className="text-brand-bluesoft hover:text-white font-semibold" href={`mailto:${contact.email}`}>
-              {contact.email}
-            </a>
+            <Link className="text-brand-bluesoft hover:text-white font-semibold" to="/contact">
+              <T id="footer.contact.form">Send us a message</T>
+            </Link>
           </div>
         </div>
         <div className="flex flex-wrap justify-between gap-2.5 pt-6 text-[13px] text-[#5E739C]">

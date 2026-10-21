@@ -226,27 +226,24 @@ association's Supabase organization.
   `supabase/migrations/20260903_spotlight_video_media.sql` (both applied):
   the spotlight rotator, Q&A review queue, spotlight video, media bucket.
 
-### Email routing (interim)
+### Email routing
 
-faemse.org mail is hosted on Microsoft 365 by the association (the MX
-record points there and the executive director's address is on it), and
-`info@faemse.org` was the contact address on the old site, so the new site
-prints it too. **Nobody on the project holds a login for info@faemse.org
-and it has not been confirmed to exist** (2026-10-01). So:
+The site prints no email address (board, 2026-10-21). `info@faemse.org`
+was the contact address on the old site, but it has no mailbox. So:
 
-* every "send us a posting / class / resource / video" button addresses
-  info@faemse.org **and copies the board** (`contact.boardCc` in
-  `src/content/data.ts`: Jorge Anzardo and Michael Saco);
+* every "write to us" link and every "send us a posting / class / video"
+  button opens the contact form (`contactPath()` in `src/content/data.ts`
+  fills in the subject). Messages land in Admin → Inbox, and
+  `notify-board` emails them to the board with Reply-To set to the sender;
 * every email the site sends to a member (renewal reminders, password
   links, welcome and renewal confirmations) carries a `Reply-To` of the two
-  board addresses, not info@faemse.org (`REPLY_TO` in
-  `supabase/functions/renewal-reminders`, `password-link`, `stripe-webhook`),
-  so a member who hits Reply reaches people. Until 2026-10-01 those replies
-  went to info@faemse.org.
+  board addresses (`REPLY_TO` in `supabase/functions/renewal-reminders`,
+  `password-link`, `stripe-webhook`), so a member who hits Reply reaches
+  people.
 
-When the association has a monitored mailbox, change `REPLY_TO` in the three
-functions and `contact.boardCc`, redeploy, and the printed address stays as
-it is.
+If the association later sets up a monitored mailbox, change `REPLY_TO` in
+the three functions and redeploy. Printing an address on the site again is
+a board decision.
 
 ### Board notifications (contact form + applications)
 

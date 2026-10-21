@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
-import { mailto } from '../content/data';
+import { contactPath } from '../content/data';
 import { useClasses } from '../lib/postings';
 import { T } from '../lib/text';
 
@@ -68,15 +69,15 @@ export default function Classes() {
             <div>
               <h2 className="font-disp font-bold uppercase text-xl mb-1"><T id="classes.send.h2">Running a class?</T></h2>
               <p className="text-muted text-[15px] max-w-[64ch]">
-                <T id="classes.send.text">
-                  Email the details and we&apos;ll post it — listings come down automatically after
+                <T id="classes.send.details">
+                  Send us the details and we&apos;ll post it. Listings come down automatically after
                   the start date, and we can repost recurring offerings each cycle.
                 </T>
               </p>
             </div>
-            <a href={mailto('Class%20listing%20for%20the%20FAEMSE%20board')} className="btn-red">
+            <Link to={contactPath('Class listing for the FAEMSE board')} className="btn-red">
               <T id="classes.send.cta">Submit a class</T>
-            </a>
+            </Link>
           </div>
         </div>
       </section>

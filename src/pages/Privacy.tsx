@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { contact } from '../content/data';
+import { contact, contactPath } from '../content/data';
 import { slug, T } from '../lib/text';
 
 const sections = [
@@ -38,13 +39,12 @@ export default function Privacy() {
             <div>
               <h2 className="font-disp font-bold uppercase text-xl mb-2"><T id="privacy.choices.h2">Your choices</T></h2>
               <p className="text-muted text-[15.5px]">
-                <T id="privacy.choices.text.a">
-                  You can ask us to correct or delete information we hold about you at any time —
-                  email
+                <T id="privacy.choices.ask">
+                  You can ask us to correct or delete information we hold about you at any time:
                 </T>{' '}
-                <a className="font-semibold text-brand-blue hover:underline" href={`mailto:${contact.email}`}>
-                  {contact.email}
-                </a>
+                <Link className="font-semibold text-brand-blue hover:underline" to={contactPath('Privacy request')}>
+                  <T id="privacy.choices.link">send us a message</T>
+                </Link>
                 .{' '}
                 <T id="privacy.choices.text.b">
                   Deleting a member account ends portal access; membership itself is governed by the
@@ -53,10 +53,11 @@ export default function Privacy() {
               </p>
             </div>
             <p className="text-muted text-[13.5px] pt-2 border-t border-line">
-              {contact.legalName} · <T id="privacy.footer.text">Last updated August 2026. Questions about this policy:</T>{' '}
-              <a className="font-semibold text-brand-blue hover:underline" href={`mailto:${contact.email}`}>
-                {contact.email}
-              </a>
+              {contact.legalName} · <T id="privacy.footer.updated">Last updated October 2026. Questions about this policy:</T>{' '}
+              <Link className="font-semibold text-brand-blue hover:underline" to={contactPath('Privacy policy question')}>
+                <T id="privacy.footer.link">send us a message</T>
+              </Link>
+              .
             </p>
           </div>
         </div>

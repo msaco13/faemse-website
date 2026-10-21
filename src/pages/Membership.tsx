@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { faq, honorary, membershipTerms, tiers } from '../content/data';
+import { contactPath, faq, honorary, membershipTerms, tiers } from '../content/data';
 import type { Representative } from '../lib/portal';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
@@ -388,9 +388,13 @@ export default function Membership() {
             )}
             {status === 'error' && (
               <p className="mt-4 text-brand-red font-semibold" role="alert">
-                <T id="membership.form.error">
-                  Something went wrong submitting the application. Email us directly at info@faemse.org.
-                </T>
+                <T id="membership.form.error.retry">
+                  Something went wrong submitting the application. Please try again in a minute, or
+                </T>{' '}
+                <Link className="underline" to={contactPath('Membership application')}>
+                  <T id="membership.form.error.link">send the board a message</T>
+                </Link>
+                .
               </p>
             )}
           </form>

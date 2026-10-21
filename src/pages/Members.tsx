@@ -4,7 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import AdminWorkspace from '../components/admin/AdminWorkspace';
 import BoardStrip from '../components/BoardStrip';
 import PageHead from '../components/PageHead';
-import { mailto, resourceCategories } from '../content/data';
+import { contactPath, resourceCategories } from '../content/data';
 import { useSiteNews } from '../lib/content';
 import { useHubList } from '../lib/hubs';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
@@ -854,9 +854,9 @@ function JobsAndClasses({ jobs, classes }: { jobs: JobItem[]; classes: ClassItem
           {pill('jobs', `Jobs (${jobs.length})`)}
           {pill('classes', `Classes (${classes.length})`)}
         </div>
-        <a href={mailto('Job%20or%20class%20posting')} className="font-bold text-brand-blue hover:underline text-[14.5px]">
+        <Link to={contactPath('Job or class posting')} className="font-bold text-brand-blue hover:underline text-[14.5px]">
           <T id="members.jobs.post">Post an opening or a class →</T>
-        </a>
+        </Link>
       </div>
       <ul className="card divide-y divide-line">
         {rows.map((r) => (

@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import { contactPath } from '../content/data';
 import { useBoardSeats } from '../lib/postings';
 import { T } from '../lib/text';
 
@@ -115,11 +117,11 @@ export default function Board() {
                 </T>
               </p>
               <p className="text-muted text-[15px]">
-                <T id="board.elections.p4">Interested in running? Tell any board member or write to</T>{' '}
-                <a className="text-brand-blue font-semibold" href="mailto:info@faemse.org">
-                  info@faemse.org
-                </a>
-                <T id="board.elections.p5">.</T>
+                <T id="board.elections.run">Interested in running? Tell any board member or</T>{' '}
+                <Link className="text-brand-blue font-semibold hover:underline" to={contactPath('Running for the board')}>
+                  <T id="board.elections.link">send the board a message</T>
+                </Link>
+                .
               </p>
             </div>
             <div className="card p-8">
@@ -135,13 +137,13 @@ export default function Board() {
                 </T>
               </p>
               <p className="text-muted text-[15px]">
-                <T id="board.committees.p2">
-                  Committees are seated as the board needs them. If you would like to serve, write to
+                <T id="board.committees.serve">
+                  Committees are seated as the board needs them. If you would like to serve,
                 </T>{' '}
-                <a className="text-brand-blue font-semibold" href="mailto:info@faemse.org">
-                  info@faemse.org
-                </a>
-                <T id="board.committees.p3">.</T>
+                <Link className="text-brand-blue font-semibold hover:underline" to={contactPath('Serving on a committee')}>
+                  <T id="board.committees.link">send the board a message</T>
+                </Link>
+                .
               </p>
             </div>
           </div>
