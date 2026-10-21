@@ -286,7 +286,7 @@ export default function Members() {
         <span className="text-[13.5px] text-[#93A6C9]"><T id="members.card.org">Your organization&apos;s coordinator renews it for everyone it covers.</T></span>
       </>
     );
-  } else if (mState === 'current' && exp && inRenewalWindow(exp)) {
+  } else if (ownDues && mState === 'current' && exp && inRenewalWindow(exp)) {
     cardBadge = badge('Renewal due', 'text-brand-goldink bg-[#FBF3D9]', 'due');
     cardBody = (
       <>
