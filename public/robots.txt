@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
+# Sign-in, the member portal, admin and the payment receipt page: nothing for
+# a search engine there. Rules match by prefix, so the portal is listed as
+# "/members$" and "/members/": a bare "/members" would also block /membership.
+Disallow: /admin
+Disallow: /members$
+Disallow: /members/
+Disallow: /login
+Disallow: /payment-complete
 
 Sitemap: https://faemse.org/sitemap.xml

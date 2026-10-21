@@ -33,7 +33,7 @@ export function DuesLedger({ refreshKey }: { refreshKey: number }) {
     <>
       <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-3">Dues ledger</h3>
       {err && (
-        <p className="text-brand-red font-semibold text-[13px] mb-3" role="alert">
+        <p className="text-brand-redink font-semibold text-[13px] mb-3" role="alert">
           {err}
         </p>
       )}
@@ -113,7 +113,7 @@ export function OnlineDuesSwitch() {
           past payments stay in the ledger. Flip this back to On whenever the board is ready to collect again.
         </p>
         {err && (
-          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+          <p className="text-brand-redink font-semibold text-[13px] mt-2" role="alert">
             {err}
           </p>
         )}
@@ -161,7 +161,7 @@ export function RemindersSwitch() {
           switched back on gets the 30-day email that day and the 7-day one on time.
         </p>
         {err && (
-          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+          <p className="text-brand-redink font-semibold text-[13px] mt-2" role="alert">
             {err}
           </p>
         )}
@@ -225,7 +225,7 @@ export function ListservExport() {
           </p>
         )}
         {err && (
-          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+          <p className="text-brand-redink font-semibold text-[13px] mt-2" role="alert">
             {err}
           </p>
         )}
@@ -286,7 +286,7 @@ export function VotingRollExport() {
           </p>
         )}
         {err && (
-          <p className="text-brand-red font-semibold text-[13px] mt-2" role="alert">
+          <p className="text-brand-redink font-semibold text-[13px] mt-2" role="alert">
             {err}
           </p>
         )}
@@ -322,7 +322,7 @@ function Problems({ rows }: { rows: ImportResult[] }) {
   const bad = rows.filter((r) => r.status === 'error' || r.status === 'skipped');
   if (bad.length === 0) return null;
   return (
-    <ul className="mt-1 space-y-0.5 text-brand-red">
+    <ul className="mt-1 space-y-0.5 text-brand-redink">
       {bad.map((r, i) => (
         <li key={i}>
           {r.email}: {r.message}
@@ -462,7 +462,7 @@ export function MemberImport({ onImported }: { onImported: () => void }) {
           <span className="text-[12.5px] text-muted">Check first: it reports what would be created or updated without writing anything.</span>
         </div>
         {err && (
-          <p className="text-brand-red font-semibold text-[13.5px] mt-3" role="alert">
+          <p className="text-brand-redink font-semibold text-[13.5px] mt-3" role="alert">
             {err}
           </p>
         )}
@@ -508,7 +508,7 @@ function LegacyPlanPreview({ plan }: { plan: LegacyPlan }) {
         contacts.
       </p>
       {plan.problems.map((p) => (
-        <p key={p} className="text-brand-red font-semibold">
+        <p key={p} className="text-brand-redink font-semibold">
           {p}
         </p>
       ))}

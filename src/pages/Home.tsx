@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import FloridaNetwork from '../components/FloridaNetwork';
 import HeroCrest from '../components/HeroCrest';
 import HeroSpotlight from '../components/HeroSpotlight';
+import SponsorBand from '../components/SponsorBand';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
-import { CONTENT_VERIFIED, honors, presidentMessage, sponsors, tiers } from '../content/data';
+import { CONTENT_VERIFIED, honors, presidentMessage, tiers } from '../content/data';
 import BoardStrip from '../components/BoardStrip';
 import { useSiteNews } from '../lib/content';
 import { backgroundEmbedUrl, isVideoFile, useSpotlights, type Spotlight } from '../lib/postings';
@@ -50,9 +51,10 @@ function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
 // The hero's media layer. A direct MP4/WebM plays in a native <video>
 // (muted, looping, inline — the only way mobile browsers autoplay); YouTube
 // and Vimeo links play as a chrome-free background embed scaled to cover.
-// Reduced-motion visitors and data-saver connections get the still photo
-// instead. The layer cross-fades as slides change.
-function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
+// Reduced-motion visitors, data-saver connections and anyone who pressed the
+// slides' Pause button get the still photo instead. The layer cross-fades as
+// slides change.
+function HeroBackdrop({ spotlight, stopped }: { spotlight: Spotlight | null; stopped: boolean }) {
   const [still, setStill] = useState(false);
   useEffect(() => {
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
@@ -64,7 +66,7 @@ function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
   }, []);
 
   const image = spotlight?.imageUrl || '';
-  const video = !still && spotlight?.videoUrl ? spotlight.videoUrl : '';
+  const video = !still && !stopped && spotlight?.videoUrl ? spotlight.videoUrl : '';
   const embed = video && !isVideoFile(video) ? backgroundEmbedUrl(video) : null;
   const file = video && isVideoFile(video) ? video : '';
   const show = !!(image || file || embed);
@@ -115,10 +117,12 @@ export default function Home() {
   const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
   const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);
   const mapFaded = !!(activeSpotlight?.imageUrl || activeSpotlight?.videoUrl);
+  // The slides' Pause button (WCAG 2.2.2) also stills a slide's background
+  // clip. The sponsor band has its own (components/SponsorBand).
+  const [slidesStopped, setSlidesStopped] = useState(false);
   // News is public (board, 2026-10-20) and shows only real posts: with none
   // yet, the section stays off rather than filling the page with samples.
   const posts = newsState.live ? newsState.items : [];
-  const sponsorsAria = useText('home.sponsors.aria', 'Sponsors');
   const vitalsAria = useText('home.vitals.aria', 'Association statistics');
   const sealAlt = useText('home.cta.alt', 'Seal of the Florida Association of EMS Educators');
   useEffect(() => {
@@ -144,56 +148,11 @@ export default function Home() {
         {/* Spotlight backdrop — a photo or a muted looping clip, only when the
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
-        <HeroBackdrop spotlight={activeSpotlight} />
-        {/* Sponsor marquee, at the top of the hero under the header's gold
-            line (board, Oct 2026). Transparent so it sits on the hero's own
-            backdrop; the hero's top padding is trimmed to make room, and
-            with the tighter spacing below, "On the board" lands on a
-            1440x900 opening screen. */}
-        <section className="relative z-10 pt-4 overflow-hidden" aria-label={sponsorsAria}>
-        <p className="px-6 text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-4">
-          <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
-        </p>
-        {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
-            time) and it pauses under the pointer so a name can be clicked. */}
-        {/* Four copies, scrolled by a quarter (one copy's width, so the speed
-            is unchanged): the loop is seamless as long as three copies span
-            the viewport, about 7,500px with today's list. Two copies ran dry
-            on a 2,560px screen and showed an empty strip once per loop. */}
-        <div className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
-          {[...sponsors, ...sponsors, ...sponsors, ...sponsors].map((s, i) => {
-            // The extra copies exist only to make the marquee loop seamless;
-            // hide them from screen readers and the tab order so sponsors aren't
-            // announced or tabbed through repeatedly.
-            const dup = i >= sponsors.length;
-            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap';
-            const body = (
-              <>
-                <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
-                {s.name}
-              </>
-            );
-            return s.url ? (
-              <a
-                key={i}
-                href={s.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-hidden={dup || undefined}
-                tabIndex={dup ? -1 : undefined}
-                className={`${cls} hover:text-brand-goldsoft transition-colors`}
-              >
-                {body}
-              </a>
-            ) : (
-              <span key={i} aria-hidden={dup || undefined} className={cls}>
-                {body}
-              </span>
-            );
-          })}
-        </div>
-        <style>{`@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-25%)}}`}</style>
-        </section>
+        <HeroBackdrop spotlight={activeSpotlight} stopped={slidesStopped} />
+        {/* Sponsor band, at the top of the hero under the header's gold line
+            (board, Oct 2026), now with each sponsor's logo (2026-10-21). The
+            hero's top padding is trimmed to make room. */}
+        <SponsorBand where="home" />
         {/* minmax(0, …): the columns split the width by ratio only. With plain
             fr tracks, anything nowrap inside a column (the map's status chip
             as its wording changed) could widen that column, and the map,
@@ -204,7 +163,7 @@ export default function Home() {
               behind the gap between copy and map), spinning like a coin; it
               steps aside with the map when a spotlight brings a photo. */}
           <HeroCrest faded={mapFaded} />
-          <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
+          <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} onStoppedChange={setSlidesStopped} />
 
           {/* Florida: the network coming together. Steps aside when a
               spotlight brings its own photo or clip. The map is interactive
@@ -243,7 +202,7 @@ export default function Home() {
       {CONTENT_VERIFIED && (
       <section className="velvet bg-ink2 text-white py-11 border-t border-white/5" aria-label={vitalsAria}>
         <div className="wrap">
-          <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#5E739C] mb-5 flex items-center gap-2.5">
+          <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#7C90B6] mb-5 flex items-center gap-2.5">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" />
             <T id="home.vitals.label">Association vitals</T>
           </p>

@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
 import BylawsText from '../components/BylawsText';
 import PageHead from '../components/PageHead';
-import { bylawsHistory, bylawsOutline } from '../content/data';
+import { bylawsHistory, bylawsOutline, contactPath } from '../content/data';
 import { T } from '../lib/text';
 
 // The bylaws: the complete current text first (public since the board's
@@ -81,11 +82,11 @@ export default function Bylaws() {
                 </T>
               </p>
               <p className="text-muted text-[14px]">
-                <T id="bylaws.amend.note.a">Questions about governance go to</T>{' '}
-                <a className="text-brand-blue font-semibold" href="mailto:info@faemse.org">
-                  info@faemse.org
-                </a>
-                <T id="bylaws.amend.note.b">.</T>
+                <T id="bylaws.amend.note.ask">Questions about governance?</T>{' '}
+                <Link className="text-brand-blue font-semibold hover:underline" to={contactPath('Bylaws question')}>
+                  <T id="bylaws.amend.note.link">Send the board a message</T>
+                </Link>
+                .
               </p>
             </div>
           </div>

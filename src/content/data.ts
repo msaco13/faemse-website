@@ -441,17 +441,15 @@ export const contact = {
   legalName: 'Florida Association of Emergency Medical Services Educators, Inc.',
   taxStatus: '501(c)(6) not-for-profit corporation',
   address: '7901 4th Street #9219, St. Petersburg, FL 33702',
-  // The association's official address (faemse.org mail is hosted on
-  // Microsoft 365). Until the board confirms who monitors it, action emails
-  // from the site also copy the interim board inbox below so nothing is lost.
-  email: 'info@faemse.org',
-  boardCc: 'Jlanzardo@gmail.com,Mbsaco13@gmail.com',
+  // No public email address (board, 2026-10-21): info@faemse.org has no
+  // mailbox, so every "write to us" on the site goes to the contact form.
+  // Messages land in Admin → Inbox and notify-board emails them to the board.
   facebook: 'https://www.facebook.com/flemseducators',
   linkedin: 'https://www.linkedin.com/company/florida-association-of-ems-educators/',
 };
 
-// mailto for the site's "send us X" buttons: official address, board copied.
-// `subject` should already be URL-encoded.
-export function mailto(subject: string): string {
-  return `mailto:${contact.email}?cc=${encodeURIComponent(contact.boardCc)}&subject=${subject}`;
+// Link for the site's "send us X" buttons: the contact form, with the
+// subject filled in when one is given.
+export function contactPath(subject = ''): string {
+  return subject ? `/contact?subject=${encodeURIComponent(subject)}` : '/contact';
 }

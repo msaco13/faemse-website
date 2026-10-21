@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
   if (settingsErr || !onlineDues) {
     if (settingsErr) console.error(`settings read failed: ${settingsErr.message}`);
     return json(
-      { error: 'Online dues payment is paused right now. Email info@faemse.org and the board will take your dues directly.' },
+      { error: 'Online dues payment is paused right now. Send the board a message at faemse.org/contact and they will take your dues directly.' },
       503,
     );
   }

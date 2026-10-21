@@ -17,7 +17,7 @@ export default function BylawsText({ open = false }: { open?: boolean }) {
     return <p className="text-muted text-[14.5px]"><T id="bylaws.full.missing">The bylaws text has not been loaded yet.</T></p>;
   }
   if (doc.status === 'error') {
-    return <p className="text-brand-red text-[14.5px] font-semibold" role="alert">{doc.message}</p>;
+    return <p className="text-brand-redink text-[14.5px] font-semibold" role="alert">{doc.message}</p>;
   }
   return (
     <>
@@ -30,7 +30,13 @@ export default function BylawsText({ open = false }: { open?: boolean }) {
           <span className="group-open:hidden"><T id="bylaws.full.open">Read the full text ↓</T></span>
           <span className="hidden group-open:inline"><T id="bylaws.full.close">Collapse ↑</T></span>
         </summary>
-        <div className="mt-5 max-h-[70vh] overflow-y-auto pr-3 border-t border-line pt-5 text-[15px] leading-relaxed">
+        {/* Focusable so the keyboard can scroll it (WCAG 2.1.1). */}
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label={doc.doc.title}
+          className="mt-5 max-h-[70vh] overflow-y-auto pr-3 border-t border-line pt-5 text-[15px] leading-relaxed focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-blue"
+        >
           <h3 className="font-disp font-bold uppercase text-xl mb-4">{doc.doc.title}</h3>
           {blocks.map((b, i) => {
             if (b.kind === 'article')

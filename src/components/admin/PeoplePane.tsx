@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import type { MembershipState, Profile } from '../../lib/portal';
-import { dateState, GRACE_DAYS } from '../../lib/portal';
+import { dateState, GRACE_DAYS, graceEnd, renewalOpens } from '../../lib/portal';
+import { toISODate, todayISO } from '../../lib/dates';
+import { membersCsv, type ExportRow } from '../../lib/memberExport';
+import { useBoardSeats } from '../../lib/postings';
 import { matchesQuery } from '../../lib/search';
 import AddPerson from '../AddPerson';
 import MemberEditor from './MemberEditor';
@@ -28,8 +31,8 @@ const statusLabel: Record<Status, string> = {
 const statusCls: Record<Status, string> = {
   current: 'text-[#0E7A4A] bg-[#E2F7EC]',
   due: 'text-[#8A5A00] bg-[#FFF1D6]',
-  grace: 'text-brand-red bg-[#FDEAEB]',
-  lapsed: 'text-brand-red bg-[#FDEAEB]',
+  grace: 'text-[#B8232D] bg-[#FDEAEB]',
+  lapsed: 'text-[#B8232D] bg-[#FDEAEB]',
   pending: 'text-muted bg-paper',
   honorary: 'text-brand-goldink bg-[#FBF3D9]',
 };
@@ -64,6 +67,15 @@ function shortDate(iso: string): string {
 
 const tierLabel: Record<string, string> = { active: 'Active', institutional: 'Institutional', corporate: 'Corporate', honorary: 'Honorary' };
 
+// Which membership the paid-through date comes from: their own dues or an
+// organization they represent.
+function coveredBy(p: Profile, seats: SeatInfo[], best: { date: string | null }): string {
+  if (p.tier === 'honorary') return 'Honorary';
+  if (!best.date) return '';
+  if (best.date === p.expires_at) return 'Own dues';
+  return seats.find((s) => s.expires_at === best.date)?.name ?? '';
+}
+
 export default function PeoplePane({
   members,
   seatsByProfile,
@@ -79,6 +91,7 @@ export default function PeoplePane({
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const boardSeats = useBoardSeats().items;
 
   const rows = useMemo(
     () =>
@@ -146,6 +159,38 @@ export default function PeoplePane({
   const current = Math.min(page, pages);
   const slice = visible.slice((current - 1) * PAGE, current * PAGE);
 
+  // Export to Excel (board, 2026-10-20): the list as filtered and searched
+  // right now, so "Past due or lapsed" then Export gives just those people.
+  function exportList() {
+    const rows: ExportRow[] = visible.map(({ m, seats, status, best }) => {
+      const paid = best.date ? best.date.slice(0, 10) : '';
+      return {
+        name: m.full_name ?? '',
+        email: m.email ?? '',
+        phone: m.phone ?? '',
+        agency: m.agency ?? '',
+        county: m.county ?? '',
+        certification: m.cert_level ?? '',
+        tier: tierLabel[m.tier ?? ''] ?? m.tier ?? '',
+        position: boardSeats.find((b) => b.id && b.id === m.board_seat_id)?.role ?? '',
+        status: statusLabel[status],
+        paidThrough: paid,
+        renewalOpens: paid ? toISODate(renewalOpens(paid)) : '',
+        graceEnds: paid ? toISODate(graceEnd(paid)) : '',
+        coveredBy: coveredBy(m, seats, best),
+        listed: m.show_in_directory !== false,
+        listserv: !m.listserv_opt_out,
+        admin: m.role === 'admin',
+      };
+    });
+    const blob = new Blob([membersCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `faemse-members-${todayISO()}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   function pick(f: Filter) {
     setFilter(f);
     setPage(1);
@@ -176,12 +221,22 @@ export default function PeoplePane({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 className="font-disp font-bold uppercase text-2xl">
+        <h2 className="font-disp font-bold uppercase text-2xl">
           People <span className="ml-2 font-body normal-case tracking-normal text-[13px] font-normal text-muted">{members.length} logins</span>
-        </h3>
-        <button onClick={() => setAdding(!adding)} className={`${adding ? 'btn-outline' : 'btn-red'} !py-2 !px-4 text-[13px]`}>
-          {adding ? 'Close' : '+ Add a person'}
-        </button>
+        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportList}
+            disabled={visible.length === 0}
+            className="btn-outline !py-2 !px-4 text-[13px] disabled:opacity-60"
+            title="Downloads a spreadsheet of the people listed below, with status, paid-through, renewal and grace dates"
+          >
+            Export {visible.length === members.length ? 'all' : visible.length} to Excel
+          </button>
+          <button onClick={() => setAdding(!adding)} className={`${adding ? 'btn-outline' : 'btn-red'} !py-2 !px-4 text-[13px]`}>
+            {adding ? 'Close' : '+ Add a person'}
+          </button>
+        </div>
       </div>
 
       {adding && (
@@ -198,7 +253,7 @@ export default function PeoplePane({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4" role="group" aria-label="Quick filters">
         {tile('current', counts.current, 'Current', 'text-[#0E7A4A]')}
         {tile('due', counts.due, `Due within ${GRACE_DAYS} days`, 'text-[#8A5A00]')}
-        {tile('behind', counts.behind, 'Past due or lapsed', 'text-brand-red')}
+        {tile('behind', counts.behind, 'Past due or lapsed', 'text-brand-redink')}
         {tile('admins', counts.admins, 'Board admins', '')}
       </div>
 
@@ -277,25 +332,22 @@ export default function PeoplePane({
                 </th>
                 <th className="text-left font-bold px-3 py-2.5">Represents</th>
                 <th className="text-left font-bold px-3 py-2.5">Role</th>
-                <th className="px-3 py-2.5" aria-label="Edit"></th>
+                <th className="px-3 py-2.5"><span className="sr-only">Edit</span></th>
               </tr>
             </thead>
             <tbody>
               {slice.map(({ m, seats, status }) => {
                 const isOpen = open === m.id;
                 return [
+                  // The whole row opens the editor with a click; the keyboard
+                  // and screen readers use the Edit button in the last cell,
+                  // which says whether the editor is open. (A table row
+                  // can't carry aria-expanded itself.) The button's click
+                  // reaches the row, so it has no handler of its own.
                   <tr
                     key={m.id}
                     onClick={() => setOpen(isOpen ? null : m.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setOpen(isOpen ? null : m.id);
-                      }
-                    }}
-                    tabIndex={0}
-                    aria-expanded={isOpen}
-                    className={`border-t border-line cursor-pointer outline-none focus-visible:bg-[#E7EEFF] ${isOpen ? 'bg-paper' : 'hover:bg-paper/60'}`}
+                    className={`border-t border-line cursor-pointer focus-within:bg-[#E7EEFF] ${isOpen ? 'bg-paper' : 'hover:bg-paper/60'}`}
                   >
                     <td className="px-4 py-2.5 min-w-0">
                       <b className="block text-[14px] truncate">{m.full_name ?? '—'}</b>
@@ -315,12 +367,21 @@ export default function PeoplePane({
                     </td>
                     <td className="px-3 py-2.5">
                       {m.role === 'admin' ? (
-                        <span className="inline-block text-[10.5px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded-full text-brand-red bg-[#FDEAEB]">Admin</span>
+                        <span className="inline-block text-[10.5px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded-full text-[#B8232D] bg-[#FDEAEB]">Admin</span>
                       ) : (
                         'Member'
                       )}
                     </td>
-                    <td className="px-2 py-2.5 text-[12px] text-muted whitespace-nowrap text-right">{isOpen ? 'Close' : 'Edit'}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      <button
+                        type="button"
+                        aria-expanded={isOpen}
+                        className="min-h-6 px-2 rounded-md text-[12px] font-semibold text-muted hover:text-ink whitespace-nowrap"
+                      >
+                        {isOpen ? 'Close' : 'Edit'}
+                        <span className="sr-only"> {m.full_name ?? m.email}</span>
+                      </button>
+                    </td>
                   </tr>,
                   isOpen ? (
                     <tr key={`${m.id}-editor`}>

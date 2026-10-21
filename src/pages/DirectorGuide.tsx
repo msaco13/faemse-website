@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { mailto } from '../content/data';
+import { contactPath } from '../content/data';
 import { slug, T } from '../lib/text';
 
 // The clearest unmet need from the build brief: program director turnover is
@@ -195,9 +195,9 @@ export default function DirectorGuide() {
                   of hard-won knowledge here saves a new director a semester.
                 </T>
               </p>
-              <a href={mailto('Director%20guide%20contribution')} className="btn-outline !py-2.5 !px-5">
+              <Link to={contactPath('Director guide contribution')} className="btn-outline !py-2.5 !px-5">
                 <T id="directors.contribute.cta">Contribute to the guide</T>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

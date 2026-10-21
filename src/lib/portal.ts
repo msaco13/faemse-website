@@ -19,7 +19,22 @@ export type Profile = {
   website?: string | null;
   listserv_opt_out?: boolean | null;
   listserv_email?: string | null;
+  // The board seat this person holds (board_members.id), set from the
+  // Admin tab's board page editor; the directory shows its position.
+  board_seat_id?: string | null;
 };
+
+// The positions the board page editor suggests (bylaws Articles 5 and 6,
+// plus the Executive Director the board appoints). Any other title can be
+// typed in.
+export const FAEMSE_POSITIONS = [
+  'President',
+  'President-Elect',
+  'Secretary',
+  'Immediate Past President',
+  'Member-at-Large',
+  'Executive Director',
+];
 
 // An institutional or corporate membership, held by the organization rather
 // than a person. Its representatives are current members while it is.
@@ -83,7 +98,31 @@ export type DirectoryEntry = {
   cert_level: string | null;
   county: string | null;
   agency: string | null;
+  // From the board seat the member holds, if any (get_directory).
+  faemse_position?: string | null;
+  position_rank?: number | null;
 };
+
+// The surname a name sorts under: its last word, skipping a trailing
+// suffix ("Jr.", "III"), so "Ana de la Cruz" sorts under Cruz.
+const SUFFIX = /^(jr|sr|ii|iii|iv|v|md|phd|rn|np)\.?$/i;
+export function lastName(fullName: string | null | undefined): string {
+  const words = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
+  while (words.length > 1 && SUFFIX.test(words[words.length - 1].replace(/,$/, ''))) words.pop();
+  return (words[words.length - 1] ?? '').replace(/,$/, '');
+}
+
+// Directory order (board, 2026-10-20): board seats first, in the board
+// page's order (position_rank: officers, directors, staff), then everyone by
+// last name, then first name.
+export function sortDirectory(entries: DirectoryEntry[]): DirectoryEntry[] {
+  const rank = (e: DirectoryEntry) =>
+    typeof e.position_rank === 'number' ? e.position_rank : e.faemse_position ? Number.MAX_SAFE_INTEGER - 1 : Number.MAX_SAFE_INTEGER;
+  const byName = (a: string, b: string) => a.localeCompare(b, 'en', { sensitivity: 'base' });
+  return [...entries].sort(
+    (a, b) => rank(a) - rank(b) || byName(lastName(a.full_name), lastName(b.full_name)) || byName(a.full_name ?? '', b.full_name ?? ''),
+  );
+}
 
 export type Application = {
   id: string;

@@ -15,7 +15,7 @@ const kindLabel: Record<Organization['kind'], string> = { institutional: 'Instit
 const stateChip: Record<string, string> = {
   current: 'text-[#0E7A4A] bg-[#E2F7EC]',
   grace: 'text-brand-goldink bg-[#FBF3D9]',
-  lapsed: 'text-brand-red bg-[#FDEAEB]',
+  lapsed: 'text-[#B8232D] bg-[#FDEAEB]',
   pending: 'text-muted bg-paper',
 };
 const stateText: Record<string, string> = { current: 'current', grace: 'renewal due', lapsed: 'lapsed', pending: 'no date' };
@@ -172,7 +172,7 @@ function OrgRow({
                         make coordinator
                       </button>
                     )}
-                    <button onClick={() => removeSeat(s)} className="text-muted font-semibold text-[12.5px] hover:text-brand-red">
+                    <button onClick={() => removeSeat(s)} className="text-muted font-semibold text-[12.5px] hover:text-brand-redink">
                       remove
                     </button>
                   </li>
@@ -219,7 +219,7 @@ function OrgRow({
             <button onClick={recordPayment} disabled={paying} className="btn-outline !py-1.5 !px-3.5 text-[12.5px] disabled:opacity-60">
               {paying ? 'Recording…' : `Record ${method === 'waived' ? 'waiver' : dollars(duesCents(org.kind))} · +1 year`}
             </button>
-            <button onClick={remove} className="ml-auto text-muted font-semibold text-[12.5px] hover:text-brand-red">
+            <button onClick={remove} className="ml-auto text-muted font-semibold text-[12.5px] hover:text-brand-redink">
               Delete organization
             </button>
           </div>
@@ -230,7 +230,7 @@ function OrgRow({
             </p>
           )}
           {err && (
-            <p className="text-brand-red font-semibold text-[13px]" role="alert">
+            <p className="text-brand-redink font-semibold text-[13px]" role="alert">
               {err}
             </p>
           )}
@@ -289,12 +289,12 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <h3 className="font-disp font-bold uppercase text-2xl">
+        <h2 className="font-disp font-bold uppercase text-2xl">
           Organizations
           <span className="ml-2 font-body normal-case tracking-normal text-[13px] font-normal text-muted">
             {orgs.length ? `${orgs.length} institutional and corporate memberships` : 'institutional and corporate memberships'}
           </span>
-        </h3>
+        </h2>
         {orgs.length > 5 && (
           <input
             value={query}
@@ -311,7 +311,7 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
         the coordinator and the billing contact. An organization that pays online is created and seated here on its own.
       </p>
       {err && (
-        <p className="text-brand-red font-semibold text-[13px] mb-3" role="alert">
+        <p className="text-brand-redink font-semibold text-[13px] mb-3" role="alert">
           {err}
         </p>
       )}

@@ -72,13 +72,32 @@ association's Supabase organization.
   from the portal's Board admin panel.
 - `profiles` — member portal profiles (tier, expiration, directory listing,
   role, and since Sept 2026 phone, job title, organization type, alternate
-  email, website, listserv opt-out and special listserv email). `role =
+  email, website, listserv opt-out and special listserv email).
+  `faemse_position` (since Oct 2026) holds a board or staff position
+  (President, Secretary, Member-at-Large, Executive Director, ...); only
+  admins set it, from the member editor, and the member directory shows it
+  next to the name. It is separate from `job_title`, which holds people's
+  own jobs from the old roster. `role =
   'admin'` unlocks the admin panels on the Members page. A person's *own*
   membership lives here; institutional and corporate ones live on
   `organizations` (see "Organizations, contacts, and the listserv").
 - `organizations`, `organization_members`, `contacts` — institutional and
   corporate memberships with their seated representatives (cap enforced by
   trigger), and the listserv-only people without a login.
+- **Admin tab (board decision 2026-10-20).** Administrators get an Admin
+  link after About, opening `/admin` (`src/pages/Admin.tsx`): one place for
+  everything an admin can change. It is the same workspace as the portal's
+  Board tools tab (`src/components/admin/AdminWorkspace.tsx`), so nothing
+  moved. Pages: page wording & pictures (the launch pad: edit-mode switch,
+  every page one click away, every saved wording change with Reset, and a
+  flag on changes no page uses any more, from the `virtual:text-ids` list
+  built in `vite.config.ts`), the board page (`board_members`; seats link to
+  member accounts, which shows their position in the directory), sponsors
+  (`sponsors`; logos upload to the `media` bucket), the bylaws text, and the
+  program hubs (saving applies the hub rules in `src/lib/hubDraft.ts`).
+  Members: inbox, people (with Export to Excel: a CSV with status,
+  paid-through, renewal and grace dates), organizations. Then site content
+  and dues & tools as before. Schema: `supabase/migrations/20261020_admin_editors.sql` (applied 2026-10-21).
 - **Site structure (board decisions 2026-10-20).** One header, two states
   (`src/components/Header.tsx`). Visitors: Membership · Events · News ·
   Program map · Foundation · About, then Contact, Member sign in, Join.
@@ -207,27 +226,24 @@ association's Supabase organization.
   `supabase/migrations/20260903_spotlight_video_media.sql` (both applied):
   the spotlight rotator, Q&A review queue, spotlight video, media bucket.
 
-### Email routing (interim)
+### Email routing
 
-faemse.org mail is hosted on Microsoft 365 by the association (the MX
-record points there and the executive director's address is on it), and
-`info@faemse.org` was the contact address on the old site, so the new site
-prints it too. **Nobody on the project holds a login for info@faemse.org
-and it has not been confirmed to exist** (2026-10-01). So:
+The site prints no email address (board, 2026-10-21). `info@faemse.org`
+was the contact address on the old site, but it has no mailbox. So:
 
-* every "send us a posting / class / resource / video" button addresses
-  info@faemse.org **and copies the board** (`contact.boardCc` in
-  `src/content/data.ts`: Jorge Anzardo and Michael Saco);
+* every "write to us" link and every "send us a posting / class / video"
+  button opens the contact form (`contactPath()` in `src/content/data.ts`
+  fills in the subject). Messages land in Admin → Inbox, and
+  `notify-board` emails them to the board with Reply-To set to the sender;
 * every email the site sends to a member (renewal reminders, password
   links, welcome and renewal confirmations) carries a `Reply-To` of the two
-  board addresses, not info@faemse.org (`REPLY_TO` in
-  `supabase/functions/renewal-reminders`, `password-link`, `stripe-webhook`),
-  so a member who hits Reply reaches people. Until 2026-10-01 those replies
-  went to info@faemse.org.
+  board addresses (`REPLY_TO` in `supabase/functions/renewal-reminders`,
+  `password-link`, `stripe-webhook`), so a member who hits Reply reaches
+  people.
 
-When the association has a monitored mailbox, change `REPLY_TO` in the three
-functions and `contact.boardCc`, redeploy, and the printed address stays as
-it is.
+If the association later sets up a monitored mailbox, change `REPLY_TO` in
+the three functions and redeploy. Printing an address on the site again is
+a board decision.
 
 ### Board notifications (contact form + applications)
 
@@ -565,16 +581,18 @@ leaving alone:
 |---|---|---|---|
 | `brand.blue` (links, eyebrows) | `#2F6BFF` | `#2560E8` | 4.49 → 5.36 on white, 4.15 → 4.95 on paper |
 | Videos track numerals | `brand-gold/70` | `brand-golddeep` | 1.63 → 3.37 (large text needs 3.0) |
+| Red text (errors, Remove, Past due) | `brand-red` | `brand-redink` (`#B8232D`) | 3.86 → 6.33 on white (2026-10-21) |
+| Sponsor band, footer copyright | `#5E739C`, `#6E84AC` | `#93A6C9`, `#7C90B6` | about 3–4.3 → 4.5 or better on the navy |
 
 Re-check after any color or type change. Serve `dist/` and run axe against
 each route; the quickest route is a Claude session, which has done exactly
 this twice.
 
-Two known items automated tools cannot catch, both currently **unaddressed**:
-the sponsor marquee scrolls continuously and only pauses on mouse hover, so a
-keyboard-only visitor cannot stop it (WCAG 2.2.2), and the hero slideshow
-auto-advances every 8 s, though it does pause on focus. Both stop entirely
-under `prefers-reduced-motion`. A pause button on the marquee would close it.
+Moving content (WCAG 2.2.2), which automated tools cannot judge: the hero
+slideshow and the sponsor band (`src/components/SponsorBand.tsx`, on the
+homepage and across the bottom of the member portal) each have a Pause
+button, also pause under the pointer and on keyboard focus, and stand still
+under `prefers-reduced-motion` (2026-10-21).
 
 ## Deploying
 
@@ -588,7 +606,13 @@ Two ready-made options in this repo:
 1. **GitHub Pages** (`.github/workflows/deploy.yml`, deploys on every push to
    main once activated): make the repo public (or use a plan with
    private-repo Pages) and enable Settings → Pages → Source "GitHub Actions".
-   Serves at https://faemse.org/
+   Serves at https://faemse.org/. After the build, `scripts/route-pages.mjs`
+   writes a page per address (`about.html` and so on, from
+   `public/sitemap.xml` plus a short list of portal addresses), so inner
+   pages answer "200 OK" instead of coming through `404.html` with a 404
+   status that search engines skip. A new top-level page goes in the sitemap
+   (or the script's EXTRA list if search engines shouldn't list it). The
+   hourly smoke check confirms the status codes on the live site.
 
 2. **Supabase Edge Function** (`scripts/deploy-supabase.mjs`) — deploys the
    build as a `site` function on the association's Supabase project.

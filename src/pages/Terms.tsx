@@ -1,5 +1,6 @@
 import PageHead from '../components/PageHead';
-import { contact } from '../content/data';
+import { Link } from 'react-router-dom';
+import { contact, contactPath } from '../content/data';
 import { slug, T } from '../lib/text';
 
 const sections = [
@@ -44,10 +45,11 @@ export default function Terms() {
               </div>
             ))}
             <p className="text-muted text-[13.5px] pt-2 border-t border-line">
-              {contact.legalName} · <T id="terms.footer.text">Last updated August 2026. Questions:</T>{' '}
-              <a className="font-semibold text-brand-blue hover:underline" href={`mailto:${contact.email}`}>
-                {contact.email}
-              </a>
+              {contact.legalName} · <T id="terms.footer.updated">Last updated October 2026. Questions:</T>{' '}
+              <Link className="font-semibold text-brand-blue hover:underline" to={contactPath('Terms of use question')}>
+                <T id="terms.footer.link">send us a message</T>
+              </Link>
+              .
             </p>
           </div>
         </div>

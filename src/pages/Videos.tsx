@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { mailto } from '../content/data';
+import { contactPath } from '../content/data';
 import { embedUrl, useVideoIndex, useVideos } from '../lib/postings';
 import { slug, T } from '../lib/text';
 import { useMemberStatus } from '../lib/useMemberStatus';
@@ -100,9 +100,9 @@ export default function Videos() {
                     </T>
                   </p>
                 </div>
-                <a href={mailto('Teaching%20video%20contribution')} className="btn-gold">
+                <Link to={contactPath('Teaching video contribution')} className="btn-gold">
                   <T id="videos.volunteer.cta">Volunteer a segment</T>
-                </a>
+                </Link>
               </div>
             </>
           ) : (
@@ -176,9 +176,9 @@ export default function Videos() {
                   Good at a specific piece of teaching? The library grows one 3–4 minute segment at a
                   time.
                 </T>{' '}
-                <a className="text-brand-blue font-semibold hover:underline" href={mailto('Teaching%20video%20contribution')}>
+                <Link className="text-brand-blue font-semibold hover:underline" to={contactPath('Teaching video contribution')}>
                   <T id="videos.note.link">Volunteer a segment →</T>
-                </a>
+                </Link>
               </p>
             </>
           )}

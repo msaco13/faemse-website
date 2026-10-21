@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
-import { faq, honorary, membershipTerms, tiers } from '../content/data';
+import { contactPath, faq, honorary, membershipTerms, tiers } from '../content/data';
 import type { Representative } from '../lib/portal';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
@@ -295,7 +295,7 @@ export default function Membership() {
                 <span className={label}>
                   {isOrg ? <T id="membership.form.name.label.org">Coordinator's full name</T> : <T id="membership.form.name.label">Full name</T>}
                 </span>
-                <input name="full_name" required maxLength={200} className={input} />
+                <input name="full_name" autoComplete="name" required maxLength={200} className={input} />
               </label>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 mb-4">
@@ -303,13 +303,13 @@ export default function Membership() {
                 <span className={label}>
                   {isOrg ? <T id="membership.form.email.label.org">Coordinator's email</T> : <T id="membership.form.email.label">Email</T>}
                 </span>
-                <input name="email" type="email" required maxLength={254} className={input} />
+                <input name="email" type="email" autoComplete="email" required maxLength={254} className={input} />
               </label>
               <label className="block">
                 <span className={label}>
                   <T id="membership.form.phone.label">Phone (optional)</T>
                 </span>
-                <input name="phone" maxLength={40} className={input} />
+                <input name="phone" type="tel" autoComplete="tel" maxLength={40} className={input} />
               </label>
             </div>
             <div className="grid sm:grid-cols-3 gap-4 mb-4">
@@ -317,7 +317,7 @@ export default function Membership() {
                 <span className={label}>
                   {isOrg ? <T id="membership.form.org.label.org">Organization name</T> : <T id="membership.form.org.label">Organization / program</T>}
                 </span>
-                <input name="organization" required={isOrg} maxLength={300} className={input} />
+                <input name="organization" autoComplete="organization" required={isOrg} maxLength={300} className={input} />
               </label>
               <label className="block">
                 <span className={label}>
@@ -387,10 +387,14 @@ export default function Membership() {
               </p>
             )}
             {status === 'error' && (
-              <p className="mt-4 text-brand-red font-semibold" role="alert">
-                <T id="membership.form.error">
-                  Something went wrong submitting the application. Email us directly at info@faemse.org.
-                </T>
+              <p className="mt-4 text-brand-redink font-semibold" role="alert">
+                <T id="membership.form.error.retry">
+                  Something went wrong submitting the application. Please try again in a minute, or
+                </T>{' '}
+                <Link className="underline" to={contactPath('Membership application')}>
+                  <T id="membership.form.error.link">send the board a message</T>
+                </Link>
+                .
               </p>
             )}
           </form>

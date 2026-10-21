@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import { contactPath } from '../content/data';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { EventItem, splitEvents, useSiteEvents } from '../lib/content';
 import { T } from '../lib/text';
@@ -105,9 +107,10 @@ export default function Events() {
 
           <p className="text-muted text-[14px] mt-6">
             <T id="events.contact.label">Registration and event questions:</T>{' '}
-            <a className="text-brand-blue font-semibold" href="mailto:info@faemse.org">
-              info@faemse.org
-            </a>
+            <Link className="text-brand-blue font-semibold hover:underline" to={contactPath('Event question')}>
+              <T id="events.contact.link">send us a message</T>
+            </Link>
+            .
           </p>
         </div>
       </section>

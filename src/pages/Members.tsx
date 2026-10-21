@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import AdminWorkspace from '../components/admin/AdminWorkspace';
+import SponsorBand from '../components/SponsorBand';
+import SponsorWall from '../components/SponsorWall';
 import BoardStrip from '../components/BoardStrip';
 import PageHead from '../components/PageHead';
-import { mailto, resourceCategories } from '../content/data';
+import { contactPath, resourceCategories } from '../content/data';
 import { useSiteNews } from '../lib/content';
 import { useHubList } from '../lib/hubs';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
-import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens } from '../lib/portal';
-import { useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
+import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens, sortDirectory } from '../lib/portal';
+import { useBoardSeats, useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
 import { arrivedByPasswordLink } from '../lib/recovery';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
@@ -18,9 +20,12 @@ import { T, useText } from '../lib/text';
 const stateBadge = {
   current: { text: 'Current member', cls: 'text-[#0E7A4A] bg-[#E2F7EC]' },
   grace: { text: 'Renewal due', cls: 'text-brand-goldink bg-[#FBF3D9]' },
-  lapsed: { text: 'Membership lapsed', cls: 'text-brand-red bg-[#FDEAEB]' },
+  lapsed: { text: 'Membership lapsed', cls: 'text-[#B8232D] bg-[#FDEAEB]' },
   pending: { text: 'Membership pending verification', cls: 'text-brand-goldink bg-[#FBF3D9]' },
 } as const;
+
+// A board or staff position next to a name in the directory (set by admins).
+const positionTag = 'ml-2 inline-block align-middle text-[11px] font-bold tracking-[0.06em] uppercase px-2 py-0.5 rounded-full text-brand-goldink bg-[#FBF3D9]';
 
 export default function Members() {
   const navigate = useNavigate();
@@ -39,6 +44,7 @@ export default function Members() {
   const { tab } = useParams<{ tab?: string }>();
   const hubs = useHubList(!!session);
   const spotlights = useSpotlights();
+  const boardSeats = useBoardSeats().items;
   const news = useSiteNews();
   const jobs = useJobs();
   const classes = useClasses();
@@ -46,6 +52,7 @@ export default function Members() {
   const videos = useVideos(!!session);
   const pwPlaceholder = useText('members.password.placeholder', 'New password (8+ characters)');
   const pwAria = useText('members.password.aria', 'New password, at least 8 characters');
+  const directoryAria = useText('members.directory.aria', 'Member directory list');
   const { online_dues: onlineDues } = useSettings();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paying, setPaying] = useState(false);
@@ -165,7 +172,7 @@ export default function Members() {
       supabase.rpc('my_organizations'),
     ]);
     if (prof) setProfile(prof as Profile);
-    setDirectory((dir ?? []) as DirectoryEntry[]);
+    setDirectory(sortDirectory((dir ?? []) as DirectoryEntry[]));
     if (pays) setPayments(pays as Payment[]);
     if (orgs) setMyOrgs(orgs as MyOrganization[]);
   }
@@ -214,15 +221,18 @@ export default function Members() {
   const canPayOnline = Boolean(onlineDues) && ownDues;
   const isMember = mState === 'current' || mState === 'grace';
 
-  // Which tab: /members, /members/resources, /members/jobs, /members/account,
-  // /members/board (admins). Jobs & classes appears only when something is
-  // posted; anything unknown falls back to Home.
+  // Which tab: /members, /members/resources, /members/sponsors,
+  // /members/jobs, /members/account, /members/board (admins). Jobs & classes
+  // appears only when something is posted; anything unknown falls back to
+  // Home. Corporate sponsors (board, 2026-10-21) shows the still sponsor
+  // wall; every other tab has the moving sponsor band across the bottom.
   const jobsLive = jobs.live ? jobs.items : [];
   const classesLive = classes.live ? classes.items : [];
   const showJobs = jobsLive.length + classesLive.length > 0;
   const tabs = [
     { key: 'home', to: '/members', label: 'Home' },
     { key: 'resources', to: '/members/resources', label: 'Resources' },
+    { key: 'sponsors', to: '/members/sponsors', label: 'Corporate sponsors' },
     ...(showJobs ? [{ key: 'jobs', to: '/members/jobs', label: 'Jobs & classes' }] : []),
     { key: 'account', to: '/members/account', label: 'My account' },
     ...(isAdmin ? [{ key: 'board', to: '/members/board', label: 'Board tools' }] : []),
@@ -235,6 +245,8 @@ export default function Members() {
   const latestPost = news.live ? news.items[0] : undefined;
   const latestHub = [...hubList].sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
   const qaPublished = qa.items.filter((q) => q.published !== false);
+  // The board seat this member holds, if an admin linked one (Admin → Board page).
+  const mySeat = profile?.board_seat_id ? boardSeats.find((b) => b.id === profile.board_seat_id) : undefined;
   const foundation = spotlights.items.find((s) => /faemsefoundation\.org/i.test(s.linkUrl));
   const longDay = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -314,7 +326,7 @@ export default function Members() {
       </>
     );
   } else if (mState === 'lapsed') {
-    cardBadge = badge('Membership lapsed', 'text-brand-red bg-[#FDEAEB]', 'lapsed');
+    cardBadge = badge('Membership lapsed', 'text-[#B8232D] bg-[#FDEAEB]', 'lapsed');
     cardBody = (
       <>
         <b className="font-disp font-bold text-[28px] leading-[1.05]"><T id="members.lapsed.a">Your membership lapsed</T>{exp ? ` on ${formatDate(exp)}` : ''}</b>
@@ -496,7 +508,10 @@ export default function Members() {
                           {(profile?.full_name ?? firstName).split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase()}
                         </span>
                         <span className="min-w-0">
-                          <b className="block text-[16px]">{profile?.full_name || 'Your name'}</b>
+                          <b className="block text-[16px]">
+                            {profile?.full_name || 'Your name'}
+                            {mySeat && <span className={positionTag}>{mySeat.role}</span>}
+                          </b>
                           <span className="text-[13.5px] text-muted">{[profile?.cert_level, profile?.agency, profile?.county].filter(Boolean).join(' · ') || 'Add your certification, agency and county'}</span>
                         </span>
                       </div>
@@ -623,7 +638,7 @@ export default function Members() {
                     <div className="grid sm:grid-cols-2 gap-4 mb-4">
                       <label className="block">
                         <span className={label}><T id="members.profile.name">Full name</T></span>
-                        <input name="full_name" defaultValue={profile?.full_name ?? ''} maxLength={200} className={input} />
+                        <input name="full_name" autoComplete="name" defaultValue={profile?.full_name ?? ''} maxLength={200} className={input} />
                       </label>
                       <label className="block">
                         <span className={label}><T id="members.profile.cert">Certification level</T></span>
@@ -637,7 +652,7 @@ export default function Members() {
                       </label>
                       <label className="block">
                         <span className={label}><T id="members.profile.agency">Agency / program</T></span>
-                        <input name="agency" defaultValue={profile?.agency ?? ''} maxLength={300} className={input} />
+                        <input name="agency" autoComplete="organization" defaultValue={profile?.agency ?? ''} maxLength={300} className={input} />
                       </label>
                     </div>
                     <label className="flex items-center gap-2.5 mb-5 text-[14.5px] font-semibold">
@@ -656,7 +671,7 @@ export default function Members() {
                       <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{profileMsg}</p>
                     )}
                     {profileStatus === 'error' && (
-                      <p className="mt-3 text-brand-red font-semibold text-[14px]" role="alert">{profileMsg}</p>
+                      <p className="mt-3 text-brand-redink font-semibold text-[14px]" role="alert">{profileMsg}</p>
                     )}
                   </form>
                 </div>
@@ -671,10 +686,19 @@ export default function Members() {
                       <T id="members.directory.empty">No listed members yet — the directory fills in as memberships are verified.</T>
                     </p>
                   ) : (
-                    <ul className="divide-y divide-line max-h-[340px] overflow-y-auto pr-1">
+                    // tabIndex: a box that scrolls must be reachable from the
+                    // keyboard, or arrow keys can't scroll it (WCAG 2.1.1).
+                    <ul
+                      tabIndex={0}
+                      aria-label={directoryAria}
+                      className="divide-y divide-line max-h-[340px] overflow-y-auto pr-1 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-blue"
+                    >
                       {directory.map((d, i) => (
                         <li key={`${d.full_name}-${i}`} className="py-3">
-                          <b className="block text-[14.5px]">{d.full_name ?? 'Member'}</b>
+                          <b className="block text-[14.5px]">
+                            {d.full_name ?? 'Member'}
+                            {d.faemse_position && <span className={positionTag}>{d.faemse_position}</span>}
+                          </b>
                           <span className="text-[13px] text-muted">
                             {[d.cert_level, d.agency, d.county].filter(Boolean).join(' · ') || '—'}
                           </span>
@@ -767,13 +791,18 @@ export default function Members() {
 
           {active === 'board' && isAdmin && <AdminWorkspace />}
 
-          {!isMember && active !== 'account' && (
+          {active === 'sponsors' && <SponsorWall />}
+
+          {/* The sponsors are public, so their tab carries no members-only note. */}
+          {!isMember && active !== 'account' && active !== 'sponsors' && (
             <p className="mt-8 text-muted text-[14px]">
               <T id="members.limited">Member resources open when your membership is current.</T>
             </p>
           )}
         </div>
       </section>
+
+      {active !== 'sponsors' && <SponsorBand where="portal" />}
     </>
   );
 }
@@ -842,9 +871,9 @@ function JobsAndClasses({ jobs, classes }: { jobs: JobItem[]; classes: ClassItem
           {pill('jobs', `Jobs (${jobs.length})`)}
           {pill('classes', `Classes (${classes.length})`)}
         </div>
-        <a href={mailto('Job%20or%20class%20posting')} className="font-bold text-brand-blue hover:underline text-[14.5px]">
+        <Link to={contactPath('Job or class posting')} className="font-bold text-brand-blue hover:underline text-[14.5px]">
           <T id="members.jobs.post">Post an opening or a class →</T>
-        </a>
+        </Link>
       </div>
       <ul className="card divide-y divide-line">
         {rows.map((r) => (

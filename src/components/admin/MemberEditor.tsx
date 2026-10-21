@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 // The editor that opens under a person's row in the People table: the same
 // controls the old full-height member row carried (paid-through, tier, role,
 // listserv, record a payment), now shown only for the row the admin clicked.
+// Since Oct 2026 it can also change the person's login email (LoginEmail).
 
 const small = 'rounded-lg border border-line px-2.5 py-1.5 text-[13.5px] outline-none focus:border-brand-blue bg-white';
 
@@ -121,7 +122,7 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
         </div>
       </div>
       {err && (
-        <p className="text-brand-red text-[12.5px] font-semibold mt-2" role="alert">
+        <p className="text-brand-redink text-[12.5px] font-semibold mt-2" role="alert">
           {err}
         </p>
       )}
@@ -147,17 +148,112 @@ export default function MemberEditor({ member, onSaved }: { member: Profile; onS
           {paying ? 'Recording…' : `Record ${method === 'waived' ? 'waiver' : dollars(duesCents(member.tier))} · +1 year`}
         </button>
         {payMsg && (
-          <span className={`font-semibold ${payMsg.startsWith('Recorded') ? 'text-[#0E7A4A]' : 'text-brand-red'}`} role="status">
+          <span className={`font-semibold ${payMsg.startsWith('Recorded') ? 'text-[#0E7A4A]' : 'text-brand-redink'}`} role="status">
             {payMsg}
           </span>
         )}
       </div>
+
+      <LoginEmail member={member} onChanged={onSaved} />
 
       {details.length > 0 && (
         <p className="mt-3 text-[12.5px] text-muted flex flex-wrap gap-x-4 gap-y-1">
           {details.map((d) => (
             <span key={d}>{d}</span>
           ))}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// The login email is what the person signs in with. Changing it needs the
+// service-role key, so it goes through the change-login-email function, which
+// checks the caller is an admin. Optionally sends the usual set-password link
+// (the sign-in page's "Forgot password" email) to the new address.
+function LoginEmail({ member, onChanged }: { member: Profile; onChanged: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [sendLink, setSendLink] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [err, setErr] = useState('');
+
+  async function change() {
+    const next = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next)) return setErr('Enter a full email address.');
+    if (next === (member.email ?? '').toLowerCase()) return setErr('That is already their login email.');
+    const who = member.full_name || member.email || 'this person';
+    if (!window.confirm(`Change ${who}'s login from ${member.email} to ${next}? From now on they sign in with the new address only.`)) return;
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    const { data, error } = await supabase.functions.invoke('change-login-email', { body: { profile_id: member.id, email: next } });
+    const failure = (data as { error?: string } | null)?.error ?? (error ? 'Could not change it. If this keeps happening, the change-login-email function may not be set up yet.' : '');
+    if (failure) {
+      setBusy(false);
+      return setErr(failure);
+    }
+    let linkNote = '';
+    if (sendLink) {
+      const { error: linkErr } = await supabase.functions.invoke('password-link', { body: { email: next } });
+      linkNote = linkErr ? ' The set-password email could not be sent; they can use "Forgot password".' : ' A set-password link is on its way to the new address.';
+    }
+    setBusy(false);
+    setOpen(false);
+    setEmail('');
+    setMsg(`Login changed to ${next}.${linkNote}`);
+    onChanged();
+  }
+
+  return (
+    <div className="mt-3 text-[13px]">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-muted font-semibold">Login email:</span>
+        <span className="font-mono text-[12.5px]">{member.email ?? 'none'}</span>
+        {!open && (
+          <button onClick={() => setOpen(true)} className="font-semibold text-brand-blue hover:underline">
+            Change
+          </button>
+        )}
+        {msg && (
+          <span className="text-[#0E7A4A] font-semibold" role="status">
+            {msg}
+          </span>
+        )}
+      </div>
+      {open && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="new.address@example.org"
+            aria-label="New login email"
+            className={`${small} w-[260px] max-w-full`}
+            autoComplete="off"
+          />
+          <label className="flex items-center gap-1.5 text-[12.5px] font-semibold">
+            <input type="checkbox" checked={sendLink} onChange={(e) => setSendLink(e.target.checked)} className="w-3.5 h-3.5 accent-brand-blue" />
+            Email a set-password link to the new address
+          </label>
+          <button onClick={change} disabled={busy} className="btn-outline !py-1.5 !px-3.5 text-[12.5px] disabled:opacity-60">
+            {busy ? 'Changing…' : 'Change login email'}
+          </button>
+          <button
+            onClick={() => {
+              setOpen(false);
+              setErr('');
+            }}
+            className="text-[12.5px] font-semibold text-muted hover:text-ink"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+      {err && (
+        <p className="text-brand-redink font-semibold text-[12.5px] mt-1.5" role="alert">
+          {err}
         </p>
       )}
     </div>

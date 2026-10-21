@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { contactPath } from '../content/data';
 import Seal from '../components/Seal';
 import { supabase } from '../lib/supabase';
 import { T, useText } from '../lib/text';
@@ -157,9 +158,10 @@ export default function Login() {
         </form>
         <p className="text-center text-[12.5px] text-[#7C90B6] mt-5">
           <T id="login.note">Portal accounts are issued to current FAEMSE members. Questions:</T>{' '}
-          <a className="text-brand-bluesoft hover:text-white" href="mailto:info@faemse.org">
-            info@faemse.org
-          </a>
+          <Link className="text-brand-bluesoft underline hover:text-white" to={contactPath('Member portal login')}>
+            <T id="login.note.link">send us a message</T>
+          </Link>
+          .
         </p>
       </div>
     </section>

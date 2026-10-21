@@ -23,6 +23,7 @@ const Sponsors = lazy(() => import('./pages/Sponsors'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Login = lazy(() => import('./pages/Login'));
 const Members = lazy(() => import('./pages/Members'));
+const Admin = lazy(() => import('./pages/Admin'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Jobs = lazy(() => import('./pages/Jobs'));
@@ -117,7 +118,10 @@ function CanonicalUrl() {
   useEffect(() => {
     // Origin-relative so the tags stay correct after the faemse.org cutover.
     const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-    const href = `${window.location.origin}${base}${pathname === '/' ? '/' : pathname}`;
+    // No trailing slash, to match the page files scripts/route-pages.mjs
+    // writes (GitHub Pages may answer /sponsors at /sponsors/).
+    const path = pathname.replace(/\/+$/, '') || '/';
+    const href = `${window.location.origin}${base}${path}`;
     let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!link) {
       link = document.createElement('link');
@@ -192,6 +196,8 @@ export default function App() {
             {/* Current members and admins; the page and the database both enforce it. */}
             <Route path="/hubs/:hub?/:section?/:sub?" element={<Hubs />} />
             {/* The hubs' first address, when they were admins only (Oct 10-13, 2026). */}
+            {/* Admins only (the page checks); the header shows it to admins. */}
+            <Route path="/admin" element={<Admin />} />
             <Route path="/admin/hubs/*" element={<OldHubsAddress />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />

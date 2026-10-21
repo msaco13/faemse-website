@@ -58,6 +58,20 @@ async function checkSite() {
     const c = await fetchText(`${SITE}${css}`);
     ok('CSS is served', c.res.status === 200, `status ${c.res.status}`);
   }
+  // Inner pages answer 200 with their own canonical address (the deploy
+  // writes a page per address, scripts/route-pages.mjs); an unknown address
+  // still answers 404. Search engines skip pages that answer 404.
+  for (const path of ['/about', '/membership', '/sponsors', '/contact']) {
+    const page = await fetchText(`${SITE}${path}`);
+    const canonical = page.text.match(/<link rel="canonical" href="([^"]+)"/)?.[1] ?? 'none';
+    ok(`${path} answers 200`, page.res.status === 200, `status ${page.res.status}`);
+    // The path only: the page names faemse.org even when SMOKE_SITE points elsewhere.
+    ok(`${path} names itself as canonical`, canonical !== 'none' && new URL(canonical).pathname === path, canonical);
+  }
+  const missing = await fetchText(`${SITE}/this-page-does-not-exist`);
+  ok('an unknown address answers 404', missing.res.status === 404, `status ${missing.res.status}`);
+  const robots = await fetchText(`${SITE}/robots.txt`);
+  ok('robots.txt keeps search engines out of the portal', /Disallow: \/members\//.test(robots.text) && !/Disallow: \/members\s*$/m.test(robots.text), `status ${robots.res.status}`);
   // Deep links: GitHub Pages serves the app from 404.html with a 404 status
   // (the app then routes client-side). What matters is that the app loads.
   const deep = await fetchText(`${SITE}/members`);

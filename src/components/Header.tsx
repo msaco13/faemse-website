@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Seal from './Seal';
 import { useHasNews } from '../lib/content';
@@ -18,11 +18,13 @@ import { useMemberStatus } from '../lib/useMemberStatus';
 //            keeps Membership and gets a Renew button.
 // News shows only once a post exists. Foundation is the one link that leaves
 // the site (its own 501(c)(3), its own website): plain label, no arrow, new
-// tab. About sits last (board request, 2026-10-13).
+// tab. About sits last among the public links (board request, 2026-10-13);
+// administrators also get Admin right after it (board, 2026-10-20): every
+// admin editor in one place.
 type NavItem = { to: string; label: string; textId: string; external?: boolean };
 const FOUNDATION_URL = 'https://www.faemsefoundation.org';
 
-function navFor(member: boolean, hasNews: boolean): NavItem[] {
+function navFor(member: boolean, hasNews: boolean, admin: boolean): NavItem[] {
   return [
     ...(member ? [] : [{ to: '/membership', label: 'Membership', textId: 'membership' }]),
     { to: '/events', label: 'Events', textId: 'events' },
@@ -30,6 +32,7 @@ function navFor(member: boolean, hasNews: boolean): NavItem[] {
     { to: '/programs', label: 'Program map', textId: 'programs' },
     { to: FOUNDATION_URL, label: 'Foundation', textId: 'foundation', external: true },
     { to: '/about', label: 'About', textId: 'about' },
+    ...(admin ? [{ to: '/admin', label: 'Admin', textId: 'admin' }] : []),
   ];
 }
 
@@ -51,13 +54,14 @@ async function signOut() {
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const menuOpen = useText('nav.menu.open', 'Open menu');
   const menuClose = useText('nav.menu.close', 'Close menu');
   const portalAria = useText('nav.portal.aria', 'My portal');
   const status = useMemberStatus();
   const hasNews = useHasNews();
   const member = status.current;
-  const items = navFor(member, hasNews);
+  const items = navFor(member, hasNews, status.admin);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -65,10 +69,16 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // The phone menu is a drop-down under the sticky header, so it covers the
+  // page while open. Escape closes it and puts focus back on the menu button,
+  // and Tabbing out of the header closes it (below), so keyboard focus never
+  // lands on a page link hidden behind it (WCAG 2.4.11).
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      menuButton.current?.focus();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -81,23 +91,32 @@ export default function Header() {
         : 'text-[#D6E1F5]/90 hover:text-white'
     }`;
 
+  // On phones the pill shows only the member's initials. They stay in its
+  // name ("AJ My portal"), so someone using voice control can say what they
+  // see (WCAG 2.5.3); before, the name was just "My portal".
   const portalPill = (compact: boolean) => (
     <Link
       to="/members"
-      aria-label={compact ? portalAria : undefined}
       className={`flex items-center gap-2.5 rounded-full font-bold text-[15px] text-ink2 bg-gradient-to-br from-brand-goldsoft to-[#C8961E] shadow-[0_10px_26px_rgba(223,175,55,.3)] hover:brightness-105 ${
         compact ? 'p-1.5' : 'py-1.5 pl-1.5 pr-4'
       }`}
     >
-      <span className="w-8 h-8 rounded-full bg-ink grid place-items-center font-disp text-[15px] text-brand-goldsoft" aria-hidden>
+      <span className="w-8 h-8 rounded-full bg-ink grid place-items-center font-disp text-[15px] text-brand-goldsoft" aria-hidden={!compact || undefined}>
         {initials(status.name)}
       </span>
-      {!compact && <T id="nav.portal">My portal</T>}
+      {compact ? <span className="sr-only"> {portalAria}</span> : <T id="nav.portal">My portal</T>}
     </Link>
   );
 
   return (
     <header
+      onBlur={(e) => {
+        // Only when focus moved somewhere else on the page. A click on a
+        // menu link in Safari blurs with no new target, and closing then
+        // would swallow the click.
+        const to = e.relatedTarget as Node | null;
+        if (open && to && !e.currentTarget.contains(to)) setOpen(false);
+      }}
       className={`sticky top-0 z-50 bg-[rgba(7,26,50,.86)] backdrop-blur-xl border-b border-white/10 transition-shadow ${
         scrolled ? 'shadow-[0_12px_40px_rgba(4,10,22,.5)]' : ''
       }`}
@@ -174,6 +193,7 @@ export default function Header() {
             </>
           )}
           <button
+            ref={menuButton}
             className="xl:hidden w-11 h-11 grid place-items-center rounded-lg hover:bg-white/10"
             aria-label={open ? menuClose : menuOpen}
             aria-expanded={open}

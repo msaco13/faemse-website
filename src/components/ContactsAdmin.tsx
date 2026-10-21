@@ -53,12 +53,12 @@ function ContactRow({ c, onChanged }: { c: Contact; onChanged: () => void }) {
         <button onClick={save} disabled={!dirty} className="btn-outline !py-1.5 !px-3.5 text-[12.5px] disabled:opacity-40">
           Save
         </button>
-        <button onClick={remove} className="text-muted font-semibold text-[12.5px] hover:text-brand-red">
+        <button onClick={remove} className="text-muted font-semibold text-[12.5px] hover:text-brand-redink">
           Remove
         </button>
       </div>
       {err && (
-        <p className="md:col-span-4 text-brand-red text-[12.5px] font-semibold" role="alert">
+        <p className="md:col-span-4 text-brand-redink text-[12.5px] font-semibold" role="alert">
           {err}
         </p>
       )}
@@ -116,7 +116,7 @@ export default function ContactsAdmin({ refreshKey }: { refreshKey: number }) {
       </summary>
       <div className="mt-4">
         {err && (
-          <p className="text-brand-red font-semibold text-[13px] mb-3" role="alert">
+          <p className="text-brand-redink font-semibold text-[13px] mb-3" role="alert">
             {err}
           </p>
         )}

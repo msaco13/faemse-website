@@ -37,6 +37,10 @@ jobs:
       - run: npm run build
       - name: SPA fallback
         run: cp dist/index.html dist/404.html
+      # A real page per address, so faemse.org/about answers 200 instead of
+      # coming through 404.html with a "Not Found" status.
+      - name: Page per address
+        run: node scripts/route-pages.mjs
       - uses: actions/configure-pages@v5
         with:
           enablement: true

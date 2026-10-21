@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Seal from '../components/Seal';
+import { contactPath } from '../content/data';
 import { T, useText } from '../lib/text';
 
 // Where Stripe sends people after a successful dues payment (board request,
@@ -58,10 +59,10 @@ export default function PaymentComplete() {
           </Link>
         </div>
         <p className="text-[13px] text-[#7C90B6] mt-8">
-          <T id="paid.help">Something not right? Reply to the email or write to</T>{' '}
-          <a className="text-brand-bluesoft hover:text-white" href="mailto:info@faemse.org">
-            info@faemse.org
-          </a>
+          <T id="paid.help.ask">Something not right? Reply to the email or</T>{' '}
+          <Link className="text-brand-bluesoft underline hover:text-white" to={contactPath('Dues payment')}>
+            <T id="paid.help.link">send the board a message</T>
+          </Link>
           .
         </p>
       </div>

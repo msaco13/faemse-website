@@ -71,7 +71,7 @@ export default function InboxPane({
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-1">
-        <h3 className="font-disp font-bold uppercase text-2xl">Inbox</h3>
+        <h2 className="font-disp font-bold uppercase text-2xl">Inbox</h2>
         <p className="text-muted text-[13px]">Applications and contact messages that still need a decision. Newest first.</p>
       </div>
       <p className="text-muted text-[13.5px] mb-5 max-w-[80ch]">
@@ -80,10 +80,10 @@ export default function InboxPane({
         under People for that, then record their payment on their row.
       </p>
 
-      <h4 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-2">
+      <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mb-2">
         Applications
-        {openApps.length > 0 && <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full text-brand-red bg-[#FDEAEB]">{openApps.length} new</span>}
-      </h4>
+        {openApps.length > 0 && <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full text-[#B8232D] bg-[#FDEAEB]">{openApps.length} new</span>}
+      </h3>
       {openApps.length === 0 && !showDecided ? (
         <p className="text-muted text-[14px] mb-2">Nothing waiting.</p>
       ) : (
@@ -138,10 +138,10 @@ export default function InboxPane({
         </button>
       )}
 
-      <h4 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mt-6 mb-2">
+      <h3 className="font-disp font-semibold uppercase text-[14px] tracking-[0.14em] text-muted mt-6 mb-2">
         Contact-form messages
-        {openMsgs.length > 0 && <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full text-brand-red bg-[#FDEAEB]">{openMsgs.length} new</span>}
-      </h4>
+        {openMsgs.length > 0 && <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full text-[#B8232D] bg-[#FDEAEB]">{openMsgs.length} new</span>}
+      </h3>
       {openMsgs.length === 0 && !showHandled ? (
         <p className="text-muted text-[14px] mb-2">
           {messages.length === 0 ? 'No messages yet — anything sent through the Contact page lands here.' : 'All caught up — every message is handled.'}

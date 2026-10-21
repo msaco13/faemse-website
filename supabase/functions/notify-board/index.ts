@@ -13,8 +13,9 @@
 // Secrets (supabase secrets set ... --project-ref iybsnqcffrhzhdpyoaqt):
 //   WEBHOOK_SECRET   any long random string; the webhook must send it back
 //   RESEND_API_KEY   from resend.com (same account as renewal-reminders)
-//   NOTIFY_TO        comma-separated recipients; defaults to the interim
-//                    board inbox below until info@faemse.org is confirmed
+//   NOTIFY_TO        comma-separated recipients; defaults to the board
+//                    inbox below (the site prints no email address, so
+//                    this is where contact-form messages reach people)
 //
 // Deploy: supabase functions deploy notify-board --no-verify-jwt --project-ref iybsnqcffrhzhdpyoaqt
 // Until RESEND_API_KEY is set, the function logs what it would send and

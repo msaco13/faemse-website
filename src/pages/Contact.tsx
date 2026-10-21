@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { contact } from '../content/data';
 import { supabase } from '../lib/supabase';
@@ -6,6 +7,9 @@ import { T } from '../lib/text';
 
 export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  // The site's "send us X" buttons link here with the subject filled in.
+  const [params] = useSearchParams();
+  const subject = (params.get('subject') ?? '').slice(0, 200);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,9 +57,6 @@ export default function Contact() {
                 <T id="contact.info.tax">{contact.taxStatus}</T>
               </p>
               <p className="text-muted text-[15px] mt-3">{contact.address}</p>
-              <a className="font-bold text-brand-blue hover:underline" href={`mailto:${contact.email}`}>
-                {contact.email}
-              </a>
             </div>
             <div className="card p-7">
               <h2 className="font-disp font-bold uppercase text-xl mb-2">
@@ -87,20 +88,20 @@ export default function Contact() {
                 <span className="text-[13px] font-bold uppercase tracking-wide text-muted">
                   <T id="contact.form.name.label">Name</T>
                 </span>
-                <input name="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+                <input name="name" autoComplete="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
               </label>
               <label className="block">
                 <span className="text-[13px] font-bold uppercase tracking-wide text-muted">
                   <T id="contact.form.email.label">Email</T>
                 </span>
-                <input name="email" type="email" required maxLength={254} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+                <input name="email" type="email" autoComplete="email" required maxLength={254} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
               </label>
             </div>
             <label className="block mb-4">
               <span className="text-[13px] font-bold uppercase tracking-wide text-muted">
                 <T id="contact.form.subject.label">Subject</T>
               </span>
-              <input name="subject" required maxLength={200} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+              <input name="subject" required maxLength={200} defaultValue={subject} key={subject} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
             </label>
             <label className="block mb-6">
               <span className="text-[13px] font-bold uppercase tracking-wide text-muted">
@@ -121,10 +122,8 @@ export default function Contact() {
               </p>
             )}
             {status === 'error' && (
-              <p className="mt-4 text-brand-red font-semibold" role="alert">
-                <T id="contact.form.error.a">Something went wrong sending your message. Email us directly at</T>{' '}
-                {contact.email}
-                <T id="contact.form.error.b">.</T>
+              <p className="mt-4 text-brand-redink font-semibold" role="alert">
+                <T id="contact.form.error">Something went wrong sending your message. Please try again in a minute.</T>
               </p>
             )}
           </form>

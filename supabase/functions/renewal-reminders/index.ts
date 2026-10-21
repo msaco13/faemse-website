@@ -41,9 +41,9 @@ function jwtRole(auth: string): string {
 
 const WINDOWS = [90, 60, 30, 7] as const;
 const FROM = 'FAEMSE <renewals@faemse.org>';
-// Replies go to the board directly. info@faemse.org is printed on the site
-// but nobody on the project holds a login for it (2026-10-01), so until the
-// association has a monitored mailbox, a member's reply must land with people.
+// Replies go to the board directly: the site prints no email address
+// (board, 2026-10-21; info@faemse.org has no mailbox), so a member's reply
+// must land with people.
 const REPLY_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
 const PORTAL = 'https://faemse.org/members';
 const RENEW_FORM = 'https://faemse.org/membership';

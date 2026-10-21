@@ -144,7 +144,7 @@ function EventForm({
           Cancel
         </button>
         {err && (
-          <span className="text-brand-red font-semibold text-[13px]" role="alert">
+          <span className="text-brand-redink font-semibold text-[13px]" role="alert">
             {err}
           </span>
         )}
@@ -223,7 +223,7 @@ function NewsForm({
           Cancel
         </button>
         {err && (
-          <span className="text-brand-red font-semibold text-[13px]" role="alert">
+          <span className="text-brand-redink font-semibold text-[13px]" role="alert">
             {err}
           </span>
         )}
@@ -293,7 +293,7 @@ export default function ContentManager() {
 
       {needsSetup && <SetupNotice />}
       {loadError && (
-        <p className="text-brand-red font-semibold text-[14px] mb-4" role="alert">
+        <p className="text-brand-redink font-semibold text-[14px] mb-4" role="alert">
           {loadError}
         </p>
       )}
@@ -349,7 +349,7 @@ export default function ContentManager() {
                         </button>
                         <button
                           onClick={() => remove('events', ev.id, ev.title)}
-                          className="btn-outline !py-1.5 !px-3.5 text-[12.5px] !border-brand-red/40 !text-brand-red hover:!border-brand-red hover:!text-brand-red hover:!bg-[#FDEAEB]"
+                          className="btn-outline !py-1.5 !px-3.5 text-[12.5px] !border-brand-red/40 !text-brand-redink hover:!border-brand-red hover:!text-brand-redink hover:!bg-[#FDEAEB]"
                         >
                           Delete
                         </button>
@@ -406,7 +406,7 @@ export default function ContentManager() {
                         </button>
                         <button
                           onClick={() => remove('news_posts', p.id, p.title)}
-                          className="btn-outline !py-1.5 !px-3.5 text-[12.5px] !border-brand-red/40 !text-brand-red hover:!border-brand-red hover:!text-brand-red hover:!bg-[#FDEAEB]"
+                          className="btn-outline !py-1.5 !px-3.5 text-[12.5px] !border-brand-red/40 !text-brand-redink hover:!border-brand-red hover:!text-brand-redink hover:!bg-[#FDEAEB]"
                         >
                           Delete
                         </button>

@@ -29,8 +29,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const SITE = 'https://faemse.org';
 const FROM = 'FAEMSE <notifications@faemse.org>';
-// Replies go to the board directly: nobody on the project holds a login for
-// info@faemse.org (2026-10-01), so a reply there could go unread.
+// Replies go to the board directly: the site prints no email address
+// (board, 2026-10-21; info@faemse.org has no mailbox).
 const REPLY_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
 const PER_HOUR = 3;
 
@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const url = Deno.env.get('SUPABASE_URL');
   if (!resendKey || !serviceKey || !url) {
-    return json({ error: 'Password emails are not switched on yet. Please email info@faemse.org.' }, 503);
+    return json({ error: 'Password emails are not switched on yet. Please send the board a message at faemse.org/contact.' }, 503);
   }
   const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
   });
   if (!resp.ok) {
     console.error(`Resend refused (${resp.status}) for ${email}`);
-    return json({ error: 'The email could not be sent right now. Please try again in a minute, or write to info@faemse.org.' }, 502);
+    return json({ error: 'The email could not be sent right now. Please try again in a minute, or send the board a message at faemse.org/contact.' }, 502);
   }
   await admin.from('password_link_log').insert({ email });
   console.log(`password link sent to ${email}`);
