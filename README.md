@@ -97,7 +97,7 @@ association's Supabase organization.
   program hubs (saving applies the hub rules in `src/lib/hubDraft.ts`).
   Members: inbox, people (with Export to Excel: a CSV with status,
   paid-through, renewal and grace dates), organizations. Then site content
-  and dues & tools as before. Schema: `supabase/migrations/20261020_admin_editors.sql`.
+  and dues & tools as before. Schema: `supabase/migrations/20261020_admin_editors.sql` (applied 2026-10-21).
 - **Site structure (board decisions 2026-10-20).** One header, two states
   (`src/components/Header.tsx`). Visitors: Membership · Events · News ·
   Program map · Foundation · About, then Contact, Member sign in, Join.

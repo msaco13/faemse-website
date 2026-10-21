@@ -44,6 +44,9 @@ const PRIVATE = [
   ['listserv emails', 'rpc/get_listserv'],
   ['voting roll', 'rpc/get_voting_roll'],
   ['member directory', 'rpc/get_directory'],
+  // The directory before board positions (renamed 2026-10-21, closed to
+  // everyone; nothing calls it).
+  ['old member directory', 'rpc/get_directory_before_positions'],
 ];
 
 // Meant to be public. If one of these stops answering, the site's public
@@ -54,6 +57,8 @@ const PUBLIC = [
   ['news', 'news_posts?select=id&limit=1'],
   ['site text', 'site_text?select=key&limit=1'],
   ['bylaws', 'documents?select=slug&slug=eq.bylaws'],
+  ['board page', 'board_members?select=id&limit=1'],
+  ['sponsors', 'sponsors?select=id&limit=1'],
 ];
 
 const headers = { apikey: KEY, Authorization: `Bearer ${KEY}`, Accept: 'application/json' };

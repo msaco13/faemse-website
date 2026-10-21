@@ -34,11 +34,18 @@ create table if not exists public.board_members (
   updated_at timestamptz not null default now()
 );
 alter table public.board_members enable row level security;
-drop policy if exists "board page is public" on public.board_members;
-create policy "board page is public" on public.board_members for select using (true);
-drop policy if exists "admins manage the board page" on public.board_members;
-create policy "admins manage the board page" on public.board_members for all to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
+-- Policies are created only when missing, so the file can run again. The
+-- file removes nothing: the Supabase tools hold any statement that removes
+-- something for a confirmation that never reached us (2026-10-21).
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'board_members' and policyname = 'board page is public') then
+    create policy "board page is public" on public.board_members for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'board_members' and policyname = 'admins manage the board page') then
+    create policy "admins manage the board page" on public.board_members for all to authenticated
+      using ((select public.is_admin())) with check ((select public.is_admin()));
+  end if;
+end $$;
 
 insert into public.board_members (section, role, name, blurb, sort_order)
 select v.section, v.role, v.name, v.blurb, v.sort_order
@@ -76,12 +83,21 @@ end $$;
 revoke all on function public.admin_link_board_seat(uuid, uuid) from public, anon;
 grant execute on function public.admin_link_board_seat(uuid, uuid) to authenticated;
 
--- get_directory gains two columns, so it is dropped and made again. A
--- migration runs as one transaction, so callers never see it missing.
--- position_rank orders the board first: officers, then directors, then
--- staff, each in the board page's order.
-drop function if exists public.get_directory();
-create function public.get_directory()
+-- get_directory gains two columns. Postgres can't change a function's
+-- columns in place, so the old one is renamed get_directory_before_positions
+-- and closed to everyone, and the new one takes the name. A migration runs as
+-- one transaction, so callers never see it missing. The renamed copy can be
+-- removed later; nothing calls it. position_rank orders the board first:
+-- officers, then directors, then staff, each in the board page's order.
+do $$ begin
+  if exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'get_directory' and p.pronargs = 0
+               and pg_get_function_result(p.oid) not like '%position_rank%') then
+    alter function public.get_directory() rename to get_directory_before_positions;
+    revoke all on function public.get_directory_before_positions() from public, anon, authenticated, service_role;
+  end if;
+end $$;
+create or replace function public.get_directory()
 returns table (full_name text, cert_level text, county text, agency text, faemse_position text, position_rank integer)
 language sql
 stable
@@ -119,11 +135,15 @@ create table if not exists public.sponsors (
   updated_at timestamptz not null default now()
 );
 alter table public.sponsors enable row level security;
-drop policy if exists "sponsors are public" on public.sponsors;
-create policy "sponsors are public" on public.sponsors for select using (true);
-drop policy if exists "admins manage sponsors" on public.sponsors;
-create policy "admins manage sponsors" on public.sponsors for all to authenticated
-  using ((select public.is_admin())) with check ((select public.is_admin()));
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'sponsors' and policyname = 'sponsors are public') then
+    create policy "sponsors are public" on public.sponsors for select using (true);
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'sponsors' and policyname = 'admins manage sponsors') then
+    create policy "admins manage sponsors" on public.sponsors for all to authenticated
+      using ((select public.is_admin())) with check ((select public.is_admin()));
+  end if;
+end $$;
 
 insert into public.sponsors (name, url, logo, sort_order)
 select v.name, v.url, v.logo, v.sort_order
