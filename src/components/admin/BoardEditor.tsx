@@ -70,7 +70,7 @@ export default function BoardEditor({ members, onChanged }: { members: Profile[]
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-1">
-        <h3 className="font-disp font-bold uppercase text-2xl">Board page</h3>
+        <h2 className="font-disp font-bold uppercase text-2xl">Board page</h2>
         <a href={`${import.meta.env.BASE_URL}board`} target="_blank" rel="noreferrer" className="text-[13.5px] font-bold text-brand-blue hover:underline">
           View the board page ↗
         </a>
@@ -99,7 +99,7 @@ export default function BoardEditor({ members, onChanged }: { members: Profile[]
           const list = seats.filter((s) => s.section === section);
           return (
             <div key={section} className="mb-7">
-              <h4 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-2">{SECTION_LABEL[section]}</h4>
+              <h3 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-2">{SECTION_LABEL[section]}</h3>
               {list.length === 0 ? (
                 <p className="text-muted text-[13.5px] border border-dashed border-line rounded-xl px-4 py-3">No seats in this section.</p>
               ) : (

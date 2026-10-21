@@ -604,7 +604,13 @@ Two ready-made options in this repo:
 1. **GitHub Pages** (`.github/workflows/deploy.yml`, deploys on every push to
    main once activated): make the repo public (or use a plan with
    private-repo Pages) and enable Settings → Pages → Source "GitHub Actions".
-   Serves at https://faemse.org/
+   Serves at https://faemse.org/. After the build, `scripts/route-pages.mjs`
+   writes a page per address (`about.html` and so on, from
+   `public/sitemap.xml` plus a short list of portal addresses), so inner
+   pages answer "200 OK" instead of coming through `404.html` with a 404
+   status that search engines skip. A new top-level page goes in the sitemap
+   (or the script's EXTRA list if search engines shouldn't list it). The
+   hourly smoke check confirms the status codes on the live site.
 
 2. **Supabase Edge Function** (`scripts/deploy-supabase.mjs`) — deploys the
    build as a `site` function on the association's Supabase project.

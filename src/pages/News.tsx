@@ -7,7 +7,7 @@ const tagChip: Record<string, string> = {
   Awards: 'text-brand-goldink bg-[#FBF3D9]',
   Resources: 'text-[#1A47B8] bg-[#E7EEFF]',
   Board: 'text-[#0E7A4A] bg-[#E2F7EC]',
-  Policy: 'text-brand-red bg-[#FDEAEB]',
+  Policy: 'text-[#B8232D] bg-[#FDEAEB]',
 };
 
 export default function News() {

@@ -10,7 +10,9 @@ import { T, useSiteText, useText } from '../lib/text';
 // in the board's Spotlights panel with the same fields; the welcome slide
 // (is_welcome) keeps its own look. Auto-advances every 8 s, pauses on hover
 // or focus, stays still for reduced-motion users, and is fully
-// keyboard-operable.
+// keyboard-operable. A Pause button stops it for good (WCAG 2.2.2: anything
+// that moves on its own for more than five seconds needs one); the home page
+// also stills a spotlight's background clip with it.
 
 const INTERVAL_MS = 8000;
 
@@ -40,9 +42,11 @@ function SlideLink({ to, className, children }: { to: string; className: string;
 export default function HeroSpotlight({
   spotlights,
   onActiveChange,
+  onStoppedChange,
 }: {
   spotlights: Spotlight[];
   onActiveChange?: (s: Spotlight | null) => void;
+  onStoppedChange?: (stopped: boolean) => void;
 }) {
   // Until the rows arrive on a first visit (or if none are showing), the
   // bundled welcome slide stands in, so the hero never paints empty.
@@ -54,12 +58,17 @@ export default function HeroSpotlight({
   const flowIndex = Math.max(0, slides.findIndex((s) => s.welcome));
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  // Paused with the button: unlike hover and focus, it stays paused until
+  // the visitor presses Play.
+  const [stopped, setStopped] = useState(false);
   const [reduced, setReduced] = useState(false);
   const liveRef = useRef<HTMLDivElement>(null);
   const regionLabel = useText('home.hero.aria.region', 'FAEMSE spotlight');
   const tabsLabel = useText('home.hero.aria.tabs', 'Choose a slide');
   const prevLabel = useText('home.hero.aria.prev', 'Previous slide');
   const nextLabel = useText('home.hero.aria.next', 'Next slide');
+  const pauseLabel = useText('home.hero.aria.pause', 'Pause slides');
+  const playLabel = useText('home.hero.aria.play', 'Play slides');
   // In edit mode the page's words highlight, but the slides come from the
   // Spotlights panel, not the text editor. Say so on the slide itself,
   // otherwise an admin reasonably concludes the slides are stuck (the board
@@ -83,7 +92,11 @@ export default function HeroSpotlight({
     onActiveChange?.(slides[index] ?? null);
   }, [index, slides, onActiveChange]);
 
-  const running = total > 1 && !paused && !reduced;
+  useEffect(() => {
+    onStoppedChange?.(stopped);
+  }, [stopped, onStoppedChange]);
+
+  const running = total > 1 && !paused && !stopped && !reduced;
   useEffect(() => {
     if (!running) return;
     const id = window.setInterval(() => {
@@ -186,7 +199,10 @@ export default function HeroSpotlight({
           page) a moment after first paint. */}
       <div className="mt-6 min-h-[40px]">
       {total > 1 && (
-        <div className="flex items-center gap-4">
+        // On small phones the counter steps aside (the slide buttons already
+        // say "Slide 2 of 3") so each slide button keeps a 24px tap target
+        // next to the arrows and Pause (WCAG 2.5.8).
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex gap-2 flex-1 max-w-[360px]" role="tablist" aria-label={tabsLabel}>
             {Array.from({ length: total }, (_, i) => (
               <button
@@ -195,7 +211,7 @@ export default function HeroSpotlight({
                 aria-selected={index === i}
                 aria-label={`Slide ${i + 1} of ${total}`}
                 onClick={() => go(i)}
-                className="group h-5 flex-1 flex items-center"
+                className="group h-6 min-w-6 flex-1 flex items-center"
               >
                 <span className="block h-[3px] w-full rounded-full bg-white/15 overflow-hidden group-hover:bg-white/25 transition-colors">
                   <span
@@ -208,7 +224,7 @@ export default function HeroSpotlight({
               </button>
             ))}
           </div>
-          <span className="font-disp font-semibold text-[13px] tracking-[0.2em] text-[#93A6C9] tabular-nums">
+          <span className="max-[400px]:hidden font-disp font-semibold text-[13px] tracking-[0.2em] text-[#93A6C9] tabular-nums">
             {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
           </span>
           <div className="flex gap-1.5">
@@ -230,12 +246,38 @@ export default function HeroSpotlight({
                 <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
+            {!reduced && (
+              <button
+                onClick={() => setStopped((v) => !v)}
+                aria-label={stopped ? playLabel : pauseLabel}
+                className="w-10 h-10 grid place-items-center rounded-full border border-white/15 bg-white/5 text-white hover:bg-white/15 transition-colors"
+              >
+                <PlayPauseIcon playing={!stopped} size={16} />
+              </button>
+            )}
           </div>
           <style>{`@keyframes spot{from{width:0}to{width:100%}}`}</style>
         </div>
       )}
       </div>
     </div>
+  );
+}
+
+// Two bars while things move (press to pause), a triangle while they don't.
+// Shared with the home page's sponsor band.
+export function PlayPauseIcon({ playing, size }: { playing: boolean; size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      {playing ? (
+        <>
+          <rect x="6" y="5" width="4" height="14" rx="1" />
+          <rect x="14" y="5" width="4" height="14" rx="1" />
+        </>
+      ) : (
+        <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+      )}
+    </svg>
   );
 }
 

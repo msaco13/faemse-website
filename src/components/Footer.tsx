@@ -84,7 +84,7 @@ export default function Footer() {
             </Link>
           </div>
         </div>
-        <div className="flex flex-wrap justify-between gap-2.5 pt-6 text-[13px] text-[#5E739C]">
+        <div className="flex flex-wrap justify-between gap-2.5 pt-6 text-[13px] text-[#7C90B6]">
           <span>
             © {new Date().getFullYear()} {contact.legalName} · <T id="footer.copy.city">St. Petersburg, FL</T>
           </span>

@@ -31,8 +31,8 @@ const statusLabel: Record<Status, string> = {
 const statusCls: Record<Status, string> = {
   current: 'text-[#0E7A4A] bg-[#E2F7EC]',
   due: 'text-[#8A5A00] bg-[#FFF1D6]',
-  grace: 'text-brand-red bg-[#FDEAEB]',
-  lapsed: 'text-brand-red bg-[#FDEAEB]',
+  grace: 'text-[#B8232D] bg-[#FDEAEB]',
+  lapsed: 'text-[#B8232D] bg-[#FDEAEB]',
   pending: 'text-muted bg-paper',
   honorary: 'text-brand-goldink bg-[#FBF3D9]',
 };
@@ -221,9 +221,9 @@ export default function PeoplePane({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 className="font-disp font-bold uppercase text-2xl">
+        <h2 className="font-disp font-bold uppercase text-2xl">
           People <span className="ml-2 font-body normal-case tracking-normal text-[13px] font-normal text-muted">{members.length} logins</span>
-        </h3>
+        </h2>
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={exportList}
@@ -332,25 +332,22 @@ export default function PeoplePane({
                 </th>
                 <th className="text-left font-bold px-3 py-2.5">Represents</th>
                 <th className="text-left font-bold px-3 py-2.5">Role</th>
-                <th className="px-3 py-2.5" aria-label="Edit"></th>
+                <th className="px-3 py-2.5"><span className="sr-only">Edit</span></th>
               </tr>
             </thead>
             <tbody>
               {slice.map(({ m, seats, status }) => {
                 const isOpen = open === m.id;
                 return [
+                  // The whole row opens the editor with a click; the keyboard
+                  // and screen readers use the Edit button in the last cell,
+                  // which says whether the editor is open. (A table row
+                  // can't carry aria-expanded itself.) The button's click
+                  // reaches the row, so it has no handler of its own.
                   <tr
                     key={m.id}
                     onClick={() => setOpen(isOpen ? null : m.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setOpen(isOpen ? null : m.id);
-                      }
-                    }}
-                    tabIndex={0}
-                    aria-expanded={isOpen}
-                    className={`border-t border-line cursor-pointer outline-none focus-visible:bg-[#E7EEFF] ${isOpen ? 'bg-paper' : 'hover:bg-paper/60'}`}
+                    className={`border-t border-line cursor-pointer focus-within:bg-[#E7EEFF] ${isOpen ? 'bg-paper' : 'hover:bg-paper/60'}`}
                   >
                     <td className="px-4 py-2.5 min-w-0">
                       <b className="block text-[14px] truncate">{m.full_name ?? '—'}</b>
@@ -370,12 +367,21 @@ export default function PeoplePane({
                     </td>
                     <td className="px-3 py-2.5">
                       {m.role === 'admin' ? (
-                        <span className="inline-block text-[10.5px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded-full text-brand-red bg-[#FDEAEB]">Admin</span>
+                        <span className="inline-block text-[10.5px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded-full text-[#B8232D] bg-[#FDEAEB]">Admin</span>
                       ) : (
                         'Member'
                       )}
                     </td>
-                    <td className="px-2 py-2.5 text-[12px] text-muted whitespace-nowrap text-right">{isOpen ? 'Close' : 'Edit'}</td>
+                    <td className="px-2 py-1.5 text-right">
+                      <button
+                        type="button"
+                        aria-expanded={isOpen}
+                        className="min-h-6 px-2 rounded-md text-[12px] font-semibold text-muted hover:text-ink whitespace-nowrap"
+                      >
+                        {isOpen ? 'Close' : 'Edit'}
+                        <span className="sr-only"> {m.full_name ?? m.email}</span>
+                      </button>
+                    </td>
                   </tr>,
                   isOpen ? (
                     <tr key={`${m.id}-editor`}>

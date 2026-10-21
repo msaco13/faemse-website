@@ -27,8 +27,10 @@ export default function EditModeBar() {
     if (error) setErr(error);
   }
 
+  // An <aside> so the bar sits in a landmark like the rest of the page and
+  // screen-reader users can jump to it by name.
   return (
-    <div className="fixed bottom-4 left-4 z-[150] max-w-[min(420px,calc(100vw-2rem))] print:hidden">
+    <aside aria-label="Board tools" className="fixed bottom-4 left-4 z-[150] max-w-[min(420px,calc(100vw-2rem))] print:hidden">
       <div className="rounded-2xl border border-white/15 bg-ink2/95 text-white shadow-[0_24px_60px_rgba(4,10,22,.55)] backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3">
           <span className="font-disp text-[12px] font-semibold uppercase tracking-[0.18em] text-brand-goldsoft">
@@ -98,6 +100,6 @@ export default function EditModeBar() {
           </p>
         )}
       </div>
-    </div>
+    </aside>
   );
 }

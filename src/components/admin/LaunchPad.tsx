@@ -95,7 +95,7 @@ export default function LaunchPad() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h3 className="font-disp font-bold uppercase text-2xl mb-1">Page wording &amp; pictures</h3>
+        <h2 className="font-disp font-bold uppercase text-2xl mb-1">Page wording &amp; pictures</h2>
         <p className="text-muted text-[14px] max-w-[72ch]">
           Wording and pictures are changed on the page itself, so you see the change in place before you save. Start here: turn
           on edit mode, then pick the page.
@@ -124,17 +124,19 @@ export default function LaunchPad() {
       </div>
 
       <div>
-        <h4 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-3">Pick a page</h4>
+        <h3 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-3">Pick a page</h3>
         <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] list-none p-0 m-0">
+          {/* min-h-6: each link is at least 24px tall, so the two links on a
+              card aren't too small or too close to tap (WCAG 2.5.8). */}
           {PAGES.map((p) => (
             <li key={p.to} className="border border-line rounded-xl px-4 py-3.5 bg-white flex flex-col gap-1">
               <b className="text-[15px]">{p.name}</b>
               <span className="text-[13px] text-muted">{p.note}</span>
-              <Link to={p.to} onClick={() => setEditing(true)} className="mt-1 text-[13.5px] font-bold text-brand-blue hover:underline">
+              <Link to={p.to} onClick={() => setEditing(true)} className="mt-1 self-start inline-flex items-center min-h-6 text-[13.5px] font-bold text-brand-blue hover:underline">
                 Edit this page →
               </Link>
               {p.also && (
-                <a href={`#${p.also.hash}`} className="text-[12.5px] font-semibold text-muted hover:text-ink">
+                <a href={`#${p.also.hash}`} className="self-start inline-flex items-center min-h-6 text-[12.5px] font-semibold text-muted hover:text-ink">
                   {p.also.label}: in this menu
                 </a>
               )}
@@ -144,7 +146,7 @@ export default function LaunchPad() {
       </div>
 
       <div>
-        <h4 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-1">Wording changed from the original</h4>
+        <h3 className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-brand-bluedeep mb-1">Wording changed from the original</h3>
         <p className="text-muted text-[13.5px] mb-3">Every change anyone has saved, newest first. Reset puts the original wording back.</p>
         {err && (
           <p className="text-brand-red font-semibold text-[13px] mb-2" role="alert">

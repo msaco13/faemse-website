@@ -88,13 +88,13 @@ export default function Contact() {
                 <span className="text-[13px] font-bold uppercase tracking-wide text-muted">
                   <T id="contact.form.name.label">Name</T>
                 </span>
-                <input name="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+                <input name="name" autoComplete="name" required maxLength={120} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
               </label>
               <label className="block">
                 <span className="text-[13px] font-bold uppercase tracking-wide text-muted">
                   <T id="contact.form.email.label">Email</T>
                 </span>
-                <input name="email" type="email" required maxLength={254} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
+                <input name="email" type="email" autoComplete="email" required maxLength={254} className="mt-1.5 w-full rounded-xl border border-line px-4 py-3 focus:border-brand-blue outline-none" />
               </label>
             </div>
             <label className="block mb-4">

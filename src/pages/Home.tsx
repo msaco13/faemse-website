@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FloridaNetwork from '../components/FloridaNetwork';
 import HeroCrest from '../components/HeroCrest';
-import HeroSpotlight from '../components/HeroSpotlight';
+import HeroSpotlight, { PlayPauseIcon } from '../components/HeroSpotlight';
 import Seal from '../components/Seal';
 import PulseDivider from '../components/PulseDivider';
 import Reveal from '../components/Reveal';
@@ -50,9 +50,10 @@ function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
 // The hero's media layer. A direct MP4/WebM plays in a native <video>
 // (muted, looping, inline — the only way mobile browsers autoplay); YouTube
 // and Vimeo links play as a chrome-free background embed scaled to cover.
-// Reduced-motion visitors and data-saver connections get the still photo
-// instead. The layer cross-fades as slides change.
-function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
+// Reduced-motion visitors, data-saver connections and anyone who pressed the
+// slides' Pause button get the still photo instead. The layer cross-fades as
+// slides change.
+function HeroBackdrop({ spotlight, stopped }: { spotlight: Spotlight | null; stopped: boolean }) {
   const [still, setStill] = useState(false);
   useEffect(() => {
     const mq = matchMedia('(prefers-reduced-motion: reduce)');
@@ -64,7 +65,7 @@ function HeroBackdrop({ spotlight }: { spotlight: Spotlight | null }) {
   }, []);
 
   const image = spotlight?.imageUrl || '';
-  const video = !still && spotlight?.videoUrl ? spotlight.videoUrl : '';
+  const video = !still && !stopped && spotlight?.videoUrl ? spotlight.videoUrl : '';
   const embed = video && !isVideoFile(video) ? backgroundEmbedUrl(video) : null;
   const file = video && isVideoFile(video) ? video : '';
   const show = !!(image || file || embed);
@@ -116,10 +117,16 @@ export default function Home() {
   const [activeSpotlight, setActive] = useState<Spotlight | null>(null);
   const setActiveSpotlight = useCallback((s: Spotlight | null) => setActive(s), []);
   const mapFaded = !!(activeSpotlight?.imageUrl || activeSpotlight?.videoUrl);
+  // The two Pause buttons (WCAG 2.2.2): one under the slides, which also
+  // stills a slide's background clip, and one on the sponsor band.
+  const [slidesStopped, setSlidesStopped] = useState(false);
+  const [sponsorsStopped, setSponsorsStopped] = useState(false);
   // News is public (board, 2026-10-20) and shows only real posts: with none
   // yet, the section stays off rather than filling the page with samples.
   const posts = newsState.live ? newsState.items : [];
   const sponsorsAria = useText('home.sponsors.aria', 'Sponsors');
+  const sponsorsPause = useText('home.sponsors.aria.pause', 'Pause the sponsor names');
+  const sponsorsPlay = useText('home.sponsors.aria.play', 'Play the sponsor names');
   const vitalsAria = useText('home.vitals.aria', 'Association statistics');
   const sealAlt = useText('home.cta.alt', 'Seal of the Florida Association of EMS Educators');
   useEffect(() => {
@@ -145,29 +152,49 @@ export default function Home() {
         {/* Spotlight backdrop — a photo or a muted looping clip, only when the
             active slide carries one; a dark gradient keeps the type legible
             over any picture. */}
-        <HeroBackdrop spotlight={activeSpotlight} />
+        <HeroBackdrop spotlight={activeSpotlight} stopped={slidesStopped} />
         {/* Sponsor marquee, at the top of the hero under the header's gold
             line (board, Oct 2026). Transparent so it sits on the hero's own
             backdrop; the hero's top padding is trimmed to make room, and
             with the tighter spacing below, "On the board" lands on a
             1440x900 opening screen. */}
         <section className="relative z-10 pt-4 overflow-hidden" aria-label={sponsorsAria}>
-        <p className="px-6 text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#5E739C] mb-4">
-          <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
-        </p>
+        {/* #93A6C9 keeps the band at 4.5:1 or better across the hero's
+            navy, glow included; the old #5E739C and #6E84AC fell to about
+            3:1 and 4:1. */}
+        <div className="px-6 mb-4 flex items-center justify-center gap-3">
+          <p className="text-center font-disp font-semibold text-[13px] tracking-[0.3em] uppercase text-[#93A6C9]">
+            <T id="home.sponsors.text">Backed by the companies behind Florida EMS education</T>
+          </p>
+          <button
+            type="button"
+            onClick={() => setSponsorsStopped((v) => !v)}
+            aria-label={sponsorsStopped ? sponsorsPlay : sponsorsPause}
+            className="flex-none w-7 h-7 grid place-items-center rounded-full border border-white/15 bg-white/5 text-[#93A6C9] hover:text-white hover:bg-white/15 transition-colors motion-reduce:hidden"
+          >
+            <PlayPauseIcon playing={!sponsorsStopped} size={12} />
+          </button>
+        </div>
         {/* 90 seconds per pass (board, Sept 2026: sixteen full names need the
-            time) and it pauses under the pointer so a name can be clicked. */}
+            time). It pauses under the pointer so a name can be clicked, while
+            a name has keyboard focus, and for good with the Pause button. */}
         {/* Four copies, scrolled by a quarter (one copy's width, so the speed
             is unchanged): the loop is seamless as long as three copies span
             the viewport, about 7,500px with today's list. Two copies ran dry
             on a 2,560px screen and showed an empty strip once per loop. */}
-        <div className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
+        {/* The Pause button holds it with an inline style: a class loses to
+            the animation shorthand, which sets the play state back to
+            running. */}
+        <div
+          className="flex w-max gap-16 pr-16 animate-[marq_90s_linear_infinite] hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] motion-reduce:animate-none"
+          style={sponsorsStopped ? { animationPlayState: 'paused' } : undefined}
+        >
           {[...sponsors, ...sponsors, ...sponsors, ...sponsors].map((s, i) => {
             // The extra copies exist only to make the marquee loop seamless;
             // hide them from screen readers and the tab order so sponsors aren't
             // announced or tabbed through repeatedly.
             const dup = i >= sponsors.length;
-            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#6E84AC] whitespace-nowrap';
+            const cls = 'font-disp font-semibold text-[21px] tracking-[0.1em] uppercase text-[#93A6C9] whitespace-nowrap';
             const body = (
               <>
                 <i className="not-italic text-brand-gold/60 mr-2.5">◆</i>
@@ -205,7 +232,7 @@ export default function Home() {
               behind the gap between copy and map), spinning like a coin; it
               steps aside with the map when a spotlight brings a photo. */}
           <HeroCrest faded={mapFaded} />
-          <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} />
+          <HeroSpotlight spotlights={spotlights.items} onActiveChange={setActiveSpotlight} onStoppedChange={setSlidesStopped} />
 
           {/* Florida: the network coming together. Steps aside when a
               spotlight brings its own photo or clip. The map is interactive
@@ -244,7 +271,7 @@ export default function Home() {
       {CONTENT_VERIFIED && (
       <section className="velvet bg-ink2 text-white py-11 border-t border-white/5" aria-label={vitalsAria}>
         <div className="wrap">
-          <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#5E739C] mb-5 flex items-center gap-2.5">
+          <p className="font-disp font-semibold text-[13px] tracking-[0.26em] uppercase text-[#7C90B6] mb-5 flex items-center gap-2.5">
             <i className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_10px_rgba(58,219,143,.9)]" />
             <T id="home.vitals.label">Association vitals</T>
           </p>

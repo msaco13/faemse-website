@@ -63,7 +63,7 @@ export default function BylawsEditor() {
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-1">
-        <h3 className="font-disp font-bold uppercase text-2xl">Bylaws</h3>
+        <h2 className="font-disp font-bold uppercase text-2xl">Bylaws</h2>
         <a href={`${import.meta.env.BASE_URL}bylaws`} target="_blank" rel="noreferrer" className="text-[13.5px] font-bold text-brand-blue hover:underline">
           View the bylaws page ↗
         </a>

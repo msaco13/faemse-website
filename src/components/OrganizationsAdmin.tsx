@@ -15,7 +15,7 @@ const kindLabel: Record<Organization['kind'], string> = { institutional: 'Instit
 const stateChip: Record<string, string> = {
   current: 'text-[#0E7A4A] bg-[#E2F7EC]',
   grace: 'text-brand-goldink bg-[#FBF3D9]',
-  lapsed: 'text-brand-red bg-[#FDEAEB]',
+  lapsed: 'text-[#B8232D] bg-[#FDEAEB]',
   pending: 'text-muted bg-paper',
 };
 const stateText: Record<string, string> = { current: 'current', grace: 'renewal due', lapsed: 'lapsed', pending: 'no date' };
@@ -289,12 +289,12 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <h3 className="font-disp font-bold uppercase text-2xl">
+        <h2 className="font-disp font-bold uppercase text-2xl">
           Organizations
           <span className="ml-2 font-body normal-case tracking-normal text-[13px] font-normal text-muted">
             {orgs.length ? `${orgs.length} institutional and corporate memberships` : 'institutional and corporate memberships'}
           </span>
-        </h3>
+        </h2>
         {orgs.length > 5 && (
           <input
             value={query}

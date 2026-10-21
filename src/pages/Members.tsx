@@ -18,7 +18,7 @@ import { T, useText } from '../lib/text';
 const stateBadge = {
   current: { text: 'Current member', cls: 'text-[#0E7A4A] bg-[#E2F7EC]' },
   grace: { text: 'Renewal due', cls: 'text-brand-goldink bg-[#FBF3D9]' },
-  lapsed: { text: 'Membership lapsed', cls: 'text-brand-red bg-[#FDEAEB]' },
+  lapsed: { text: 'Membership lapsed', cls: 'text-[#B8232D] bg-[#FDEAEB]' },
   pending: { text: 'Membership pending verification', cls: 'text-brand-goldink bg-[#FBF3D9]' },
 } as const;
 
@@ -50,6 +50,7 @@ export default function Members() {
   const videos = useVideos(!!session);
   const pwPlaceholder = useText('members.password.placeholder', 'New password (8+ characters)');
   const pwAria = useText('members.password.aria', 'New password, at least 8 characters');
+  const directoryAria = useText('members.directory.aria', 'Member directory list');
   const { online_dues: onlineDues } = useSettings();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paying, setPaying] = useState(false);
@@ -320,7 +321,7 @@ export default function Members() {
       </>
     );
   } else if (mState === 'lapsed') {
-    cardBadge = badge('Membership lapsed', 'text-brand-red bg-[#FDEAEB]', 'lapsed');
+    cardBadge = badge('Membership lapsed', 'text-[#B8232D] bg-[#FDEAEB]', 'lapsed');
     cardBody = (
       <>
         <b className="font-disp font-bold text-[28px] leading-[1.05]"><T id="members.lapsed.a">Your membership lapsed</T>{exp ? ` on ${formatDate(exp)}` : ''}</b>
@@ -632,7 +633,7 @@ export default function Members() {
                     <div className="grid sm:grid-cols-2 gap-4 mb-4">
                       <label className="block">
                         <span className={label}><T id="members.profile.name">Full name</T></span>
-                        <input name="full_name" defaultValue={profile?.full_name ?? ''} maxLength={200} className={input} />
+                        <input name="full_name" autoComplete="name" defaultValue={profile?.full_name ?? ''} maxLength={200} className={input} />
                       </label>
                       <label className="block">
                         <span className={label}><T id="members.profile.cert">Certification level</T></span>
@@ -646,7 +647,7 @@ export default function Members() {
                       </label>
                       <label className="block">
                         <span className={label}><T id="members.profile.agency">Agency / program</T></span>
-                        <input name="agency" defaultValue={profile?.agency ?? ''} maxLength={300} className={input} />
+                        <input name="agency" autoComplete="organization" defaultValue={profile?.agency ?? ''} maxLength={300} className={input} />
                       </label>
                     </div>
                     <label className="flex items-center gap-2.5 mb-5 text-[14.5px] font-semibold">
@@ -680,7 +681,13 @@ export default function Members() {
                       <T id="members.directory.empty">No listed members yet — the directory fills in as memberships are verified.</T>
                     </p>
                   ) : (
-                    <ul className="divide-y divide-line max-h-[340px] overflow-y-auto pr-1">
+                    // tabIndex: a box that scrolls must be reachable from the
+                    // keyboard, or arrow keys can't scroll it (WCAG 2.1.1).
+                    <ul
+                      tabIndex={0}
+                      aria-label={directoryAria}
+                      className="divide-y divide-line max-h-[340px] overflow-y-auto pr-1 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-blue"
+                    >
                       {directory.map((d, i) => (
                         <li key={`${d.full_name}-${i}`} className="py-3">
                           <b className="block text-[14.5px]">

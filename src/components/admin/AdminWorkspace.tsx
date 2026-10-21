@@ -215,7 +215,7 @@ export default function AdminWorkspace({ defaultTab = 'inbox' }: { defaultTab?: 
             {tab === 'tools' && (
               <>
                 <div className="flex flex-wrap items-baseline justify-between gap-3 mb-1">
-                  <h3 className="font-disp font-bold uppercase text-2xl">Dues &amp; tools</h3>
+                  <h2 className="font-disp font-bold uppercase text-2xl">Dues &amp; tools</h2>
                   <p className="text-muted text-[13px]">The things you touch a few times a year, out of the daily path.</p>
                 </div>
                 <p className="text-muted text-[13.5px] mb-6 max-w-[80ch]">
