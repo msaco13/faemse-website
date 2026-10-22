@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
+import SeatCard from '../components/SeatCard';
 import { contactPath } from '../content/data';
 import { useBoardSeats } from '../lib/postings';
 import { T } from '../lib/text';
@@ -40,52 +41,9 @@ export default function Board() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {seats
                   .filter((m) => m.section === g.kind)
-                  .map((m) => {
-                    const isPresident = m.role === 'President';
-                    return (
-                      <div
-                        key={m.id ?? m.role + m.name}
-                        className={
-                          isPresident
-                            ? 'relative rounded-2xl p-7 bg-white border-2 border-transparent [background:linear-gradient(#fff,#fff)_padding-box,linear-gradient(140deg,#F5CE5A,#B18516)_border-box] shadow-[0_24px_60px_rgba(177,133,22,.18)]'
-                            : 'card p-7'
-                        }
-                      >
-                        <div className="flex items-center gap-4">
-                          <span
-                            className={`flex-none w-14 h-14 rounded-full grid place-items-center font-disp font-bold text-xl ${
-                              isPresident
-                                ? 'bg-gradient-to-br from-brand-goldsoft to-brand-golddeep text-ink2'
-                                : g.kind === 'staff'
-                                  ? 'bg-paper border border-line text-body'
-                                  : 'bg-gradient-to-br from-brand-blue to-brand-bluedeep text-white'
-                            }`}
-                            aria-hidden
-                          >
-                            {m.name
-                              .split(' ')
-                              .filter(Boolean)
-                              .map((w) => w[0])
-                              .slice(0, 3)
-                              .join('')}
-                          </span>
-                          <div>
-                            <b className="block text-[16px]">{m.name}</b>
-                            <span
-                              className={`text-[13.5px] ${
-                                isPresident ? 'text-brand-goldink font-bold tracking-[0.08em] uppercase' : 'text-muted'
-                              }`}
-                            >
-                              {m.role}
-                            </span>
-                          </div>
-                        </div>
-                        {m.blurb && (
-                          <p className="text-[13.5px] text-muted mt-4 leading-relaxed">{m.blurb}</p>
-                        )}
-                      </div>
-                    );
-                  })}
+                  .map((m) => (
+                    <SeatCard key={m.id ?? m.role + m.name} name={m.name} role={m.role} blurb={m.blurb} tone={g.kind === 'staff' ? 'staff' : 'board'} />
+                  ))}
               </div>
             </div>
           ))}

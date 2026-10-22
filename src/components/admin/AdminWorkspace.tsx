@@ -9,6 +9,7 @@ import OrganizationsAdmin from '../OrganizationsAdmin';
 import PostingsManager from '../PostingsManager';
 import BoardEditor from './BoardEditor';
 import BylawsEditor from './BylawsEditor';
+import FoundationEditor from './FoundationEditor';
 import HubsEditor from './HubsEditor';
 import InboxPane from './InboxPane';
 import LaunchPad from './LaunchPad';
@@ -22,9 +23,9 @@ import SponsorsEditor from './SponsorsEditor';
 // the board page, sponsors, bylaws, program hubs) joined in Oct 2026; the
 // rest is the Sept 2026 arrangement under the same wording.
 
-type Tab = 'wording' | 'board' | 'sponsors' | 'bylaws' | 'hubs' | 'inbox' | 'people' | 'orgs' | 'content' | 'tools';
+type Tab = 'wording' | 'board' | 'foundation' | 'sponsors' | 'bylaws' | 'hubs' | 'inbox' | 'people' | 'orgs' | 'content' | 'tools';
 const GROUPS: { label: string; tabs: Tab[] }[] = [
-  { label: 'Pages', tabs: ['wording', 'board', 'sponsors', 'bylaws', 'hubs'] },
+  { label: 'Pages', tabs: ['wording', 'board', 'foundation', 'sponsors', 'bylaws', 'hubs'] },
   { label: 'Members', tabs: ['inbox', 'people', 'orgs'] },
   { label: 'Listings', tabs: ['content'] },
   { label: 'Dues', tabs: ['tools'] },
@@ -33,6 +34,7 @@ const TABS: Tab[] = GROUPS.flatMap((g) => g.tabs);
 const LABEL: Record<Tab, string> = {
   wording: 'Page wording & pictures',
   board: 'Board page',
+  foundation: 'Foundation page',
   sponsors: 'Sponsors',
   bylaws: 'Bylaws',
   hubs: 'Program hubs',
@@ -176,6 +178,10 @@ export default function AdminWorkspace({ defaultTab = 'inbox' }: { defaultTab?: 
 
           <section id="admin-pane-board" role="tabpanel" aria-labelledby="admin-tab-board" hidden={tab !== 'board'}>
             {tab === 'board' && <BoardEditor members={members} onChanged={load} />}
+          </section>
+
+          <section id="admin-pane-foundation" role="tabpanel" aria-labelledby="admin-tab-foundation" hidden={tab !== 'foundation'}>
+            {tab === 'foundation' && <FoundationEditor />}
           </section>
 
           <section id="admin-pane-sponsors" role="tabpanel" aria-labelledby="admin-tab-sponsors" hidden={tab !== 'sponsors'}>

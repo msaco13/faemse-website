@@ -5,7 +5,7 @@
 // fall back to their bundled samples.
 
 import { useEffect, useState } from 'react';
-import { board as bundledBoard, sampleQa, sampleVideos, sponsors as bundledSponsors, welcomeSlide } from '../content/data';
+import { board as bundledBoard, foundationBoard as bundledFoundationBoard, sampleQa, sampleVideos, sponsors as bundledSponsors, welcomeSlide } from '../content/data';
 import { todayISO } from './dates';
 import { supabase } from './supabase';
 
@@ -329,6 +329,30 @@ export function useBoardSeats(): Loaded<BoardSeat> {
     { key: 'faemse:board', showFirst: true },
   );
   return state.items.length === 0 && (!state.loaded || (state.down && !state.savedAt)) ? { ...state, items: bundledSeats } : state;
+}
+
+// --- The FAEMSE Foundation's board -------------------------------------------
+// From foundation_board (Admin tab → Foundation page): the Foundation page's
+// board cards (board, 2026-10-22). Same fallback as the board page.
+
+export type FoundationSeat = { id?: string; role: string; name: string; sort_order: number };
+
+const bundledFoundation: FoundationSeat[] = bundledFoundationBoard.map((m, i) => ({ role: m.role, name: m.name, sort_order: (i + 1) * 10 }));
+
+export function useFoundationBoard(): Loaded<FoundationSeat> {
+  const state = useLoaded<FoundationSeat>(
+    async () => {
+      try {
+        const { data, error } = await withTimeout(supabase.from('foundation_board').select('id, role, name, sort_order').order('sort_order', { ascending: true }));
+        if (!error && data) return { live: true, items: data as FoundationSeat[] };
+      } catch {
+        /* fall back below */
+      }
+      return null;
+    },
+    { key: 'faemse:foundation-board', showFirst: true },
+  );
+  return state.items.length === 0 && (!state.loaded || (state.down && !state.savedAt)) ? { ...state, items: bundledFoundation } : state;
 }
 
 // --- Corporate sponsors -------------------------------------------------------

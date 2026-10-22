@@ -25,7 +25,7 @@ const SLOW_MS = Number(process.env.AUDIT_SLOW_MS ?? 3000);
 
 // Every route in src/App.tsx. Keep in sync when pages are added.
 const PUBLIC = [
-  '/', '/about', '/board', '/bylaws', '/membership', '/events', '/news', '/resources', '/sponsors',
+  '/', '/about', '/board', '/foundation', '/bylaws', '/membership', '/events', '/news', '/resources', '/sponsors',
   '/jobs', '/classes', '/qa', '/videos', '/program-directors', '/programs', '/hubs', '/contact',
   '/login', '/members', '/members/resources', '/members/sponsors', '/members/account', '/payment-complete', '/privacy', '/terms',
   '/admin', '/admin/hubs',

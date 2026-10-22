@@ -61,6 +61,17 @@ export const board: BoardMember[] = [
   },
 ];
 
+// The FAEMSE Foundation's board, as the board listed it (2026-10-22). The
+// Foundation page reads the foundation_board table (Admin → Foundation page);
+// this copy stands in only if the database can't be reached.
+export const foundationBoard: { role: string; name: string }[] = [
+  { role: 'President', name: 'Angel Nater' },
+  { role: 'Executive Director', name: 'Louis Mallory' },
+  { role: 'Secretary', name: 'Melissa McNally' },
+  { role: 'At Large', name: 'Bill McGrath' },
+  { role: 'At Large', name: 'Phil Borum' },
+];
+
 // Four classes of membership under bylaws 2.02. Dues are set by the board
 // (4.01); these amounts were confirmed by the board in Sept 2026. Honorary
 // carries no dues and is described separately below.
