@@ -52,11 +52,7 @@ export default function Footer() {
               <li><Link className="hover:text-white" to="/board"><T id="footer.link.board">Board of Directors</T></Link></li>
               <li><Link className="hover:text-white" to="/bylaws"><T id="footer.link.bylaws">Bylaws &amp; elections</T></Link></li>
               <li><Link className="hover:text-white" to="/sponsors"><T id="footer.link.sponsors">Sponsors</T></Link></li>
-              <li>
-                <a className="hover:text-white" href="https://www.faemsefoundation.org" target="_blank" rel="noreferrer">
-                  <T id="footer.link.foundation">Foundation ↗</T>
-                </a>
-              </li>
+              <li><Link className="hover:text-white" to="/foundation"><T id="footer.link.foundation.page">Foundation</T></Link></li>
             </ul>
           </div>
           <div>

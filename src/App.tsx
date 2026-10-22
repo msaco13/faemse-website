@@ -15,6 +15,7 @@ import Home from './pages/Home';
 // admin panels, portal, or pages the visitor never opens.
 const About = lazy(() => import('./pages/About'));
 const Board = lazy(() => import('./pages/Board'));
+const Foundation = lazy(() => import('./pages/Foundation'));
 const Bylaws = lazy(() => import('./pages/Bylaws'));
 const Membership = lazy(() => import('./pages/Membership'));
 const Events = lazy(() => import('./pages/Events'));
@@ -154,6 +155,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/board" element={<Board />} />
+            <Route path="/foundation" element={<Foundation />} />
             <Route path="/bylaws" element={<Bylaws />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/events" element={<Events />} />

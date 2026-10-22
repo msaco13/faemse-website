@@ -16,13 +16,12 @@ import { useMemberStatus } from '../lib/useMemberStatus';
 // Members:   the same without Membership; "My portal" and Sign out replace
 //            sign-in and Join. Someone signed in whose membership has lapsed
 //            keeps Membership and gets a Renew button.
-// News shows only once a post exists. Foundation is the one link that leaves
-// the site (its own 501(c)(3), its own website): plain label, no arrow, new
-// tab. About sits last among the public links (board request, 2026-10-13);
+// News shows only once a post exists. Foundation opens the Foundation page
+// on this site (board, 2026-10-22), which links on to the Foundation's own
+// website. About sits last among the public links (board request, 2026-10-13);
 // administrators also get Admin right after it (board, 2026-10-20): every
 // admin editor in one place.
 type NavItem = { to: string; label: string; textId: string; external?: boolean };
-const FOUNDATION_URL = 'https://www.faemsefoundation.org';
 
 function navFor(member: boolean, hasNews: boolean, admin: boolean): NavItem[] {
   return [
@@ -30,7 +29,7 @@ function navFor(member: boolean, hasNews: boolean, admin: boolean): NavItem[] {
     { to: '/events', label: 'Events', textId: 'events' },
     ...(hasNews ? [{ to: '/news', label: 'News', textId: 'news' }] : []),
     { to: '/programs', label: 'Program map', textId: 'programs' },
-    { to: FOUNDATION_URL, label: 'Foundation', textId: 'foundation', external: true },
+    { to: '/foundation', label: 'Foundation', textId: 'foundation' },
     { to: '/about', label: 'About', textId: 'about' },
     ...(admin ? [{ to: '/admin', label: 'Admin', textId: 'admin' }] : []),
   ];
