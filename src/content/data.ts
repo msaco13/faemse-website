@@ -8,14 +8,18 @@ export const CONTENT_VERIFIED = false;
 // Composition per bylaws 5.02: President, President-Elect, Immediate Past
 // President, Secretary, and three Members-at-Large (seven voting seats). The
 // EMS Educator representative to the state EMS Advisory Council sits ex
-// officio without a vote (5.02.01). The Executive Director is appointed staff
-// (9.05), not a director. Names confirmed current by the board, Sept 2026.
+// officio without a vote (5.02.01), shown as a seat of its own since
+// 2026-10-22 (it had shared the Immediate Past President's card, which read
+// as if it voted). The Executive Director is appointed staff (9.05), not a
+// director. Names confirmed current by the board, Sept 2026.
 // Headshots and personal bios still to come from the board.
 export type BoardMember = {
   role: string;
   name: string;
   blurb: string;
   kind: 'officer' | 'director' | 'staff';
+  // Sits with the board without a vote (bylaws 5.02.01).
+  exOfficio?: boolean;
 };
 
 const atLarge = 'One of three directors elected by the Active membership to represent it on the board.';
@@ -47,11 +51,19 @@ export const board: BoardMember[] = [
     role: 'Immediate Past President',
     name: 'Melissa McNally',
     blurb:
-      'Advisor to the board and chair of the Nominating Committee. Also the EMS Educator representative to the Florida EMS Advisory Council, an ex officio, non-voting seat under the bylaws.',
+      'Advisor and consultant to the board, and chair of the Nominating Committee.',
   },
   { kind: 'director', role: 'Member-at-Large', name: 'Matt Keeler', blurb: atLarge },
   { kind: 'director', role: 'Member-at-Large', name: 'Garth Richards', blurb: atLarge },
   { kind: 'director', role: 'Member-at-Large', name: 'Carlos Tavarez', blurb: atLarge },
+  {
+    kind: 'director',
+    exOfficio: true,
+    role: 'EMS Educator Representative to the Florida EMS Advisory Council',
+    name: 'Melissa McNally',
+    blurb:
+      "The EMS educators' representative on the state EMS Advisory Council. Under the bylaws the representative may sit with this board ex officio: attending board meetings and taking part in discussions and committees, without making motions or voting.",
+  },
   {
     kind: 'staff',
     role: 'Executive Director',
