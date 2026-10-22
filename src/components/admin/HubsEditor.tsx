@@ -132,7 +132,8 @@ function HubForm({ hub, onSaved }: { hub: Listing; onSaved: () => void }) {
       .eq('slug', hub.slug)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (error) setErr(error.message);
+        // On a failed read the body stays null, so Save can't overwrite the hub with nothing.
+        if (error) return setErr(error.message);
         setBody(data?.body ?? '');
         setSavedBody(data?.body ?? '');
       });
