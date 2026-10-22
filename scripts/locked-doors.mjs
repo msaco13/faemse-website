@@ -59,6 +59,7 @@ const PUBLIC = [
   ['bylaws', 'documents?select=slug&slug=eq.bylaws'],
   ['board page', 'board_members?select=id&limit=1'],
   ['sponsors', 'sponsors?select=id&limit=1'],
+  ['foundation board', 'foundation_board?select=id&limit=1'],
 ];
 
 const headers = { apikey: KEY, Authorization: `Bearer ${KEY}`, Accept: 'application/json' };
