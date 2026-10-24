@@ -307,9 +307,11 @@ export type BoardSeat = {
   name: string;
   blurb: string;
   sort_order: number;
+  // Sits with the board without a vote (bylaws 5.02.01); see seatVotes.
+  ex_officio?: boolean;
 };
 
-const bundledSeats: BoardSeat[] = bundledBoard.map((m, i) => ({ section: m.kind, role: m.role, name: m.name, blurb: m.blurb, sort_order: (i + 1) * 10 }));
+const bundledSeats: BoardSeat[] = bundledBoard.map((m, i) => ({ section: m.kind, role: m.role, name: m.name, blurb: m.blurb, sort_order: (i + 1) * 10, ex_officio: !!m.exOfficio }));
 
 export function sortSeats(seats: BoardSeat[]): BoardSeat[] {
   return [...seats].sort((a, b) => BOARD_SECTIONS.indexOf(a.section) - BOARD_SECTIONS.indexOf(b.section) || a.sort_order - b.sort_order);
@@ -319,7 +321,7 @@ export function useBoardSeats(): Loaded<BoardSeat> {
   const state = useLoaded<BoardSeat>(
     async () => {
       try {
-        const { data, error } = await withTimeout(supabase.from('board_members').select('id, section, role, name, blurb, sort_order'));
+        const { data, error } = await withTimeout(supabase.from('board_members').select('id, section, role, name, blurb, sort_order, ex_officio'));
         if (!error && data) return { live: true, items: sortSeats(data as BoardSeat[]) };
       } catch {
         /* fall back below */

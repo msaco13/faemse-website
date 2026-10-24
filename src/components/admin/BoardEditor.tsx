@@ -8,6 +8,9 @@ import { supabase } from '../../lib/supabase';
 // The linked account shows the seat's position next to its name in the
 // member directory, listed ahead of everyone else in this order. After an
 // election this is the one place to update: page and directory together.
+// "Ex officio" marks a seat that sits with the board without a vote, like
+// the EMS Advisory Council representative (bylaws 5.02.01): the page lists
+// it in its own group and labels it Non-voting (board, 2026-10-22).
 
 type Seat = BoardSeat & { id: string };
 
@@ -27,7 +30,7 @@ export default function BoardEditor({ members, onChanged }: { members: Profile[]
   const [adding, setAdding] = useState(false);
 
   async function load() {
-    const { data, error } = await supabase.from('board_members').select('id, section, role, name, blurb, sort_order');
+    const { data, error } = await supabase.from('board_members').select('id, section, role, name, blurb, sort_order, ex_officio');
     if (error) {
       setErr(explain(error.message));
       setSeats([]);
@@ -168,13 +171,15 @@ function SeatRow({
   const [role, setRole] = useState(seat.role);
   const [section, setSection] = useState<BoardSection>(seat.section);
   const [blurb, setBlurb] = useState(seat.blurb);
+  const [exOfficio, setExOfficio] = useState(!!seat.ex_officio);
   const [linked, setLinked] = useState(linkedId);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   useEffect(() => setLinked(linkedId), [linkedId]);
 
-  const dirty = name !== seat.name || role !== seat.role || section !== seat.section || blurb !== seat.blurb || linked !== linkedId;
+  const dirty =
+    name !== seat.name || role !== seat.role || section !== seat.section || blurb !== seat.blurb || exOfficio !== !!seat.ex_officio || linked !== linkedId;
 
   async function save() {
     if (!name.trim() || !role.trim()) {
@@ -186,7 +191,7 @@ function SeatRow({
     setMsg('');
     const { error } = await supabase
       .from('board_members')
-      .update({ name: name.trim(), role: role.trim(), section, blurb: blurb.trim(), updated_at: new Date().toISOString() })
+      .update({ name: name.trim(), role: role.trim(), section, blurb: blurb.trim(), ex_officio: exOfficio, updated_at: new Date().toISOString() })
       .eq('id', seat.id);
     const linkErr =
       !error && linked !== linkedId ? (await supabase.rpc('admin_link_board_seat', { p_seat: seat.id, p_profile: linked || null })).error : null;
@@ -234,6 +239,7 @@ function SeatRow({
           <span className={label}>What this seat does (shown on the board page)</span>
           <textarea value={blurb} onChange={(e) => setBlurb(e.target.value)} className={`${field} min-h-[64px]`} maxLength={600} />
         </label>
+        <ExOfficioBox checked={exOfficio} onChange={setExOfficio} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button onClick={save} disabled={busy || !dirty} className="btn-outline !py-1.5 !px-4 text-[13px] disabled:opacity-50">
@@ -268,6 +274,7 @@ function AddSeat({ seats, onDone, onCancel }: { seats: Seat[]; onDone: () => voi
   const [role, setRole] = useState('');
   const [section, setSection] = useState<BoardSection>('director');
   const [blurb, setBlurb] = useState('');
+  const [exOfficio, setExOfficio] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
@@ -280,7 +287,9 @@ function AddSeat({ seats, onDone, onCancel }: { seats: Seat[]; onDone: () => voi
     setErr('');
     // New seats go to the end of their section.
     const last = Math.max(0, ...seats.filter((s) => s.section === section).map((s) => s.sort_order));
-    const { error } = await supabase.from('board_members').insert({ name: name.trim(), role: role.trim(), section, blurb: blurb.trim(), sort_order: last + 10 });
+    const { error } = await supabase
+      .from('board_members')
+      .insert({ name: name.trim(), role: role.trim(), section, blurb: blurb.trim(), ex_officio: exOfficio, sort_order: last + 10 });
     setBusy(false);
     if (error) setErr(explain(error.message));
     else onDone();
@@ -312,6 +321,7 @@ function AddSeat({ seats, onDone, onCancel }: { seats: Seat[]; onDone: () => voi
           <span className={label}>What this seat does (shown on the board page)</span>
           <textarea value={blurb} onChange={(e) => setBlurb(e.target.value)} className={`${field} min-h-[64px]`} maxLength={600} />
         </label>
+        <ExOfficioBox checked={exOfficio} onChange={setExOfficio} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button onClick={add} disabled={busy} className="btn-red !py-1.5 !px-4 text-[13px] disabled:opacity-60">
@@ -327,5 +337,17 @@ function AddSeat({ seats, onDone, onCancel }: { seats: Seat[]; onDone: () => voi
         )}
       </div>
     </div>
+  );
+}
+
+// Staff seats never vote either (bylaws 9.05), checked or not.
+function ExOfficioBox({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-start gap-2.5 sm:col-span-full text-[13px]">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 w-4 h-4 accent-brand-blue" />
+      <span>
+        <b>Ex officio, no vote.</b> <span className="text-muted">Sits with the board without a vote, like the EMS Advisory Council representative. Listed in its own group and labeled Non-voting.</span>
+      </span>
+    </label>
   );
 }

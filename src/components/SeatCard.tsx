@@ -1,8 +1,25 @@
+import { T } from '../lib/text';
+
 // One board seat as a card: initials, name, position, and what the seat does.
 // Shared by the Board of Directors page and the Foundation page (board,
 // 2026-10-22: the Foundation page follows the board page's format). The
 // President's card is the gold one; a staff seat gets a quieter badge.
-export default function SeatCard({ name, role, blurb, tone = 'board' }: { name: string; role: string; blurb?: string; tone?: 'board' | 'staff' }) {
+// `voting`, when given, labels the seat Voting or Non-voting (board,
+// 2026-10-22: the board page says outright which seats vote); the
+// Foundation page leaves it off.
+export default function SeatCard({
+  name,
+  role,
+  blurb,
+  tone = 'board',
+  voting,
+}: {
+  name: string;
+  role: string;
+  blurb?: string;
+  tone?: 'board' | 'staff';
+  voting?: boolean;
+}) {
   const isPresident = role === 'President';
   const initials = name
     .split(' ')
@@ -33,7 +50,16 @@ export default function SeatCard({ name, role, blurb, tone = 'board' }: { name: 
         </span>
         <div>
           <b className="block text-[16px]">{name}</b>
-          <span className={`text-[13.5px] ${isPresident ? 'text-brand-goldink font-bold tracking-[0.08em] uppercase' : 'text-muted'}`}>{role}</span>
+          <span className={`block text-[13.5px] ${isPresident ? 'text-brand-goldink font-bold tracking-[0.08em] uppercase' : 'text-muted'}`}>{role}</span>
+          {voting !== undefined && (
+            <span
+              className={`inline-block mt-2 text-[11px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 rounded-full ${
+                voting ? 'text-[#0E7A4A] bg-[#E2F7EC]' : 'text-muted bg-paper border border-line'
+              }`}
+            >
+              {voting ? <T id="board.card.voting">Voting</T> : <T id="board.card.nonvoting">Non-voting</T>}
+            </span>
+          )}
         </div>
       </div>
       {blurb && <p className="text-[13.5px] text-muted mt-4 leading-relaxed">{blurb}</p>}

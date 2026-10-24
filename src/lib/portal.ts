@@ -27,6 +27,14 @@ export type Profile = {
 // The positions the board page editor suggests (bylaws Articles 5 and 6,
 // plus the Executive Director the board appoints). Any other title can be
 // typed in.
+// Whether a board seat votes (bylaws 5.02): officers and directors do; a
+// seat that sits with the board ex officio (the EMS Advisory Council
+// representative, 5.02.01) and appointed staff (9.05) don't. The Board of
+// Directors page labels every card with it (board, 2026-10-22).
+export function seatVotes(seat: { section: string; ex_officio?: boolean | null }): boolean {
+  return seat.section !== 'staff' && !seat.ex_officio;
+}
+
 export const FAEMSE_POSITIONS = [
   'President',
   'President-Elect',
