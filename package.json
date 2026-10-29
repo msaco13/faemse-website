@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "a11y": "node scripts/a11y.mjs",
     "audit": "node scripts/audit.mjs",
+    "guards": "node scripts/save-guards.mjs",
     "test": "TZ=America/New_York node --test --test-reporter=spec \"tests/**/*.test.ts\""
   },
   "dependencies": {
