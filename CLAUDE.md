@@ -37,6 +37,16 @@
   renewal reminders (`supabase/functions/renewal-reminders`). A change to a
   term changes all three.
 
+## Editors never save a record that didn't load
+
+- The hub editor and the member profile form show their fields, and Save
+  sends anything, only after that record has loaded (`src/lib/loadGuard.ts`,
+  tested in `tests/loadGuard.test.ts`). A failed or missing read shows an
+  error with Try again; nothing is saved. `update_my_profile` writes all
+  five values as given, so the page is the only guard. `scripts/save-guards.mjs`
+  drives both screens with the database played (nightly, in the site audit).
+  A new editor that loads one record before saving follows the same rule.
+
 ## Database access rules
 
 - `scripts/locked-doors.mjs` (run nightly by the site audit) checks that an

@@ -45,6 +45,8 @@ These hold no matter what you find.
 
    Locked doors (`scripts/locked-doors.mjs`): reads the private tables the way any outsider could, with the website's public key, and expects nothing back. It only reads. If it says `OPEN`, member data is exposed to the public: put that first in the summary, in plain words, with the table named. Do not try to fix it; database access rules are changed only by AJ in Supabase. If it cannot reach the database, the report says INCOMPLETE.
 
+   Save guards (`scripts/save-guards.mjs`): opens the hub editor as a made-up admin and the profile form as made-up members, with every database answer played by the script (nothing reaches the real database), and checks that a failed, missing or slow read never lets Save write over the real record, that Try again works, and that ordinary saves still send exactly what was typed (an opted-out member stays unlisted). A `FAIL` line is a finding: report the case and what was sent. Never loosen a case to make it pass.
+
    Membership tests (`npm test`): the portal's membership date rules. A failing test is a finding. Never change a test to make it pass; report which test failed and what it expected, and say whether a commit from the last day touched `src/lib/portal.ts` or `src/lib/dates.ts`.
 
    If the routes in `src/App.tsx` no longer match the list at the top of `scripts/audit.mjs`, update the list. That is part of the fix, not a finding.
@@ -95,6 +97,6 @@ Say, in this order:
 
 Only when the report's last line was `RESULT: ALL CHECKS RAN. Nothing found.` and steps 3 to 6 found nothing either, the summary is these two sentences, with the numbers from the report filled in:
 
-"The site is clean. Build passed, <N> pages checked at desktop and phone widths and again with the database down, 0 issues; accessibility passed on <A> of <A> pages; all <L> private database checks closed; <T> of <T> membership tests passed; <D> dependency advisories (no new ones); <C> new commits reviewed."
+"The site is clean. Build passed, <N> pages checked at desktop and phone widths and again with the database down, 0 issues; accessibility passed on <A> of <A> pages; <G> of <G> save-guard cases passed; all <L> private database checks closed; <T> of <T> membership tests passed; <D> dependency advisories (no new ones); <C> new commits reviewed."
 
 If the build failed on `main`, lead with that: what failed, the error in a code block, and that nothing else was checked.

@@ -1,0 +1,29 @@
+name: Save guards on the live site
+
+# Runs scripts/save-guards.mjs against https://faemse.org: the deployed hub
+# editor and profile form, as a made-up admin and made-up members, with every
+# database answer played by the script. Nothing reaches the real database and
+# no real record is read or saved. Run it by hand after a deploy that touches
+# an editor (Actions -> Save guards on the live site -> Run workflow).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Check the live pages
+        env:
+          GUARDS_SITE: https://faemse.org
+          GUARDS_CHROME: /usr/bin/google-chrome
+        run: node scripts/save-guards.mjs
