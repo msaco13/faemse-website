@@ -189,7 +189,16 @@ function LoginEmail({ member, onChanged }: { member: Profile; onChanged: () => v
     setErr('');
     setMsg('');
     const { data, error } = await supabase.functions.invoke('change-login-email', { body: { profile_id: member.id, email: next } });
-    const failure = (data as { error?: string } | null)?.error ?? (error ? 'Could not change it. If this keeps happening, the change-login-email function may not be set up yet.' : '');
+    let failure = (data as { error?: string } | null)?.error ?? (error ? 'Could not change it. If this keeps happening, the change-login-email function may not be set up yet.' : '');
+    if (error) {
+      // A refusal (409 address taken, 400, 403...) arrives as an error; its JSON body says why.
+      try {
+        const body = await (error as { context?: Response }).context?.json();
+        if (body?.error) failure = body.error;
+      } catch {
+        /* keep the generic message */
+      }
+    }
     if (failure) {
       setBusy(false);
       return setErr(failure);
