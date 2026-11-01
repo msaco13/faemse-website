@@ -13,6 +13,7 @@ import { useHubList } from '../lib/hubs';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
 import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens, sortDirectory } from '../lib/portal';
 import { useBoardSeats, useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
+import { listedInDirectory, profileRead, profileSaveArgs, type Loaded } from '../lib/loadGuard';
 import { arrivedByPasswordLink } from '../lib/recovery';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
@@ -32,7 +33,10 @@ export default function Members() {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [checked, setChecked] = useState(false);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  // The member's own profile record. The profile form shows, and Save sends,
+  // only once it has loaded (lib/loadGuard.ts).
+  const [profileLoad, setProfileLoad] = useState<Loaded<Profile>>({ state: 'loading' });
+  const profile = profileLoad.state === 'loaded' ? profileLoad.value : null;
   const [directory, setDirectory] = useState<DirectoryEntry[]>([]);
   // Organizations this person represents; a current one makes them current.
   const [myOrgs, setMyOrgs] = useState<MyOrganization[]>([]);
@@ -141,15 +145,12 @@ export default function Members() {
 
   async function onSaveProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    // The form only shows once the profile has loaded; this is the same check
+    // again, so nothing that didn't come from the member's record is sent.
+    const args = profileSaveArgs(profileLoad, Object.fromEntries(new FormData(e.currentTarget).entries()));
+    if (!args) return;
     setProfileStatus('working');
-    const { error } = await supabase.rpc('update_my_profile', {
-      p_full_name: String(data.full_name ?? ''),
-      p_cert_level: String(data.cert_level ?? ''),
-      p_county: String(data.county ?? ''),
-      p_agency: String(data.agency ?? ''),
-      p_show: data.show_in_directory === 'on',
-    });
+    const { error } = await supabase.rpc('update_my_profile', args);
     if (error) {
       setProfileMsg(error.message);
       setProfileStatus('error');
@@ -160,19 +161,32 @@ export default function Members() {
     }
   }
 
+  function retryProfile() {
+    setProfileLoad({ state: 'loading' });
+    loadPortalData();
+  }
+
   async function loadPortalData() {
     const { data: auth } = await supabase.auth.getSession();
     const uid = auth.session?.user.id;
     if (!uid) return;
     // ensure_profile creates the row on first visit; harmless afterwards.
     await supabase.rpc('ensure_profile').then(() => undefined, () => undefined);
-    const [{ data: prof }, { data: dir }, { data: pays }, { data: orgs }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
+    const [prof, { data: dir }, { data: pays }, { data: orgs }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', uid)
+        .maybeSingle()
+        .then(
+          (read) => read,
+          (e: unknown) => ({ data: null, error: { message: e instanceof Error ? e.message : String(e) } }),
+        ),
       supabase.rpc('get_directory'),
       supabase.from('membership_payments').select('*').eq('profile_id', uid).order('created_at', { ascending: false }).limit(5),
       supabase.rpc('my_organizations'),
     ]);
-    if (prof) setProfile(prof as Profile);
+    setProfileLoad((previous) => profileRead({ data: (prof.data as Profile | null) ?? null, error: prof.error }, previous));
     setDirectory(sortDirectory((dir ?? []) as DirectoryEntry[]));
     if (pays) setPayments(pays as Payment[]);
     if (orgs) setMyOrgs(orgs as MyOrganization[]);
@@ -635,46 +649,63 @@ export default function Members() {
                   <p className="text-muted text-[14px] mb-5">
                     <T id="members.profile.text">What fellow members see about you in the directory.</T>
                   </p>
-                  <form onSubmit={onSaveProfile}>
-                    <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                      <label className="block">
-                        <span className={label}><T id="members.profile.name">Full name</T></span>
-                        <input name="full_name" autoComplete="name" defaultValue={profile?.full_name ?? ''} maxLength={200} className={input} />
-                      </label>
-                      <label className="block">
-                        <span className={label}><T id="members.profile.cert">Certification level</T></span>
-                        <input name="cert_level" defaultValue={profile?.cert_level ?? ''} maxLength={100} className={input} />
-                      </label>
+                  {profileLoad.state === 'loading' && (
+                    <p className="text-muted text-[14px]" role="status">
+                      <T id="members.profile.loading">Loading your profile…</T>
+                    </p>
+                  )}
+                  {profileLoad.state === 'error' && (
+                    <div className="rounded-xl border border-brand-redink/30 bg-[#FDEAEB] px-4 py-3.5" role="alert">
+                      <p className="text-brand-redink font-semibold text-[14px]">
+                        <T id="members.profile.loadfail">Your profile didn&apos;t load, so it can&apos;t be edited right now. Nothing was changed.</T>
+                      </p>
+                      <button type="button" onClick={retryProfile} className="btn-outline !py-2 !px-4 text-[13.5px] mt-3">
+                        <T id="members.profile.retry">Try again</T>
+                      </button>
                     </div>
-                    <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                      <label className="block">
-                        <span className={label}><T id="members.profile.county">County</T></span>
-                        <input name="county" defaultValue={profile?.county ?? ''} maxLength={100} className={input} />
+                  )}
+                  {profileLoad.state === 'loaded' && (
+                    <form key={profileLoad.value.id} onSubmit={onSaveProfile}>
+                      <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                        <label className="block">
+                          <span className={label}><T id="members.profile.name">Full name</T></span>
+                          <input name="full_name" autoComplete="name" defaultValue={profileLoad.value.full_name ?? ''} maxLength={200} className={input} />
+                        </label>
+                        <label className="block">
+                          <span className={label}><T id="members.profile.cert">Certification level</T></span>
+                          <input name="cert_level" defaultValue={profileLoad.value.cert_level ?? ''} maxLength={100} className={input} />
+                        </label>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                        <label className="block">
+                          <span className={label}><T id="members.profile.county">County</T></span>
+                          <input name="county" defaultValue={profileLoad.value.county ?? ''} maxLength={100} className={input} />
+                        </label>
+                        <label className="block">
+                          <span className={label}><T id="members.profile.agency">Agency / program</T></span>
+                          <input name="agency" autoComplete="organization" defaultValue={profileLoad.value.agency ?? ''} maxLength={300} className={input} />
+                        </label>
+                      </div>
+                      <label className="flex items-center gap-2.5 mb-5 text-[14.5px] font-semibold">
+                        <input
+                          type="checkbox"
+                          name="show_in_directory"
+                          defaultChecked={listedInDirectory(profileLoad.value)}
+                          className="w-4 h-4 accent-brand-blue"
+                        />
+                        <T id="members.profile.listme">List me in the member directory</T>
                       </label>
-                      <label className="block">
-                        <span className={label}><T id="members.profile.agency">Agency / program</T></span>
-                        <input name="agency" autoComplete="organization" defaultValue={profile?.agency ?? ''} maxLength={300} className={input} />
-                      </label>
-                    </div>
-                    <label className="flex items-center gap-2.5 mb-5 text-[14.5px] font-semibold">
-                      <input
-                        type="checkbox"
-                        name="show_in_directory"
-                        defaultChecked={profile?.show_in_directory ?? true}
-                        className="w-4 h-4 accent-brand-blue"
-                      />
-                      <T id="members.profile.listme">List me in the member directory</T>
-                    </label>
-                    <button type="submit" disabled={profileStatus === 'working'} className="btn-outline disabled:opacity-60">
-                      {profileStatus === 'working' ? <T id="members.profile.saving">Saving…</T> : <T id="members.profile.save">Save profile</T>}
-                    </button>
-                    {profileStatus === 'done' && (
-                      <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{profileMsg}</p>
-                    )}
-                    {profileStatus === 'error' && (
-                      <p className="mt-3 text-brand-redink font-semibold text-[14px]" role="alert">{profileMsg}</p>
-                    )}
-                  </form>
+                      <button type="submit" disabled={profileStatus === 'working'} className="btn-outline disabled:opacity-60">
+                        {profileStatus === 'working' ? <T id="members.profile.saving">Saving…</T> : <T id="members.profile.save">Save profile</T>}
+                      </button>
+                      {profileStatus === 'done' && (
+                        <p className="mt-3 text-[#0E7A4A] font-semibold text-[14px]" role="status">{profileMsg}</p>
+                      )}
+                      {profileStatus === 'error' && (
+                        <p className="mt-3 text-brand-redink font-semibold text-[14px]" role="alert">{profileMsg}</p>
+                      )}
+                    </form>
+                  )}
                 </div>
 
                 <div className="card p-8 border-t-[3px] border-t-brand-gold/70">

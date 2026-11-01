@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cleanHubDraft } from '../../lib/hubDraft';
+import { hubBodyRead, type Loaded } from '../../lib/loadGuard';
 import { supabase } from '../../lib/supabase';
 import { slug as toSlug } from '../../lib/text';
 
@@ -119,29 +120,49 @@ export default function HubsEditor() {
 function HubForm({ hub, onSaved }: { hub: Listing; onSaved: () => void }) {
   const [title, setTitle] = useState(hub.title);
   const [summary, setSummary] = useState(hub.summary ?? '');
-  const [body, setBody] = useState<string | null>(null);
+  const [load, setLoad] = useState<Loaded<string>>({ state: 'loading' });
+  const [attempt, setAttempt] = useState(0);
+  const [body, setBody] = useState('');
   const [savedBody, setSavedBody] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  // Nothing on this form can be edited or saved until the hub's own text
+  // has loaded: a save always writes the body, and an unloaded one is empty.
+  const ready = load.state === 'loaded';
 
   useEffect(() => {
+    // An answer that arrives after the form closed or a retry began is ignored.
+    let current = true;
+    setLoad({ state: 'loading' });
     supabase
       .from('admin_documents')
       .select('body')
       .eq('slug', hub.slug)
       .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) setErr(error.message);
-        setBody(data?.body ?? '');
-        setSavedBody(data?.body ?? '');
-      });
-  }, [hub.slug]);
+      .then(
+        (read) => {
+          if (!current) return;
+          const next = hubBodyRead(read);
+          if (next.state === 'loaded') {
+            setBody(next.value);
+            setSavedBody(next.value);
+          }
+          setLoad(next);
+        },
+        (e: unknown) => {
+          if (current) setLoad({ state: 'error', message: e instanceof Error ? e.message : String(e) });
+        },
+      );
+    return () => {
+      current = false;
+    };
+  }, [hub.slug, attempt]);
 
-  const dirty = body !== null && (body !== savedBody || title !== hub.title || summary !== (hub.summary ?? ''));
+  const dirty = ready && (body !== savedBody || title !== hub.title || summary !== (hub.summary ?? ''));
 
   async function save() {
-    if (body === null) return;
+    if (!ready) return;
     if (!title.trim()) return setErr('The hub needs a title.');
     const { body: clean, notes } = cleanHubDraft(body);
     setBusy(true);
@@ -164,21 +185,31 @@ function HubForm({ hub, onSaved }: { hub: Listing; onSaved: () => void }) {
       <div className="grid gap-3 md:grid-cols-2 mb-3">
         <label className="block">
           <span className={label}>Title</span>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} maxLength={120} />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} disabled={!ready} className={`${field} disabled:bg-paper disabled:text-muted`} maxLength={120} />
         </label>
         <label className="block">
           <span className={label}>One-line summary (on the hub cards)</span>
-          <input value={summary} onChange={(e) => setSummary(e.target.value)} className={field} maxLength={200} />
+          <input value={summary} onChange={(e) => setSummary(e.target.value)} disabled={!ready} className={`${field} disabled:bg-paper disabled:text-muted`} maxLength={200} />
         </label>
       </div>
       <p className="text-[12.5px] text-muted mb-2">
         <b># Title</b> at the top, <b>## Pillar</b> for each pillar, <b>### Topic</b> for each topic under it, and the topic&apos;s text
         below its line. A <b>## Maintenance notes</b> pillar shows to admins only.
       </p>
-      {body === null ? (
+      {load.state === 'loading' ? (
         <p className="text-muted text-[14px]" role="status">
           Loading the text…
         </p>
+      ) : load.state === 'error' ? (
+        <div className="rounded-xl border border-brand-redink/30 bg-[#FDEAEB] px-4 py-3" role="alert">
+          <p className="text-brand-redink font-semibold text-[13.5px]">
+            The hub&apos;s text didn&apos;t load, so it can&apos;t be edited or saved right now. Nothing was changed.
+          </p>
+          <p className="text-[12.5px] text-body mt-1">{load.message}</p>
+          <button onClick={() => setAttempt((n) => n + 1)} className="btn-outline !py-1.5 !px-4 text-[13px] mt-2.5">
+            Try again
+          </button>
+        </div>
       ) : (
         <textarea
           value={body}
