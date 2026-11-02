@@ -117,7 +117,23 @@ else
   row "Accessibility" "ran" "$ok of $ok pages pass"
 fi
 
-# 6. Dependencies (reported here; the skill decides what may be fixed)
+# 6. Save guards: the hub editor and the profile form never save a record
+# that didn't load. Drives the real screens with the database played by the
+# script, so nothing reaches the real one.
+section "Save guards"
+GUARDS_SITE="$SITE" GUARDS_CHROME="$AUDIT_CHROME" node scripts/save-guards.mjs 2>&1 | tee "$LOGS/guards.log"
+guards_line=$(grep -E "^Save guards: [0-9]+ of [0-9]+" "$LOGS/guards.log" | sed -E 's/^Save guards: ([0-9]+ of [0-9]+ cases pass).*/\1/')
+if [ -z "$guards_line" ]; then
+  row "Save guards" "FAILED" "check did not finish (output above)"
+  incomplete+="save-guards "
+elif grep -q "^FAIL " "$LOGS/guards.log"; then
+  row "Save guards" "ran" "PROBLEM: $guards_line"
+  issues=$((issues + 1))
+else
+  row "Save guards" "ran" "$guards_line"
+fi
+
+# 7. Dependencies (reported here; the skill decides what may be fixed)
 section "Dependencies"
 if npm audit --json >"$LOGS/deps.json" 2>/dev/null || [ -s "$LOGS/deps.json" ]; then
   deps=$(node -e '
@@ -138,7 +154,7 @@ else
   incomplete+="dependencies "
 fi
 
-# 7. Locked doors: the private tables give an outsider nothing
+# 8. Locked doors: the private tables give an outsider nothing
 section "Locked doors"
 node scripts/locked-doors.mjs 2>&1 | tee "$LOGS/doors.log"
 doors=${PIPESTATUS[0]}
@@ -153,7 +169,7 @@ else
   row "Locked doors" "ran" "$doors_line"
 fi
 
-# 8. Membership date tests
+# 9. Membership date tests
 section "Membership tests"
 npm test 2>&1 | tee "$LOGS/tests.log"
 tests=${PIPESTATUS[0]}
