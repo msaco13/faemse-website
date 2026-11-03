@@ -20,7 +20,7 @@ import { T, useText } from '../lib/text';
 // Drawn imperatively into an <svg> because the comets are per-frame updates;
 // React owns the container, the card, and the chrome.
 
-type Labels = 'auto' | 'dense' | 'major';
+type Labels = 'auto' | 'dense';
 type CityNode = ProgramCity & { x: number; y: number };
 type Anchor = 'start' | 'end' | 'middle';
 type Box = [number, number, number, number];
@@ -98,9 +98,7 @@ function placeLabels(mode: Labels): Record<string, Placed> {
       { dx: 0, dy: 20, anchor: 'middle', quiet: false, box: [c.x - w / 2, c.y + 9, w, lh] },
       { dx: 0, dy: -12, anchor: 'middle', quiet: false, box: [c.x - w / 2, c.y - 21, w, lh] },
     ];
-    // on phones only the cities with more than one program get printed
-    const wanted = mode !== 'major' || c.programs.length >= 2;
-    const pick = wanted ? cands.find((k) => inBounds(k.box) && !hitsBox(k.box) && !hitsDot(k.box)) : undefined;
+    const pick = cands.find((k) => inBounds(k.box) && !hitsBox(k.box) && !hitsDot(k.box));
     if (pick) {
       boxes.push(pick.box);
       out[c.name] = { dx: pick.dx, dy: pick.dy, anchor: pick.anchor, quiet: false };
@@ -133,8 +131,10 @@ export default function FloridaNetwork({
   // a pinned card ignores pointerleave; the listeners are built once, so they read a ref rather than state
   const pinned = useRef(false);
   const ctl = useRef<Controls | null>(null);
-  // 'auto' prints every label on a wide screen and only the busy cities on a
-  // phone, where 40 names at half scale are a smear. Re-resolved on rotation.
+  // 'auto' prints every label at full size on a wide screen and switches to
+  // the Program map page's denser labels on a phone. It used to name only the
+  // cities with two or more programs there, which left most dots unnamed on
+  // the homepage (board, 2026-11-03). Re-resolved on rotation.
   const [narrow, setNarrow] = useState(() => matchMedia('(max-width: 640px)').matches);
   useEffect(() => {
     const mq = matchMedia('(max-width: 640px)');
@@ -142,7 +142,7 @@ export default function FloridaNetwork({
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
   }, []);
-  const mode: Labels = labels === 'auto' && narrow ? 'major' : labels;
+  const mode: Labels = labels === 'auto' && narrow ? 'dense' : labels;
   const ariaLabel = useText('map.aria', 'Map of Florida EMS programs');
   const doneWording = useText('map.done', 'EMS programs · one network');
   const noSite = useText('map.card.nosite', 'No website listed');
