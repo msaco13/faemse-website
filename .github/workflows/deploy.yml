@@ -26,9 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Node 22: Vite 8 needs 20.19 or newer, Node 20 reached end of life in
+      # April 2026, and the nightly site audit builds on 22.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       # Built at base "/": the site lives at the root of faemse.org. (Before
