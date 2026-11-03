@@ -49,17 +49,25 @@ export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
   plugins: [react(), textIds()],
   build: {
+    // The browsers Vite 5 built for by default. Vite 8's default starts at
+    // Safari/iOS 16.4, Chrome 111 and Firefox 114, which would drop older
+    // iPhones and iPads that work today (Vite 8 upgrade, 2026-11-02).
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
     // Sourcemaps in production: if anything ever crashes, the error card and
     // console point at real file/line names instead of minified identifiers.
     sourcemap: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         // Vendor code changes far less often than site code; splitting it out
         // lets returning visitors keep React and the Supabase client cached
-        // across site deploys.
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          supabase: ['@supabase/supabase-js'],
+        // across site deploys. Same two files as under Vite 5 (Rollup's
+        // manualChunks), matched by package path since Rolldown has no
+        // object form.
+        codeSplitting: {
+          groups: [
+            { name: 'react', test: /[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/ },
+            { name: 'supabase', test: /[\\/]node_modules[\\/](@supabase[\\/]|iceberg-js[\\/]|tslib[\\/])/ },
+          ],
         },
       },
     },
