@@ -92,7 +92,15 @@ export default function PageHead({
             </p>
           )}
         </div>
-        {aside && <div className={`${wideAside ? 'flex-[0_1_520px]' : 'flex-[0_1_380px]'} min-w-0`}>{aside}</div>}
+        {/* When the wide aside wraps below the title it is centered and kept
+            8px in from each side: the map's westernmost label (Pensacola)
+            sits just outside its box, and flush with the page margin it ran
+            3px off the screen from about 520px to 1100px wide (board,
+            2026-11-03). Side by side, the title takes all the free space, so
+            mx-auto changes nothing there. */}
+        {aside && (
+          <div className={`${wideAside ? 'flex-[0_1_520px] mx-auto min-[520px]:max-w-[calc(100%-16px)]' : 'flex-[0_1_380px]'} min-w-0`}>{aside}</div>
+        )}
       </div>
     </section>
   );
