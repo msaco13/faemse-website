@@ -23,6 +23,8 @@ import {
   inRenewalWindow,
   overallState,
   renewalOpens,
+  repRows,
+  seatCap,
   type MyOrganization,
   type Profile,
 } from '../src/lib/portal.ts';
@@ -167,5 +169,27 @@ describe('calendar dates in the browser', () => {
   it('shows a paid-through date as written', () => {
     assert.equal(formatDate('2026-10-31'), 'October 31, 2026');
     assert.equal(formatDate('2026-10-31T23:00:00Z'), 'October 31, 2026');
+  });
+});
+
+// Seats per organization, the coordinator included (board, 2026-11-04;
+// bylaws 2.02.03 and 2.02.04). The database enforces the same numbers in
+// org_seat_cap(), and stripe-webhook and renewal-reminders say them in
+// email; a change to a seat count changes all of them.
+describe('organization seats', () => {
+  it('institutional seats five people: the coordinator plus four', () => {
+    assert.equal(seatCap('institutional'), 5);
+    assert.equal(repRows('institutional'), 4);
+  });
+
+  it('corporate seats three people: the coordinator who pays plus two', () => {
+    assert.equal(seatCap('corporate'), 3);
+    assert.equal(repRows('corporate'), 2);
+  });
+
+  it('an individual membership has no seats to fill', () => {
+    assert.equal(seatCap('active'), 0);
+    assert.equal(repRows('active'), 0);
+    assert.equal(repRows(''), 0);
   });
 });

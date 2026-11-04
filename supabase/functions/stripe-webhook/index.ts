@@ -265,9 +265,16 @@ Deno.serve(async (req) => {
   // current through their seat like everyone else on it.
   if (tier === 'institutional' || tier === 'corporate') {
     type Rep = { name?: unknown; email?: unknown };
+    // Seats, the coordinator included: five institutional, three corporate
+    // (board, 2026-11-04: the person who pays plus two). Mirrors
+    // org_seat_cap() in the database, which enforces it; a login is made only
+    // for someone who will get a seat.
+    const cap = tier === 'corporate' ? 3 : 5;
+    const capWord = cap === 3 ? 'three' : 'five';
     const listed = (Array.isArray(app.representatives) ? app.representatives : []) as Rep[];
     const reps: { profile_id: string; name: string; email: string; created: boolean }[] = [];
-    for (const r of listed.slice(0, 4)) {
+    for (const r of listed) {
+      if (reps.length >= cap - 1) break;
       const re = String(r?.email ?? '').trim().toLowerCase();
       const rn = String(r?.name ?? '').trim();
       if (!re || !rn || re === email || reps.some((x) => x.email === re)) continue;
@@ -288,7 +295,14 @@ Deno.serve(async (req) => {
       console.error(`complete_paid_org_application failed for ${app.id}: ${orgErr.message}`);
       return new Response(orgErr.message, { status: 500 });
     }
-    const result = done as { organization_id: string; name: string; new_expires: string; seated: number };
+    const result = done as {
+      organization_id: string;
+      name: string;
+      new_expires: string;
+      seated: number;
+      seat_cap?: number;
+      gave_up_seat?: string | null;
+    };
     const orgName = result.name;
     const through = longDate(result.new_expires);
     console.log(
@@ -306,7 +320,7 @@ Deno.serve(async (req) => {
         '',
         repNames.length
           ? `Seated under it: you as coordinator, plus ${repNames.join(', ')}. Each of them is getting an email with their own sign-in details.`
-          : `Seated under it: you as coordinator. The membership covers up to five people; reply to this email whenever you want representatives added.`,
+          : `Seated under it: you as coordinator. The membership covers up to ${capWord} people; reply to this email whenever you want representatives added.`,
         '',
         ...(await passwordLines(supabase, email, created)),
         '',
@@ -345,7 +359,10 @@ Deno.serve(async (req) => {
         `Coordinator: ${app.full_name} <${email}>${created ? ' (login created)' : ''}`,
         ...reps.map((r) => `Representative: ${r.name} <${r.email}>${r.created ? ' (login created)' : ''}`),
         `Paid through: ${through}`,
-        `Seats used: ${result.seated} of 5`,
+        `Seats used: ${result.seated} of ${result.seat_cap ?? cap}`,
+        ...(result.gave_up_seat
+          ? [`The membership was full, so ${app.full_name} took the coordinator seat ${result.gave_up_seat} held. ${result.gave_up_seat} keeps the login but is no longer seated.`]
+          : []),
         app.kind === 'renew' && reps.length ? 'Anyone seated last year who is not on this list has been unseated.' : '',
         '',
         `The organization is set up and seated under Board admin → Organizations, and the payment is in the Dues ledger: ${SITE}/members`,

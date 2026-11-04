@@ -12,6 +12,7 @@
 // through it in a test. Recognised by its header row; anything else falls
 // back to the simpler roster reader in roster.ts.
 
+import { seatCap } from './portal';
 import { normDate, parseCsv } from './roster';
 
 export type LegacyPerson = {
@@ -75,10 +76,6 @@ export function isLegacyExport(text: string): boolean {
 
 function yes(v: string): boolean {
   return /^(y|yes|true|1)$/i.test(v.trim());
-}
-
-function seatCap(kind: 'institutional' | 'corporate'): number {
-  return kind === 'institutional' || kind === 'corporate' ? 5 : 0;
 }
 
 export function parseLegacyExport(text: string): LegacyPlan {
