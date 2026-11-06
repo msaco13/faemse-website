@@ -39,6 +39,7 @@ const PRIVATE = [
   ['site settings', 'site_settings?select=*&limit=1'],
   ['password link log', 'password_link_log?select=*&limit=1'],
   ['job sweep runs', 'job_sweep_runs?select=*&limit=1'],
+  ['who shared each job', 'job_submissions?select=*&limit=1'],
   // Read-only functions that must return nothing to an outsider.
   ['admin member list', 'rpc/admin_list_members'],
   ['admin payment list', 'rpc/admin_list_payments'],

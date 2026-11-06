@@ -77,3 +77,7 @@
 - Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
   sweep never posts a hidden job again. Jobs the board posts by hand
   (source = board) are never touched by the sweep.
+- Signed-in current members add jobs from the Job board themselves
+  (`member_add_job()`, five a day, source = member). They post right away as
+  "Shared by a member"; who added each one is in `job_submissions`, admins
+  only (in locked-doors' PRIVATE list), and never shown on the board.

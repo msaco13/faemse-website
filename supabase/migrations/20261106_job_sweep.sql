@@ -18,6 +18,11 @@
 --   5. job_sweep_apply(payload): posts what it found and takes down what
 --      closed or vanished.
 --   6. get_settings() also returns job_sweep_paused (the Admin switch).
+--   7. Members add jobs themselves (board, 2026-11-06): any current member,
+--      signed in on the Job board, through member_add_job(). It posts right
+--      away as "Shared by a member"; admins see who in job_submissions and
+--      can hide or delete it. The sweep never touches these jobs and skips
+--      any job already on the board under the same link.
 
 -- ---------------------------------------------------------------------------
 -- 1. Columns.
@@ -35,7 +40,7 @@ begin
     alter table public.jobs add constraint jobs_category_check check (category in ('fire_ems', 'ems', 'education'));
   end if;
   if not exists (select 1 from pg_constraint where conname = 'jobs_source_check') then
-    alter table public.jobs add constraint jobs_source_check check (source in ('board', 'sweep'));
+    alter table public.jobs add constraint jobs_source_check check (source in ('board', 'sweep', 'member'));
   end if;
 end $$;
 
@@ -58,6 +63,7 @@ create table if not exists public.job_sweep_runs (
   kept integer not null default 0,
   removed integer not null default 0,
   hidden_skipped integer not null default 0,
+  already_listed integer not null default 0,
   unreadable integer not null default 0,
   notes text not null default ''
 );
@@ -90,7 +96,12 @@ as $$
         'open_until_filled', open_until_filled, 'confirmed', confirmed,
         'found_on', posted_on, 'last_seen_on', last_seen_on, 'missed_runs', missed_runs, 'hidden', hidden)
         order by posted_on)
-      from jobs where source = 'sweep'), '[]'::jsonb));
+      from jobs where source = 'sweep'), '[]'::jsonb),
+    -- Jobs the board or a member posted, still up: the sweep leaves these
+    -- off its own list instead of posting them twice.
+    'already_listed', coalesce((
+      select jsonb_agg(jsonb_build_object('url', apply_url, 'title', title, 'employer', employer))
+      from jobs where source <> 'sweep' and not hidden and expires_on >= (now() at time zone 'America/New_York')::date), '[]'::jsonb));
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -137,6 +148,7 @@ declare
   v_kept integer := 0;
   v_removed integer := 0;
   v_hidden integer := 0;
+  v_listed integer := 0;
   v_n integer;
 begin
   if payload is null or jsonb_typeof(payload) <> 'object' then raise exception 'Payload must be a JSON object'; end if;
@@ -164,8 +176,15 @@ begin
     if lower(v_url) = any (v_found_urls) then continue; end if; -- listed twice in one run
     v_found_urls := array_append(v_found_urls, lower(v_url));
 
-    if exists (select 1 from jobs where source = 'sweep' and lower(apply_url) = lower(v_url) and hidden) then
+    -- Hidden by an admin, whoever posted it: never posted again.
+    if exists (select 1 from jobs where lower(apply_url) = lower(v_url) and hidden) then
       v_hidden := v_hidden + 1;
+      continue;
+    end if;
+    -- Already up, posted by the board or a member: not posted twice.
+    if exists (select 1 from jobs where source <> 'sweep' and lower(apply_url) = lower(v_url) and not hidden and expires_on >= v_today) then
+      v_listed := v_listed + 1;
+      delete from jobs where source = 'sweep' and lower(apply_url) = lower(v_url) and not hidden;
       continue;
     end if;
 
@@ -214,11 +233,11 @@ begin
     v_removed := v_removed + v_n;
   end if;
 
-  insert into job_sweep_runs (complete, found, added, kept, removed, hidden_skipped, unreadable, notes)
-  values (v_complete, jsonb_array_length(coalesce(payload -> 'found', '[]'::jsonb)), v_added, v_kept, v_removed, v_hidden,
+  insert into job_sweep_runs (complete, found, added, kept, removed, hidden_skipped, already_listed, unreadable, notes)
+  values (v_complete, jsonb_array_length(coalesce(payload -> 'found', '[]'::jsonb)), v_added, v_kept, v_removed, v_hidden, v_listed,
           greatest(coalesce((payload ->> 'unreadable')::integer, 0), 0), left(coalesce(payload ->> 'notes', ''), 500));
 
-  return jsonb_build_object('added', v_added, 'kept', v_kept, 'removed', v_removed, 'hidden_skipped', v_hidden,
+  return jsonb_build_object('added', v_added, 'kept', v_kept, 'removed', v_removed, 'hidden_skipped', v_hidden, 'already_listed', v_listed,
                             'on_board', (select count(*) from jobs where source = 'sweep' and not hidden and expires_on >= v_today));
 end $$;
 
@@ -244,3 +263,82 @@ as $$
      from site_settings where id = 1),
     jsonb_build_object('online_dues', 'false'::jsonb, 'reminders_paused', 'false'::jsonb, 'job_sweep_paused', 'false'::jsonb));
 $$;
+
+-- ---------------------------------------------------------------------------
+-- 7. Members add jobs.
+--
+-- Who shared a job: admins only, never on the public board.
+create table if not exists public.job_submissions (
+  job_id uuid primary key references public.jobs (id) on delete cascade,
+  profile_id uuid references public.profiles (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index if not exists job_submissions_profile_idx on public.job_submissions (profile_id, created_at);
+alter table public.job_submissions enable row level security;
+do $$
+begin
+  if not exists (select 1 from pg_policy where polname = 'admins read job submissions' and polrelid = 'public.job_submissions'::regclass) then
+    create policy "admins read job submissions" on public.job_submissions for select using ((select public.is_admin()));
+  end if;
+end $$;
+revoke insert, update, delete, truncate on public.job_submissions from anon, authenticated;
+
+-- p = { title, employer, location, category, closes_on (YYYY-MM-DD or
+-- empty: open until filled), link, description }. Title, employer and type
+-- are required, plus a link or a description. Up to five a day per member.
+-- Open until filled: up for 30 days. Returns the new job's id.
+create or replace function public.member_add_job(p jsonb)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_today date := (now() at time zone 'America/New_York')::date;
+  v_title text := trim(coalesce(p ->> 'title', ''));
+  v_employer text := trim(coalesce(p ->> 'employer', ''));
+  v_location text := trim(coalesce(p ->> 'location', ''));
+  v_category text := coalesce(p ->> 'category', '');
+  v_link text := trim(coalesce(p ->> 'link', ''));
+  v_description text := trim(coalesce(p ->> 'description', ''));
+  v_closes date;
+  v_id uuid;
+begin
+  if v_uid is null or not public.is_current_member() then
+    raise exception 'Only signed-in members can add a job.';
+  end if;
+  if (select count(*) from job_submissions where profile_id = v_uid and created_at > now() - interval '1 day') >= 5 then
+    raise exception 'You can add up to five jobs a day. Try again tomorrow.';
+  end if;
+  if length(v_title) < 3 or length(v_title) > 200 then raise exception 'Give the job title (up to 200 characters).'; end if;
+  if length(v_employer) < 2 or length(v_employer) > 200 then raise exception 'Give the employer (up to 200 characters).'; end if;
+  if length(v_location) > 200 then raise exception 'Keep the city under 200 characters.'; end if;
+  if v_category not in ('fire_ems', 'ems', 'education') then raise exception 'Pick the type: Fire/EMS, EMS or Education.'; end if;
+  if v_link <> '' and (v_link !~* '^https?://[^\s]+$' or length(v_link) > 1000) then
+    raise exception 'The link has to be a web address starting with https://';
+  end if;
+  if length(v_description) > 2000 then raise exception 'Keep the description under 2,000 characters.'; end if;
+  if v_link = '' and v_description = '' then raise exception 'Add a link to the posting, a description, or both.'; end if;
+  begin
+    v_closes := nullif(trim(coalesce(p ->> 'closes_on', '')), '')::date;
+  exception when others then
+    raise exception 'The closing date is not a date.';
+  end;
+  if v_closes is not null and (v_closes < v_today or v_closes > v_today + 366) then
+    raise exception 'The closing date has to be between today and a year from now.';
+  end if;
+  if v_link <> '' and exists (select 1 from jobs where lower(apply_url) = lower(v_link) and not hidden and expires_on >= v_today) then
+    raise exception 'That job is already on the board.';
+  end if;
+
+  insert into jobs (source, title, employer, location, category, description, apply_url, posted_on, expires_on, open_until_filled, confirmed)
+  values ('member', v_title, v_employer, v_location, v_category, v_description, v_link, v_today,
+          coalesce(v_closes, v_today + 30), v_closes is null, true)
+  returning id into v_id;
+  insert into job_submissions (job_id, profile_id) values (v_id, v_uid);
+  return v_id;
+end $$;
+
+revoke all on function public.member_add_job(jsonb) from public, anon;
+grant execute on function public.member_add_job(jsonb) to authenticated;

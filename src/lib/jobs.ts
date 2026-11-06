@@ -48,3 +48,28 @@ export function lastChecked(items: { source?: string; lastSeenOn?: string | null
   }
   return best;
 }
+
+// What a member typed into "Add a job", checked before it is sent. The
+// database checks the same rules again (member_add_job()); this only spares
+// a round trip. Returns the first problem, in plain words, or null.
+export type JobForm = {
+  title: string;
+  employer: string;
+  location: string;
+  category: string;
+  closesOn: string; // YYYY-MM-DD or '' (open until filled)
+  link: string;
+  description: string;
+};
+
+export function jobFormProblem(f: JobForm, today: string): string | null {
+  const t = (s: string) => s.trim();
+  if (t(f.title).length < 3) return 'Give the job title.';
+  if (t(f.employer).length < 2) return 'Give the employer.';
+  if (!['fire_ems', 'ems', 'education'].includes(f.category)) return 'Pick the type: Fire/EMS, EMS or Education.';
+  if (!t(f.link) && !t(f.description)) return 'Add a link to the posting, a description, or both.';
+  if (t(f.link) && !/^https?:\/\/\S+$/i.test(t(f.link))) return 'The link has to be a web address starting with https://';
+  if (t(f.description).length > 2000) return 'Keep the description under 2,000 characters.';
+  if (f.closesOn && f.closesOn < today) return 'The closing date has already passed.';
+  return null;
+}

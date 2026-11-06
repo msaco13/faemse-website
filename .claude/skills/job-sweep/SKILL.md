@@ -5,7 +5,7 @@ description: Weekly sweep of open Fire/EMS, EMS and EMS education jobs in Florid
 
 # Weekly job sweep
 
-You keep the FAEMSE Job board (faemse.org/jobs, members only) stocked with open jobs in Florida, in three categories, and take down jobs that closed. The board decided on 2026-11-06 that the sweep posts by itself, without an admin approving each job. An admin can hide any job in Admin → Job sweep, and the sweep never posts a hidden job again.
+You keep the FAEMSE Job board (faemse.org/jobs, members only) stocked with open jobs in Florida, in three categories, and take down jobs that closed. Members also add jobs themselves, and the board posts some by hand; you never touch those. The board decided on 2026-11-06 that the sweep posts by itself, without an admin approving each job. An admin can hide any job in Admin → Job sweep, and the sweep never posts a hidden job again.
 
 Nobody is watching. Do not ask questions. Your final message is the summary AJ gets.
 
@@ -32,7 +32,7 @@ A job that fits two, such as a fire department's training officer, goes where mo
 
 1. **Read the state.**
    `curl -sS https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/job-sweep`
-   It returns `paused`, `today` (Florida date) and `listings` (every job the sweep posted, with `hidden`). If `paused` is true, stop and end with "Job sweep paused in Admin; nothing changed." If the call fails or answers 401 or 503, stop and end with "Job sweep failed:" and the answer.
+   It returns `paused`, `today` (Florida date), `listings` (every job the sweep posted, with `hidden`) and `already_listed` (jobs the board or a member posted that are up now). If `paused` is true, stop and end with "Job sweep paused in Admin; nothing changed." If the call fails or answers 401 or 503, stop and end with "Job sweep failed:" and the answer.
 
 2. **Re-check what's on the board.** For each listing that is not hidden:
    - confirmed: read its link with the fetch helper. Still open: keep it (step 4). Closed, filled, removed, or the page is gone (HTTP 404/410): put its link on the `closed` list. BLOCKED or FAILED this time: search for it (below) instead of guessing.
@@ -42,7 +42,7 @@ A job that fits two, such as a fire department's training officer, goes where mo
    - Fire/EMS: "firefighter paramedic" Florida hiring; "firefighter EMT" Florida; "fire medic" Florida; fire rescue careers Florida; plus searches limited to governmentjobs.com for Florida firefighter jobs.
    - EMS: paramedic Florida ambulance hiring; EMT Florida EMS hiring; hospital paramedic Florida; flight paramedic Florida; emergency medical dispatcher Florida; 911 telecommunicator Florida.
    - Education: EMS instructor Florida college; paramedic program director Florida; EMT instructor Florida technical college; adjunct EMS faculty Florida.
-   Spread across the state: if the results cluster in one region, add searches for the Panhandle, North, Central, Tampa Bay, Southwest and South Florida. For each promising result, find the employer's own posting and confirm it (rules 3, 5 and 6). Skip jobs that are closed, outside Florida, not in the three categories, or that you can't tie to an employer's own posting.
+   Spread across the state: if the results cluster in one region, add searches for the Panhandle, North, Central, Tampa Bay, Southwest and South Florida. For each promising result, find the employer's own posting and confirm it (rules 3, 5 and 6). Skip jobs that are closed, outside Florida, not in the three categories, or that you can't tie to an employer's own posting. Skip any job in `already_listed` (same link, or the same title at the same employer): a member or the board already posted it.
 
 4. **Send the results.** Build one JSON payload and POST it:
    ```
@@ -63,7 +63,7 @@ A job that fits two, such as a fire department's training officer, goes where mo
    - `unreadable` counts the pages the helper answered BLOCKED or FAILED for.
    Save the payload to a file in your scratchpad, then:
    `curl -sS -X POST -H 'Content-Type: application/json' --data @<file> https://iybsnqcffrhzhdpyoaqt.supabase.co/functions/v1/job-sweep`
-   It answers `added`, `kept`, `removed`, `hidden_skipped` and `on_board`. If it answers an error about a bad entry, fix or drop that entry and send again. Never send more than three times.
+   It answers `added`, `kept`, `removed`, `hidden_skipped`, `already_listed` and `on_board`. A job whose link is already up from a member or the board is left off by the database too. If it answers an error about a bad entry, fix or drop that entry and send again. Never send more than three times.
 
 5. **Summary.** End with a short plain message, easy to read on a phone:
    - First line: "Job sweep <M-D-YY>: <added> new, <kept> still open, <removed> taken down, <on_board> on the board."

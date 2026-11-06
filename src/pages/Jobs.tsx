@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import AddJobForm from '../components/AddJobForm';
 import PageHead from '../components/PageHead';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { contactPath } from '../content/data';
@@ -10,8 +12,9 @@ import { T } from '../lib/text';
 // Members only since 2026-10-13 (board decision; the route wraps this page in
 // MembersOnly). Since 2026-11-06 a weekly sweep finds Fire/EMS, EMS and EMS
 // education openings across Florida and posts them here by itself
-// (.claude/skills/job-sweep); the board still posts openings by hand. Three
-// tabs, one per category, and ?type= in the address opens one. Placement is
+// (.claude/skills/job-sweep); the board still posts openings by hand, and
+// any signed-in member can add one at the bottom (AddJobForm). Three tabs,
+// one per category, and ?type= in the address opens one. Placement is
 // one of the three CoAEMSP program metrics, so this board sits close to the
 // accreditation material (cross-linked below).
 
@@ -35,7 +38,50 @@ function dayDate(iso: string): string {
   });
 }
 
+// The page's head and section are drawn here; the listings below in
+// JobsBoard, which starts over (and reloads) after a member adds a job. The
+// head matches the one MembersOnly shows visitors (App.tsx).
+const JOBS_HEAD = {
+  eyebrow: 'Careers in Florida EMS',
+  title: 'Job board',
+  sub: 'Fire/EMS, EMS, and EMS education openings across Florida, checked every week, plus openings the board and members post.',
+};
+
 export default function Jobs() {
+  const [version, setVersion] = useState(0);
+  return (
+    <>
+      <PageHead id="jobs" eyebrow={JOBS_HEAD.eyebrow} title={JOBS_HEAD.title} sub={JOBS_HEAD.sub} />
+      <section className="py-20 bg-paper">
+        <div className="wrap">
+          <JobsBoard key={version} />
+
+          <AddJobForm onAdded={() => setVersion((v) => v + 1)} />
+          <p className="text-muted text-[14px] mt-4 max-w-[80ch]">
+            <T id="jobs.employers.text">Hiring and not a member? Employers can</T>{' '}
+            <Link to={contactPath('Job posting for the FAEMSE board')} className="text-brand-blue font-semibold hover:underline">
+              <T id="jobs.employers.link">send the posting to the board</T>
+            </Link>
+            .
+          </p>
+
+          <p className="text-muted text-[14px] mt-6 max-w-[80ch]">
+            <T id="jobs.why.text">
+              Why we run this: graduate placement is one of the three outcomes every accredited
+              paramedic program is measured on, alongside retention and exam pass rate. New program
+              director?
+            </T>{' '}
+            <Link to="/program-directors" className="text-brand-blue font-semibold hover:underline">
+              <T id="jobs.why.link">Start with the director guide →</T>
+            </Link>
+          </p>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function JobsBoard() {
   const { items, loaded, down, savedAt } = useJobs();
   const [params, setParams] = useSearchParams();
   const active = categoryFromSlug(params.get('type'));
@@ -59,21 +105,13 @@ export default function Jobs() {
 
   return (
     <>
-      <PageHead
-        id="jobs"
-        eyebrow="Careers in Florida EMS"
-        title="Job board"
-        sub="Fire/EMS, EMS, and EMS education openings across Florida, checked every week, plus openings the board posts."
-      />
-      <section className="py-20 bg-paper">
-        <div className="wrap">
           {down && savedAt && (
             <SavedCopyNote id="jobs" savedAt={savedAt} note="The live job board couldn't be reached, so check with the employer that an opening is still available." />
           )}
 
           {loaded && !(down && !savedAt) && (
             <>
-              <div className="flex flex-wrap gap-2 mb-2.5" role="group" aria-label="Show jobs by type">
+              <div className="flex flex-wrap items-center gap-2 mb-2.5" role="group" aria-label="Show jobs by type">
                 <button type="button" className={tab(!active)} aria-pressed={!active} onClick={() => pick(null)}>
                   <T id="jobs.tab.all">All</T> <span className={active ? 'text-muted' : 'text-brand-goldsoft'}>{items.length}</span>
                 </button>
@@ -82,6 +120,9 @@ export default function Jobs() {
                     {c.label} <span className={active === c.key ? 'text-brand-goldsoft' : 'text-muted'}>{counts[c.key]}</span>
                   </button>
                 ))}
+                <a href="#add-job" className="ml-auto text-brand-blue font-semibold text-[14px] hover:underline">
+                  <T id="jobs.add.jump">+ Add a job</T>
+                </a>
               </div>
               <p className="text-muted text-[13.5px] mb-6">
                 {checked && (
@@ -148,7 +189,7 @@ export default function Jobs() {
                     <p className="mb-3">
                       <span className={`${chip} ${CATEGORY_CHIP[cat]}`}>{categoryLabel(cat)}</span>
                     </p>
-                    {j.description && <p className="text-muted text-[15px] mb-4 max-w-[80ch]">{j.description}</p>}
+                    {j.description && <p className="text-muted text-[15px] mb-4 max-w-[80ch] whitespace-pre-line">{j.description}</p>}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13.5px]">
                       {j.applyUrl && (
                         <a href={j.applyUrl} target="_blank" rel="noreferrer" className="btn-outline !py-2 !px-4 text-[13.5px]">
@@ -167,6 +208,10 @@ export default function Jobs() {
                               </>
                             )}
                           </>
+                        ) : j.source === 'member' ? (
+                          <>
+                            <T id="jobs.item.shared">Shared by a member</T> {j.postedOn ? shortDate(j.postedOn) : j.posted}
+                          </>
                         ) : (
                           <>
                             <T id="jobs.item.posted">Posted by the board</T> {j.postedOn ? shortDate(j.postedOn) : j.posted}
@@ -180,33 +225,6 @@ export default function Jobs() {
             </div>
           )}
 
-          <div className="card p-8 mt-10 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="font-disp font-bold uppercase text-xl mb-1"><T id="jobs.send.h2">Hiring in Florida EMS?</T></h2>
-              <p className="text-muted text-[15px] max-w-[64ch]">
-                <T id="jobs.send.text">
-                  Send the posting to the board and we&apos;ll list it here, free, in front of every program. Listings come
-                  down on their closing date.
-                </T>
-              </p>
-            </div>
-            <Link to={contactPath('Job posting for the FAEMSE board')} className="btn-red">
-              <T id="jobs.send.cta">Send a posting</T>
-            </Link>
-          </div>
-
-          <p className="text-muted text-[14px] mt-6 max-w-[80ch]">
-            <T id="jobs.why.text">
-              Why we run this: graduate placement is one of the three outcomes every accredited
-              paramedic program is measured on, alongside retention and exam pass rate. New program
-              director?
-            </T>{' '}
-            <Link to="/program-directors" className="text-brand-blue font-semibold hover:underline">
-              <T id="jobs.why.link">Start with the director guide →</T>
-            </Link>
-          </p>
-        </div>
-      </section>
     </>
   );
 }

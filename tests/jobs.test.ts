@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { categoryFromSlug, categoryLabel, categoryOf, countByCategory, isNew, lastChecked } from '../src/lib/jobs.ts';
+import { categoryFromSlug, categoryLabel, categoryOf, countByCategory, isNew, jobFormProblem, lastChecked } from '../src/lib/jobs.ts';
 
 describe('job board categories', () => {
   it('three categories, with anything unknown counted as Education', () => {
@@ -47,5 +47,24 @@ describe('job board categories', () => {
       '2026-11-08',
     );
     assert.equal(lastChecked([{ source: 'board' }]), null);
+  });
+});
+
+describe('adding a job from the Job board', () => {
+  const ok = { title: 'Paramedic', employer: 'Sample EMS', location: '', category: 'ems', closesOn: '', link: 'https://example.org/job', description: '' };
+  it('title, employer and type, plus a link or a description', () => {
+    assert.equal(jobFormProblem(ok, '2026-11-08'), null);
+    assert.equal(jobFormProblem({ ...ok, link: '', description: 'Evening shifts.' }, '2026-11-08'), null);
+    assert.equal(jobFormProblem({ ...ok, link: '', description: '  ' }, '2026-11-08'), 'Add a link to the posting, a description, or both.');
+    assert.equal(jobFormProblem({ ...ok, title: ' ' }, '2026-11-08'), 'Give the job title.');
+    assert.equal(jobFormProblem({ ...ok, employer: '' }, '2026-11-08'), 'Give the employer.');
+    assert.equal(jobFormProblem({ ...ok, category: '' }, '2026-11-08'), 'Pick the type: Fire/EMS, EMS or Education.');
+  });
+
+  it('a link has to be a web address; a closing date cannot be past', () => {
+    assert.match(jobFormProblem({ ...ok, link: 'javascript:alert(1)' }, '2026-11-08') ?? '', /web address/);
+    assert.match(jobFormProblem({ ...ok, link: 'example.org/job' }, '2026-11-08') ?? '', /web address/);
+    assert.equal(jobFormProblem({ ...ok, closesOn: '2026-11-07' }, '2026-11-08'), 'The closing date has already passed.');
+    assert.equal(jobFormProblem({ ...ok, closesOn: '2026-11-08' }, '2026-11-08'), null);
   });
 });

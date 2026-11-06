@@ -4,6 +4,7 @@ import { categoryLabel, JOB_CATEGORIES } from '../lib/jobs';
 import { defaultSlideTags } from '../content/data';
 import Collapsible from './admin/Collapsible';
 import JobSweepPanel from './admin/JobSweepPanel';
+import MemberJobsPanel from './admin/MemberJobsPanel';
 import { supabase } from '../lib/supabase';
 
 // Admin CRUD for the brief's posting types: jobs, classes, Q&A entries,
@@ -109,7 +110,7 @@ const SECTIONS: Section[] = [
     table: 'jobs',
     title: 'Job board (posted by the board)',
     addLabel: '+ Add job',
-    emptyNote: 'No jobs posted by the board yet. Jobs the weekly sweep finds are under Weekly job sweep below.',
+    emptyNote: 'No jobs posted by the board yet. Jobs members add and jobs the weekly sweep finds have their own lists below.',
     orderBy: { column: 'posted_on', ascending: false },
     expiresKey: 'expires_on',
     scope: { column: 'source', value: 'board' },
@@ -645,10 +646,16 @@ export default function PostingsManager() {
         SECTIONS.map((sec) => (
           // Arriving from the homepage's "this slide is a spotlight" note
           // (/members#boards) opens the spotlights; everything else starts closed.
-          // The weekly job sweep's panel sits right under the board's own jobs.
+          // Jobs members shared and the weekly sweep's panel sit right under
+          // the board's own jobs.
           <Fragment key={sec.table}>
             <SectionBlock section={sec} defaultOpen={sec.table === 'spotlights' && openSpotlights} />
-            {sec.table === 'jobs' && <JobSweepPanel />}
+            {sec.table === 'jobs' && (
+              <>
+                <MemberJobsPanel />
+                <JobSweepPanel />
+              </>
+            )}
           </Fragment>
         ))
       )}
