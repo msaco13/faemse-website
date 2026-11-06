@@ -29,6 +29,8 @@ Conferences people can go to, not courses (AJ, 2026-11-06: "I'm not trying to pr
 
 Not: courses, classes, workshops sold on their own, webinars or exams, from anyone (NAEMSE's instructor courses and NEMSEC exams, CoAEMSP's accreditation workshops, NAEMSP's year-long courses, CE classes). A conference's own pre-conference courses are part of the conference: mention them in its `detail` if you like, never as events of their own. Also not: events with no posted dates, and events already over.
 
+**The one exception: CoAEMSP** (AJ, 2026-11-06). Its in-person accreditation workshops for program directors and faculty (Fundamentals of Accreditation, Beyond the Fundamentals) count, as well as ACCREDITCON. Suggest each Florida session as its own event (tag `Workshop`, CoAEMSP's workshop page as `url`) and list the other cities' dates in its `detail`; a session held at ACCREDITCON belongs in ACCREDITCON's `detail`. CoAEMSP's online town halls and webinars stay off.
+
 Tags for suggestions: `Florida` (a Florida conference or state meeting), `National` (a national conference), `Competition` (an ALS competition), `Workshop` (a conference or summit for educators that is neither of the first two). Never `Meeting`.
 
 ## Steps

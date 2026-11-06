@@ -109,7 +109,8 @@
   events only become suggestions that an admin adds, edits first or
   dismisses in Admin → Site content → Weekly event sweep. Conferences people
   can go to, educator conferences first; never courses, classes, webinars
-  or exams on their own (AJ, 2026-11-06).
+  or exams on their own (AJ, 2026-11-06). The one exception is CoAEMSP: its
+  in-person accreditation workshops count, as does ACCREDITCON.
 - Every change it makes is in `event_sweep_changes` with what it replaced;
   admins undo one with `admin_undo_event_sweep_change()`, which refuses if
   the event was edited since, and the sweep never makes an undone change
