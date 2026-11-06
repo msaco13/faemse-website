@@ -2,6 +2,7 @@
 // Reads one page for the weekly job sweep, only if the site allows it.
 //
 //   node scripts/job-sweep/fetch.mjs <url>
+//   node scripts/job-sweep/fetch.mjs --links <url>   also lists the page's links
 //
 // Prints "OK <final url>" and the page's readable text, or one line saying
 // why it did not read it:
@@ -21,6 +22,7 @@
 //   to get past a block: a page that needs scripts is opened in Chromium only
 //   when robots.txt allows it, with the same user agent.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { allowed, crawlDelay, parseRobots, ROBOT, verdictForStatus } from './robots.mjs';
@@ -40,7 +42,9 @@ const say = (kind, url, why) => {
   process.exit(kind === 'OK' ? 0 : kind === 'BLOCKED' ? 2 : 1);
 };
 
-const target = process.argv[2];
+const args = process.argv.slice(2);
+const wantLinks = args.includes('--links');
+const target = args.filter((a) => a !== '--links')[0];
 let url;
 try {
   url = new URL(target);
@@ -84,6 +88,26 @@ async function robotsFor(u) {
   }
 }
 
+// The page's links, as "LINK text -> absolute url", for following a careers
+// page to its individual postings (each one read with this helper too).
+function links(html, base) {
+  const out = [];
+  const seen = new Set();
+  for (const m of html.matchAll(/<a\b[^>]*href\s*=\s*["']([^"'#][^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)) {
+    let href;
+    try {
+      href = new URL(m[1].replace(/&amp;/g, '&'), base).href;
+    } catch {
+      continue;
+    }
+    if (!/^https?:/.test(href) || seen.has(href)) continue;
+    seen.add(href);
+    const text = m[2].replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+    if (text) out.push(`LINK ${text.slice(0, 120)} -> ${href}`);
+  }
+  return out;
+}
+
 function readable(html) {
   const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? '').replace(/\s+/g, ' ').trim();
   // The page's main content when it marks one, so menus don't crowd it out.
@@ -120,19 +144,34 @@ if (finalUrl.host !== url.host) {
   const g2 = await robotsFor(finalUrl);
   if (g2 === null || !allowed(g2, finalUrl.pathname + finalUrl.search)) say('BLOCKED', finalUrl.href, 'redirected to a page robots.txt does not allow');
 }
-let { title, text } = readable(await res.text());
+let html = await res.text();
+let { title, text } = readable(html);
 
 // Pages that build their listing with scripts: open them in Chromium, same
 // user agent, only because robots.txt already said yes.
 if (text.length < 600 && process.env.JOB_SWEEP_NO_BROWSER !== '1') {
   try {
-    const { chromium } = await import('playwright');
-    const browser = await chromium.launch();
+    // Playwright as installed here: the container's global copy (found the
+    // way require finds it, since import ignores NODE_PATH), or
+    // playwright-core from the repo after npm ci.
+    let chromium;
+    try {
+      ({ chromium } = createRequire(import.meta.url)('playwright'));
+    } catch {
+      ({ chromium } = await import('playwright-core'));
+    }
+    const exe = process.env.JOB_SWEEP_CHROME || (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
+    const browser = await chromium.launch({ executablePath: exe, args: ['--no-sandbox'] });
     const page = await (await browser.newContext({ userAgent: UA })).newPage();
     await page.goto(finalUrl.href, { waitUntil: 'networkidle', timeout: 30000 });
-    const r = readable(await page.content());
+    await page.waitForTimeout(1500);
+    const rendered = await page.content();
     await browser.close();
-    if (r.text.length > text.length) ({ title, text } = r);
+    const r = readable(rendered);
+    if (r.text.length > text.length) {
+      ({ title, text } = r);
+      html = rendered;
+    }
   } catch {
     /* keep what plain fetch got */
   }
@@ -141,3 +180,4 @@ if (text.length < 600 && process.env.JOB_SWEEP_NO_BROWSER !== '1') {
 console.log(`OK ${finalUrl.href}`);
 if (title) console.log(`TITLE ${title}`);
 console.log(text.slice(0, 20000));
+if (wantLinks) console.log(links(html, finalUrl.href).slice(0, 300).join('\n'));
