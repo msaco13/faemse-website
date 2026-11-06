@@ -174,7 +174,7 @@ export default function App() {
               element={
                 <MembersOnly
                   what="The job board"
-                  head={{ id: 'jobs', eyebrow: 'Careers in EMS education', title: 'Job board', sub: 'Openings for instructors, coordinators, and program directors across Florida — posted by the board as we hear of them.' }}
+                  head={{ id: 'jobs', eyebrow: 'Careers in Florida EMS', title: 'Job board', sub: 'Fire/EMS, EMS, and EMS education openings across Florida, checked every week, plus openings the board and members post.' }}
                 >
                   <Jobs />
                 </MembersOnly>

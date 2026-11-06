@@ -20,6 +20,14 @@ export type JobItem = {
   applyUrl: string;
   // ISO closing date, so a saved copy can drop listings that have closed.
   closesOn?: string;
+  // The weekly sweep (board, 2026-11-06). Missing on rows saved before it.
+  category?: string | null; // fire_ems | ems | education (lib/jobs.ts); null: not sorted yet
+  source?: 'board' | 'sweep' | 'member';
+  confirmed?: boolean; // false: from a search listing, not the posting itself
+  openUntilFilled?: boolean;
+  postedOn?: string; // ISO: found by the sweep, or posted by the board
+  lastSeenOn?: string | null; // ISO: last time the sweep saw it open
+  needsDetails?: boolean; // a member's job the weekly sweep hasn't read yet
 };
 
 export type ClassItem = {
@@ -247,6 +255,13 @@ export function useJobs(): Loaded<JobItem> {
             description: r.description,
             applyUrl: r.apply_url,
             closesOn: String(r.expires_on).slice(0, 10),
+            category: r.category ?? null,
+            source: r.source === 'sweep' || r.source === 'member' ? r.source : 'board',
+            confirmed: r.confirmed !== false,
+            openUntilFilled: r.open_until_filled === true,
+            postedOn: String(r.posted_on).slice(0, 10),
+            lastSeenOn: r.last_seen_on ? String(r.last_seen_on).slice(0, 10) : null,
+            needsDetails: r.needs_details === true,
           })),
         };
       }

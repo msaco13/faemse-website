@@ -59,3 +59,33 @@
   outsider gets nothing from the private tables. When a migration adds a
   table or function that holds member data, add it to that script's PRIVATE
   list in the same change.
+
+## Weekly job sweep (Job board)
+
+- Every job on the board has a link to apply, whoever adds it: the sweep, a
+  member, or the board by hand in Admin (board, 2026-11-06). The database
+  refuses a job without one (`jobs_apply_url_check`); the forms say so
+  (`applyLinkProblem()` in `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`).
+
+- Once a week a scheduled session follows `.claude/skills/job-sweep/SKILL.md`:
+  it finds Fire/EMS, EMS and EMS education jobs in Florida and posts them on
+  the Job board by itself (board, 2026-11-06). Jobs that closed come down.
+- The sweep never gets database access. It writes only through the
+  `job-sweep` edge function (its own key, header `x-sweep-key`), which calls
+  only `job_sweep_state()` and `job_sweep_apply()`
+  (`supabase/migrations/20261106_job_sweep.sql`). Those touch only jobs with
+  source = sweep and the `job_sweep_runs` log. Keep it that way.
+- It reads pages only through `scripts/job-sweep/fetch.mjs`, which obeys
+  robots.txt (`scripts/job-sweep/robots.mjs`, tested in
+  `tests/robots.test.ts`) and never reads job aggregators or
+  governmentjobs.com. Never add a way around a block.
+- Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
+  sweep never posts a hidden job again. Jobs the board posts by hand
+  (source = board) are never touched by the sweep.
+- Signed-in current members add jobs from the Job board themselves
+  (`member_add_job()`, five a day, source = member) with the link to apply,
+  the title and the employer; the type is optional. They post right away as
+  "Shared by a member", marked "details coming"; the weekly sweep reads each
+  link, fills in the details and type (`member_updates`), and takes closed
+  ones down. Who added each one is in `job_submissions`, admins only (in
+  locked-doors' PRIVATE list), and never shown on the board.
