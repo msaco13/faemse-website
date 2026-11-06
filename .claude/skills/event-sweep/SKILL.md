@@ -41,6 +41,8 @@ Tags for suggestions: `Workshop` (trainings, workshops, educator meetings), `Flo
 
 3. **Past events** (`past` true, not `locked`). If the next year's edition is already on the calendar (same event, next year), skip it. Otherwise look for next year's dates on the organizer's site or in search. If they are posted, send an update that moves the event: the new `starts_on` and `ends_on`, the `title` with the new year if the title has one, `location` and `detail` for the new edition, and `source_url`. If they aren't posted yet, leave it for next week.
 
+3b. **ICEMS (Florida Center for EMS).** The calendar's ICEMS event is a FAEMSE meeting, so it is locked, and its link is the Center's homepage, https://flcems.org/, until the Center announces the next ICEMS (AJ, 2026-11-06). Every week read https://flcems.org/ with the fetch helper (`--links`) and search for the next ICEMS. Once it has posted dates and its own page, send it as a suggestion (tag `Florida`, that page as `url`, never saying FAEMSE meets there), and start the summary with "ICEMS <year> announced: <dates>, <place>, <link>. The calendar's ICEMS event is a FAEMSE meeting, so an admin updates it." Until then, say nothing about it.
+
 4. **Upcoming events with dates already set** (not `locked`): only if you happen to see that the organizer moved them, send an update with the new dates and the page you saw it on.
 
 5. **Find new events.** Run web searches, at least:
