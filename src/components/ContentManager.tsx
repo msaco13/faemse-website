@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Collapsible from './admin/Collapsible';
 import { todayISO } from '../lib/dates';
+import { eventRangeProblem } from '../lib/eventDates';
 import { supabase } from '../lib/supabase';
 
 // Admin CRUD for the public site's events and news. Rendered inside the
@@ -9,6 +10,7 @@ import { supabase } from '../lib/supabase';
 type DbEvent = {
   id: string;
   starts_on: string;
+  ends_on?: string | null;
   title: string;
   detail: string;
   location: string;
@@ -61,8 +63,17 @@ function EventForm({
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    const startsOn = String(data.starts_on);
+    const endsOn = String(data.ends_on ?? '');
+    const rangeProblem = eventRangeProblem(startsOn, endsOn);
+    if (rangeProblem) {
+      setErr(rangeProblem);
+      return;
+    }
     const row = {
-      starts_on: String(data.starts_on),
+      starts_on: startsOn,
+      // Last day of an event over several days; empty for one day.
+      ends_on: endsOn && endsOn > startsOn ? endsOn : null,
       title: String(data.title).trim(),
       detail: String(data.detail ?? '').trim(),
       location: String(data.location ?? '').trim(),
@@ -84,8 +95,12 @@ function EventForm({
   return (
     <form onSubmit={onSubmit} className="bg-paper rounded-xl p-5 grid sm:grid-cols-2 gap-3">
       <label>
-        <span className={label}>Date</span>
+        <span className={label}>Date (first day)</span>
         <input name="starts_on" type="date" required defaultValue={initial?.starts_on ?? ''} className={input} />
+      </label>
+      <label>
+        <span className={label}>Last day (optional, for a conference over several days)</span>
+        <input name="ends_on" type="date" defaultValue={initial?.ends_on ?? ''} className={input} />
       </label>
       <label>
         <span className={label}>Title</span>
@@ -330,8 +345,9 @@ export default function ContentManager() {
                     <EventForm initial={ev} onDone={done} onCancel={() => setEditing(null)} />
                   ) : (
                     <div className="grid md:grid-cols-[110px_1.6fr_1fr_auto] gap-3 items-center">
-                      <span className={`text-[13.5px] font-bold ${ev.starts_on < today ? 'text-muted' : ''}`}>
+                      <span className={`text-[13.5px] font-bold ${(ev.ends_on ?? ev.starts_on) < today ? 'text-muted' : ''}`}>
                         {ev.starts_on}
+                        {ev.ends_on && ev.ends_on > ev.starts_on && <span className="block font-semibold text-muted">to {ev.ends_on}</span>}
                       </span>
                       <div className="min-w-0">
                         <b className="block text-[14.5px] truncate">{ev.title}</b>
@@ -341,7 +357,7 @@ export default function ContentManager() {
                       </div>
                       <span className="text-[12px] font-bold uppercase tracking-wide text-muted">
                         {ev.tag} · {ev.tag_color}
-                        {ev.starts_on < today ? ' · past' : ''}
+                        {(ev.ends_on ?? ev.starts_on) < today ? ' · past' : ''}
                       </span>
                       <div className="flex gap-2">
                         <button onClick={() => setEditing(ev.id)} className="btn-outline !py-1.5 !px-3.5 text-[12.5px]">

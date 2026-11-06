@@ -41,9 +41,11 @@ export default function BoardStrip() {
             to="/events"
             className="flex gap-4 items-center py-3.5 lg:px-6 lg:border-r border-white/10 max-lg:border-b max-lg:border-white/5 hover:bg-white/5"
           >
-            <div className="flex-none w-[50px] text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
-              <b className="block text-[21px] gold-text">{e.day}</b>
-              <span className="text-xs tracking-[0.14em] text-brand-goldsoft">{e.month}</span>
+            {/* A range for an event over several days (board, 2026-11-06). */}
+            <div className="flex-none min-w-[50px] px-1.5 text-center font-disp uppercase bg-brand-blue/15 border border-brand-bluesoft/30 rounded-xl py-2 leading-none">
+              <span className="sr-only">{e.dateLabel}</span>
+              <b aria-hidden className="block text-[21px] gold-text whitespace-nowrap">{e.days}</b>
+              <span aria-hidden className="text-xs tracking-[0.14em] text-brand-goldsoft whitespace-nowrap">{e.months}</span>
             </div>
             <div className="min-w-0">
               <b className="block text-[15px] leading-snug text-white">{e.title}</b>

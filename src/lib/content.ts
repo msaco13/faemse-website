@@ -3,7 +3,8 @@
 // back to the visitor's last saved copy of the real one, never to samples.
 
 import { useEffect, useState } from 'react';
-import { eventDate, news as sampleNews, MONTHS } from '../content/data';
+import { eventDate, news as sampleNews } from '../content/data';
+import { eventDates } from './eventDates';
 import { supabase } from './supabase';
 
 export type EventItem = {
@@ -11,6 +12,14 @@ export type EventItem = {
   day: string;
   month: string;
   year: string;
+  // The whole range for an event over several days ("04–08", "JAN",
+  // "2027"), the same in words for screen readers, and its last day
+  // (YYYY-MM-DD). One-day events repeat day, month and year.
+  days: string;
+  months: string;
+  years: string;
+  dateLabel: string;
+  lastDay: string;
   title: string;
   detail: string;
   location: string;
@@ -42,13 +51,18 @@ function withTimeout<T>(p: PromiseLike<T>, ms = 5000): Promise<T> {
   ]);
 }
 
-function toEventItem(r: { id: string; starts_on: string; title: string; detail: string; location: string; tag: string; tag_color: string; url?: string | null }): EventItem {
-  const d = new Date(`${r.starts_on.slice(0, 10)}T00:00:00`);
+function toEventItem(r: { id: string; starts_on: string; ends_on?: string | null; title: string; detail: string; location: string; tag: string; tag_color: string; url?: string | null }): EventItem {
+  const d = eventDates(r.starts_on, r.ends_on);
   return {
     id: r.id,
-    day: String(d.getDate()).padStart(2, '0'),
-    month: MONTHS[d.getMonth()],
-    year: String(d.getFullYear()),
+    day: d.day,
+    month: d.month,
+    year: d.year,
+    days: d.days,
+    months: d.months,
+    years: d.years,
+    dateLabel: d.label,
+    lastDay: d.lastDay,
     title: r.title,
     detail: r.detail,
     location: r.location,
@@ -192,11 +206,14 @@ export function useSiteNews(): Loaded<NewsItem> {
   return state;
 }
 
+// Upcoming until its last day is over, so a conference stays on the board
+// while it runs.
 export function splitEvents(items: EventItem[]): { upcoming: EventItem[]; past: EventItem[] } {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const last = (e: EventItem) => new Date(`${e.lastDay}T00:00:00`);
   return {
-    upcoming: items.filter((e) => eventDate(e) >= today).sort((a, b) => eventDate(a).getTime() - eventDate(b).getTime()),
-    past: items.filter((e) => eventDate(e) < today).sort((a, b) => eventDate(b).getTime() - eventDate(a).getTime()),
+    upcoming: items.filter((e) => last(e) >= today).sort((a, b) => eventDate(a).getTime() - eventDate(b).getTime()),
+    past: items.filter((e) => last(e) < today).sort((a, b) => eventDate(b).getTime() - eventDate(a).getTime()),
   };
 }
