@@ -79,6 +79,12 @@
   robots.txt (`scripts/job-sweep/robots.mjs`, tested in
   `tests/robots.test.ts`) and never reads job aggregators or
   governmentjobs.com. Never add a way around a block.
+- The Job board has three tabs, Fire/EMS first, then EMS and Education, and
+  no All tab. On each tab an employer's openings share one card with a
+  dropdown, matched by employer name (`groupByEmployer()` in
+  `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`), so the sweep writes one
+  name per employer. Members reach it from Jobs in the main menu; visitors
+  don't see that link, and the portal has no jobs tab (board, 2026-11-06).
 - Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
   sweep never posts a hidden job again. Jobs the board posts by hand
   (source = board) are never touched by the sweep.

@@ -31,7 +31,7 @@ const PUBLIC = [
   '/admin', '/admin/hubs',
 ];
 const NOT_FOUND = '/this-page-does-not-exist';
-const MEMBER = ['/members', '/members/resources', '/members/sponsors', '/members/jobs', '/members/account', '/jobs', '/qa', '/hubs'];
+const MEMBER = ['/members', '/members/resources', '/members/sponsors', '/members/account', '/jobs', '/qa', '/hubs'];
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
   { name: 'phone', width: 390, height: 844, isMobile: true, hasTouch: true },

@@ -12,7 +12,7 @@ import { useSiteNews } from '../lib/content';
 import { useHubList } from '../lib/hubs';
 import type { DirectoryEntry, MyOrganization, Payment, Profile } from '../lib/portal';
 import { dateState, dollars, duesCents, formatDate, graceEnd, inRenewalWindow, overallState, renewalOpens, sortDirectory } from '../lib/portal';
-import { useBoardSeats, useClasses, useJobs, useLibrary, useQaEntries, useSpotlights, useVideos, type ClassItem, type JobItem } from '../lib/postings';
+import { useBoardSeats, useLibrary, useQaEntries, useSpotlights, useVideos } from '../lib/postings';
 import { listedInDirectory, profileRead, profileSaveArgs, type Loaded } from '../lib/loadGuard';
 import { arrivedByPasswordLink } from '../lib/recovery';
 import { useSettings } from '../lib/settings';
@@ -51,8 +51,6 @@ export default function Members() {
   const spotlights = useSpotlights();
   const boardSeats = useBoardSeats().items;
   const news = useSiteNews();
-  const jobs = useJobs();
-  const classes = useClasses();
   const qa = useQaEntries(!!session);
   const videos = useVideos(!!session);
   const pwPlaceholder = useText('members.password.placeholder', 'New password (8+ characters)');
@@ -237,18 +235,15 @@ export default function Members() {
   const isMember = mState === 'current' || mState === 'grace';
 
   // Which tab: /members, /members/resources, /members/sponsors,
-  // /members/jobs, /members/account, /members/board (admins). Jobs & classes
-  // appears only when something is posted; anything unknown falls back to
-  // Home. Corporate sponsors (board, 2026-10-21) shows the still sponsor
+  // /members/account, /members/board (admins); anything unknown falls back to
+  // Home. The Jobs & classes tab came out on 2026-11-06 (board): the Job
+  // board is in the main menu for members, and /members/jobs goes there
+  // (App.tsx). Classes will get a new home later. Corporate sponsors (board, 2026-10-21) shows the still sponsor
   // wall; every other tab has the moving sponsor band across the bottom.
-  const jobsLive = jobs.live ? jobs.items : [];
-  const classesLive = classes.live ? classes.items : [];
-  const showJobs = jobsLive.length + classesLive.length > 0;
   const tabs = [
     { key: 'home', to: '/members', label: 'Home' },
     { key: 'resources', to: '/members/resources', label: 'Resources' },
     { key: 'sponsors', to: '/members/sponsors', label: 'Corporate sponsors' },
-    ...(showJobs ? [{ key: 'jobs', to: '/members/jobs', label: 'Jobs & classes' }] : []),
     { key: 'account', to: '/members/account', label: 'My account' },
     ...(isAdmin ? [{ key: 'board', to: '/members/board', label: 'Board tools' }] : []),
   ];
@@ -637,9 +632,6 @@ export default function Members() {
             </div>
           )}
 
-          {active === 'jobs' && (
-            <JobsAndClasses jobs={jobsLive} classes={classesLive} />
-          )}
 
           {active === 'account' && (
             <div className="flex flex-col gap-6">
@@ -836,58 +828,5 @@ export default function Members() {
 
       {active !== 'sponsors' && <SponsorBand where="portal" />}
     </>
-  );
-}
-
-
-// Jobs and classes on one board with a filter (board, 2026-10-20). The tab
-// shows only when something is posted.
-function JobsAndClasses({ jobs, classes }: { jobs: JobItem[]; classes: ClassItem[] }) {
-  const [show, setShow] = useState<'all' | 'jobs' | 'classes'>('all');
-  const rows = [
-    ...(show !== 'classes' ? jobs.map((j) => ({ kind: 'Job' as const, id: `j-${j.id ?? j.title}`, title: j.title, meta: [j.employer, j.location, `open until ${j.closes}`], text: j.description, link: j.applyUrl })) : []),
-    ...(show !== 'jobs' ? classes.map((c) => ({ kind: 'Class' as const, id: `c-${c.id ?? c.title}`, title: c.title, meta: [c.provider, c.location, c.starts ? `starts ${c.starts}` : ''], text: c.description, link: '' })) : []),
-  ];
-  const pill = (key: typeof show, text: string) => (
-    <button
-      type="button"
-      onClick={() => setShow(key)}
-      aria-pressed={show === key}
-      className={`px-4 py-2.5 rounded-full font-bold text-[14px] border min-h-[44px] ${show === key ? 'bg-ink text-white border-ink' : 'bg-white text-body border-line hover:border-ink'}`}
-    >
-      {text}
-    </button>
-  );
-  return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          {pill('all', 'All')}
-          {pill('jobs', `Jobs (${jobs.length})`)}
-          {pill('classes', `Classes (${classes.length})`)}
-        </div>
-        <Link to={contactPath('Job or class posting')} className="font-bold text-brand-blue hover:underline text-[14.5px]">
-          <T id="members.jobs.post">Post an opening or a class →</T>
-        </Link>
-      </div>
-      <ul className="card divide-y divide-line">
-        {rows.map((r) => (
-          <li key={r.id} className="px-6 py-5 flex flex-col gap-1.5">
-            <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className={`text-[11px] font-bold tracking-[0.1em] uppercase px-2.5 py-1 rounded-full ${r.kind === 'Job' ? 'text-[#1A47B8] bg-[#E7EEFF]' : 'text-brand-goldink bg-[#FBF3D9]'}`}>{r.kind}</span>
-              <b className="text-[16px]">{r.title}</b>
-            </span>
-            <span className="text-muted text-[14px]">{r.meta.filter(Boolean).join(' · ')}</span>
-            {r.text && <span className="text-[14.5px]">{r.text}</span>}
-            {r.link && (
-              <a href={r.link} target="_blank" rel="noreferrer" className="font-semibold text-brand-blue hover:underline text-[14px] self-start">
-                <T id="members.jobs.apply">How to apply ↗</T>
-              </a>
-            )}
-          </li>
-        ))}
-        {rows.length === 0 && <li className="px-6 py-5 text-muted text-[14.5px]"><T id="members.jobs.none">Nothing in this list right now.</T></li>}
-      </ul>
-    </div>
   );
 }
