@@ -91,11 +91,19 @@ export type Contact = {
   created_at: string;
 };
 
-// Five seats for both kinds since 2026-10-01 (board decision: corporate
-// representatives do not vote, so the bylaws' three was raised to five).
-// Mirrors org_seat_cap() in the database, which is what actually enforces it.
-export function seatCap(kind: Organization['kind']): number {
-  return kind === 'institutional' || kind === 'corporate' ? 5 : 0;
+// Seats per organization, the coordinator included: institutional five,
+// corporate three (board, 2026-11-04: the person who pays plus two, as in
+// bylaws 2.02.04; it was five from 2026-10-01). Everyone seated is a member
+// for the organization's term; corporate seats never vote. Mirrors
+// org_seat_cap() in the database, which is what actually enforces it.
+export function seatCap(kind: string): number {
+  return kind === 'institutional' ? 5 : kind === 'corporate' ? 3 : 0;
+}
+
+// Representatives the application form takes: every seat but the
+// coordinator's.
+export function repRows(kind: string): number {
+  return Math.max(seatCap(kind) - 1, 0);
 }
 
 // One person listed on an organization's application: seated when it pays.
@@ -144,8 +152,8 @@ export type Application = {
   county: string | null;
   cert_level: string | null;
   note: string | null;
-  // Institutional and corporate applications: up to four people the
-  // coordinator wants seated (the coordinator is the fifth seat).
+  // Institutional and corporate applications: the people the coordinator
+  // wants seated, up to repRows(tier) (the coordinator takes the last seat).
   representatives?: Representative[] | null;
   status: 'new' | 'approved' | 'declined';
 };

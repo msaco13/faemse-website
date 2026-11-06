@@ -185,7 +185,7 @@ Deno.serve(async (req) => {
         'Renewing keeps every representative’s access to the Q&A archive, teaching videos,',
         'member library, and directory. Renew on the membership form: choose "I\'m renewing",',
         'pick your membership type, enter the organization name, and list the people you',
-        'want seated this year, up to four plus you. They do not have to be the same people',
+        `want seated this year, up to ${o.kind === 'corporate' ? 'two' : 'four'} plus you. They do not have to be the same people`,
         'as last year.',
         '',
         RENEW_FORM,

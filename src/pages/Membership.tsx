@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHead from '../components/PageHead';
 import { contactPath, faq, honorary, membershipTerms, tiers } from '../content/data';
-import type { Representative } from '../lib/portal';
+import { repRows, type Representative } from '../lib/portal';
 import { useSettings } from '../lib/settings';
 import { supabase } from '../lib/supabase';
 import { slug, T, useText } from '../lib/text';
@@ -12,11 +12,6 @@ const tierValue: Record<string, string> = {
   Institutional: 'institutional',
   Corporate: 'corporate',
 };
-
-// Representatives an organization can list on the form. Five seats, the
-// coordinator takes one (board decision 2026-10-01: corporate matches
-// institutional).
-const REP_ROWS = 4;
 
 export default function Membership() {
   const formRef = useRef<HTMLDivElement>(null);
@@ -29,6 +24,10 @@ export default function Membership() {
   const [paidNotice, setPaidNotice] = useState<'success' | 'cancelled' | null>(null);
   const { online_dues: onlineDues } = useSettings();
   const isOrg = tier === 'institutional' || tier === 'corporate';
+  // Representatives the form takes: every seat but the coordinator's, so
+  // four for institutional (five seats) and two for corporate (three seats,
+  // board 2026-11-04).
+  const repCount = repRows(tier);
 
   useEffect(() => {
     const paid = new URLSearchParams(window.location.search).get('paid');
@@ -57,13 +56,14 @@ export default function Membership() {
     }
     setStatus('sending');
     setPaidNotice(null);
-    // Organizations: the people the coordinator wants seated, up to four
-    // (the coordinator is the fifth seat). A row counts only with both a
-    // name and an email; the coordinator's own address is not a seat twice.
+    // Organizations: the people the coordinator wants seated, up to
+    // repCount (the coordinator takes the last seat). A row counts only with
+    // both a name and an email; the coordinator's own address is not a seat
+    // twice.
     const coordinatorEmail = String(data.email).trim().toLowerCase();
     const representatives: Representative[] = [];
     if (isOrg) {
-      for (let i = 1; i <= REP_ROWS; i++) {
+      for (let i = 1; i <= repCount; i++) {
         const name = String(data[`rep_name_${i}`] ?? '').trim();
         const email = String(data[`rep_email_${i}`] ?? '').trim().toLowerCase();
         if (name && email && email !== coordinatorEmail && !representatives.some((r) => r.email === email)) {
@@ -338,14 +338,23 @@ export default function Membership() {
                   <T id="membership.form.reps.legend">Your representatives</T>
                 </legend>
                 <p className="text-muted text-[13.5px] mb-4 max-w-[70ch]">
-                  <T id="membership.form.reps.text">
-                    The membership covers five people: the coordinator above plus up to four more. Everyone listed
-                    becomes a member the moment the payment clears and gets their own portal login. Leave rows blank to
-                    fill them later, and when you renew, whoever you list replaces last year's names.
-                  </T>
+                  {tier === 'corporate' ? (
+                    <T id="membership.form.reps.text.corporate">
+                      The membership covers three people: the coordinator above plus up to two more. Everyone listed
+                      becomes a member the moment the payment clears and gets their own portal login. Corporate seats do
+                      not vote. Leave rows blank to fill them later, and when you renew, whoever you list replaces last
+                      year's names.
+                    </T>
+                  ) : (
+                    <T id="membership.form.reps.text">
+                      The membership covers five people: the coordinator above plus up to four more. Everyone listed
+                      becomes a member the moment the payment clears and gets their own portal login. Leave rows blank
+                      to fill them later, and when you renew, whoever you list replaces last year's names.
+                    </T>
+                  )}
                 </p>
                 <div className="space-y-3">
-                  {Array.from({ length: REP_ROWS }, (_, i) => i + 1).map((i) => (
+                  {Array.from({ length: repCount }, (_, i) => i + 1).map((i) => (
                     <div key={i} className="grid sm:grid-cols-2 gap-3">
                       <label className="block">
                         <span className="sr-only">Representative {i} name</span>

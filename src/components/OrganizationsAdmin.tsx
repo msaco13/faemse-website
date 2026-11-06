@@ -6,8 +6,9 @@ import { supabase } from '../lib/supabase';
 
 // Institutional and corporate memberships, which belong to an organization
 // rather than a person. Each has a paid-through date, a coordinator (who gets
-// the renewal reminders), and five seats for representatives (corporate was
-// three until 2026-10-01). A representative is a current member
+// the renewal reminders), and seats for representatives: five institutional,
+// three corporate, the coordinator included (board, 2026-11-04). A
+// representative is a current member
 // while the organization is, whether or not they hold a membership of their
 // own. The seat cap is enforced in the database, not here.
 
@@ -306,8 +307,9 @@ export default function OrganizationsAdmin({ members, refreshKey, onChanged }: {
         )}
       </div>
       <p className="text-muted text-[13.5px] mb-3 max-w-[76ch]">
-        An institutional or corporate membership seats up to five people, the coordinator included. Everyone seated is a
-        current member while the organization is paid up, on top of any membership of their own. Renewal reminders go to
+        An institutional membership seats up to five people and a corporate one up to three, the coordinator included.
+        Everyone seated is a current member while the organization is paid up, on top of any membership of their own.
+        Corporate seats do not vote. Renewal reminders go to
         the coordinator and the billing contact. An organization that pays online is created and seated here on its own.
       </p>
       {err && (

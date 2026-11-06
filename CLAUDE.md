@@ -36,6 +36,12 @@
 - The same rules also live in the database (`is_current_member()`) and the
   renewal reminders (`supabase/functions/renewal-reminders`). A change to a
   term changes all three.
+- Seats per organization, the coordinator included: institutional 5,
+  corporate 3 (board, 2026-11-04: the person who pays plus two; corporate
+  seats never vote). The database enforces them (`org_seat_cap()`); the same
+  numbers are in `seatCap()`/`repRows()` in `src/lib/portal.ts` (pinned in
+  `tests/membership.test.ts`), `stripe-webhook` and `renewal-reminders`. A
+  change to a seat count changes all four.
 
 ## Editors never save a record that didn't load
 
