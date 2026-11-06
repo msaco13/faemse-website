@@ -1,6 +1,6 @@
 ---
 name: event-sweep
-description: Weekly check of the FAEMSE calendar (faemse.org/events). Fills in event dates and places that were TBA, moves past events to next year's dates once they are posted, and finds new EMS education conferences (trainings and meetings for educators first) for an admin to approve. Runs right after the job sweep in the Sunday scheduled session, or when AJ says "run the event sweep" or "/event-sweep".
+description: Weekly check of the FAEMSE calendar (faemse.org/events). Fills in event dates and places that were TBA, moves past events to next year's dates once they are posted, and finds new EMS conferences people can go to (educator conferences first; never courses) for an admin to approve. Runs right after the job sweep in the Sunday scheduled session, or when AJ says "run the event sweep" or "/event-sweep".
 ---
 
 # Weekly event sweep
@@ -25,9 +25,11 @@ Nobody is watching. Do not ask questions. Your summary is part of the Sunday mes
 
 ## What counts as a new event
 
-Any EMS-related educational conference, with trainings and meetings for educators first (board, 2026-11-06): EMS educator conferences and symposiums (the NAEMSE Symposium and its instructor courses, CoAEMSP workshops for program directors and key personnel), EMS education days and instructor trainings, state and regional EMS conferences, and the big national EMS conferences. Florida first, national ones too. ALS competitions count as well. Not: single CE classes or webinars sold by a company, events with no posted dates, and events already over.
+Conferences people can go to, not courses (AJ, 2026-11-06: "I'm not trying to promote courses for them. I'm just trying to provide conferences that people can go to."). Any EMS-related educational conference, educator conferences first: EMS educator conferences and symposiums (like the NAEMSE Symposium and ACCREDITCON), state and regional EMS conferences in Florida, and the big national EMS conferences (like the NAEMSP Annual Meeting). Florida first, national ones too. ALS competitions count as well.
 
-Tags for suggestions: `Workshop` (trainings, workshops, educator meetings), `Florida` (a Florida conference or state meeting), `National` (a national conference), `Competition` (an ALS competition). Never `Meeting`.
+Not: courses, classes, workshops sold on their own, webinars or exams, from anyone (NAEMSE's instructor courses and NEMSEC exams, CoAEMSP's accreditation workshops, NAEMSP's year-long courses, CE classes). A conference's own pre-conference courses are part of the conference: mention them in its `detail` if you like, never as events of their own. Also not: events with no posted dates, and events already over.
+
+Tags for suggestions: `Florida` (a Florida conference or state meeting), `National` (a national conference), `Competition` (an ALS competition), `Workshop` (a conference or summit for educators that is neither of the first two). Never `Meeting`.
 
 ## Steps
 
@@ -46,12 +48,12 @@ Tags for suggestions: `Workshop` (trainings, workshops, educator meetings), `Flo
 4. **Upcoming events with dates already set** (not `locked`): only if you happen to see that the organizer moved them, send an update with the new dates and the page you saw it on.
 
 5. **Find new events.** Run web searches, at least:
-   - EMS educator conference 2027; NAEMSE Symposium 2027; NAEMSE instructor course Florida; CoAEMSP workshop 2027
-   - Florida EMS conference 2027; Florida EMS education conference; EMS instructor training Florida; paramedic program director meeting
+   - EMS educator conference 2027; NAEMSE Symposium 2027; ACCREDITCON 2027
+   - Florida EMS conference 2027; Florida EMS education conference; Florida EMS symposium 2027
    - ALS competition Florida 2027
    - national EMS conference 2027
    For each event, find the organizer's own page and read it with the fetch helper (search results only if it is BLOCKED). Skip it if it is already on the calendar (in `events`, same name and dates), already in `suggested` (whatever its status: a dismissed one never comes back), already over, or has no posted dates. Send it as a suggestion:
-   `{ "title": "...", "starts_on": "2027-03-18", "ends_on": "2027-03-20", "location": "City, ST", "detail": "...", "tag": "Workshop", "url": "the organizer's page" }`
+   `{ "title": "...", "starts_on": "2027-03-18", "ends_on": "2027-03-20", "location": "City, ST", "detail": "...", "tag": "Florida", "url": "the organizer's page" }`
 
 6. **Send the results.** Build one JSON payload and save it to a file in your scratchpad:
    `{ "checked": <events you looked at>, "updates": [ ... ], "suggestions": [ ... ], "notes": "one short line" }`

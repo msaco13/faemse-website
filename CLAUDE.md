@@ -106,9 +106,10 @@
 - The same Sunday session runs `.claude/skills/event-sweep/SKILL.md` after
   the job sweep (board, 2026-11-06). By itself it fills in dates and places
   that were TBA and moves past events to next year's dates once posted. New
-  events (any EMS-related educational conference, trainings and meetings for
-  educators first) only become suggestions that an admin adds, edits first
-  or dismisses in Admin → Site content → Weekly event sweep.
+  events only become suggestions that an admin adds, edits first or
+  dismisses in Admin → Site content → Weekly event sweep. Conferences people
+  can go to, educator conferences first; never courses, classes, webinars
+  or exams on their own (AJ, 2026-11-06).
 - Every change it makes is in `event_sweep_changes` with what it replaced;
   admins undo one with `admin_undo_event_sweep_change()`, which refuses if
   the event was edited since, and the sweep never makes an undone change

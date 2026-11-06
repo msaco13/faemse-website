@@ -152,7 +152,7 @@ export default function EventSweepPanel({ onChanged }: { onChanged: () => void }
         <p className="flex-1 min-w-[240px] text-muted text-[13.5px] max-w-[76ch]">
           Every week the sweep checks the calendar. When an organizer posts dates or a place that were TBA, or next year&apos;s dates
           for an event that already happened, it updates the event by itself; every change is listed below with Undo. New EMS
-          education conferences (trainings and meetings for educators first) wait here for you. It never changes a FAEMSE
+          conferences (educator conferences first; never courses) wait here for you. It never changes a FAEMSE
           membership meeting. While held, it changes nothing.
         </p>
         <button
