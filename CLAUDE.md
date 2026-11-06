@@ -78,6 +78,9 @@
   sweep never posts a hidden job again. Jobs the board posts by hand
   (source = board) are never touched by the sweep.
 - Signed-in current members add jobs from the Job board themselves
-  (`member_add_job()`, five a day, source = member). They post right away as
-  "Shared by a member"; who added each one is in `job_submissions`, admins
-  only (in locked-doors' PRIVATE list), and never shown on the board.
+  (`member_add_job()`, five a day, source = member) with the link to apply,
+  the title and the employer; the type is optional. They post right away as
+  "Shared by a member", marked "details coming"; the weekly sweep reads each
+  link, fills in the details and type (`member_updates`), and takes closed
+  ones down. Who added each one is in `job_submissions`, admins only (in
+  locked-doors' PRIVATE list), and never shown on the board.

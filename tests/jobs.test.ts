@@ -21,11 +21,11 @@ describe('job board categories', () => {
     assert.equal(categoryFromSlug(null), null);
   });
 
-  it('counts per tab', () => {
-    assert.deepEqual(countByCategory([{ category: 'ems' }, { category: 'ems' }, { category: 'fire_ems' }, {}]), {
+  it('counts per tab; a job with no type yet counts under All only', () => {
+    assert.deepEqual(countByCategory([{ category: 'ems' }, { category: 'ems' }, { category: 'fire_ems' }, { category: null }, {}]), {
       fire_ems: 1,
       ems: 2,
-      education: 1,
+      education: 0,
     });
   });
 
@@ -51,14 +51,14 @@ describe('job board categories', () => {
 });
 
 describe('adding a job from the Job board', () => {
-  const ok = { title: 'Paramedic', employer: 'Sample EMS', location: '', category: 'ems', closesOn: '', link: 'https://example.org/job', description: '' };
-  it('title, employer and type, plus a link or a description', () => {
+  const ok = { title: 'Paramedic', employer: 'Sample EMS', location: '', category: '', closesOn: '', link: 'https://example.org/job', description: '' };
+  it('the link to apply, the title and the employer; the type is optional', () => {
     assert.equal(jobFormProblem(ok, '2026-11-08'), null);
-    assert.equal(jobFormProblem({ ...ok, link: '', description: 'Evening shifts.' }, '2026-11-08'), null);
-    assert.equal(jobFormProblem({ ...ok, link: '', description: '  ' }, '2026-11-08'), 'Add a link to the posting, a description, or both.');
+    assert.equal(jobFormProblem({ ...ok, category: 'ems' }, '2026-11-08'), null);
+    assert.equal(jobFormProblem({ ...ok, link: '', description: 'Evening shifts.' }, '2026-11-08'), 'Add the link to apply.');
     assert.equal(jobFormProblem({ ...ok, title: ' ' }, '2026-11-08'), 'Give the job title.');
     assert.equal(jobFormProblem({ ...ok, employer: '' }, '2026-11-08'), 'Give the employer.');
-    assert.equal(jobFormProblem({ ...ok, category: '' }, '2026-11-08'), 'Pick the type: Fire/EMS, EMS or Education.');
+    assert.equal(jobFormProblem({ ...ok, category: 'police' }, '2026-11-08'), 'Pick the type: Fire/EMS, EMS or Education.');
   });
 
   it('a link has to be a web address; a closing date cannot be past', () => {

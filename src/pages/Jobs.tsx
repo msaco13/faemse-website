@@ -5,7 +5,7 @@ import PageHead from '../components/PageHead';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { contactPath } from '../content/data';
 import { todayISO } from '../lib/dates';
-import { categoryFromSlug, categoryLabel, categoryOf, countByCategory, isNew, JOB_CATEGORIES, lastChecked, type JobCategory } from '../lib/jobs';
+import { categoryFromSlug, categoryLabel, countByCategory, hasCategory, isNew, JOB_CATEGORIES, lastChecked, type JobCategory } from '../lib/jobs';
 import { useJobs } from '../lib/postings';
 import { T } from '../lib/text';
 
@@ -86,7 +86,7 @@ function JobsBoard() {
   const [params, setParams] = useSearchParams();
   const active = categoryFromSlug(params.get('type'));
   const counts = countByCategory(items);
-  const shown = active ? items.filter((j) => categoryOf(j.category) === active) : items;
+  const shown = active ? items.filter((j) => j.category === active) : items;
   const today = todayISO();
   const checked = lastChecked(items);
   const newCount = items.filter((j) => isNew(j.postedOn, today)).length;
@@ -161,7 +161,7 @@ function JobsBoard() {
           ) : (
             <div className="space-y-5">
               {shown.map((j) => {
-                const cat = categoryOf(j.category);
+                const cat = hasCategory(j.category) ? j.category : null;
                 return (
                   <article key={j.id ?? j.title} className="card p-7">
                     <div className="flex flex-wrap items-baseline justify-between gap-3 mb-1.5">
@@ -187,7 +187,13 @@ function JobsBoard() {
                       {[j.employer, j.location].filter(Boolean).join(' · ')}
                     </p>
                     <p className="mb-3">
-                      <span className={`${chip} ${CATEGORY_CHIP[cat]}`}>{categoryLabel(cat)}</span>
+                      {cat ? (
+                        <span className={`${chip} ${CATEGORY_CHIP[cat]}`}>{categoryLabel(cat)}</span>
+                      ) : (
+                        <span className={`${chip} text-muted bg-paper border border-line`}>
+                          <T id="jobs.item.details-coming">Details coming</T>
+                        </span>
+                      )}
                     </p>
                     {j.description && <p className="text-muted text-[15px] mb-4 max-w-[80ch] whitespace-pre-line">{j.description}</p>}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13.5px]">
@@ -211,6 +217,14 @@ function JobsBoard() {
                         ) : j.source === 'member' ? (
                           <>
                             <T id="jobs.item.shared">Shared by a member</T> {j.postedOn ? shortDate(j.postedOn) : j.posted}
+                            {j.needsDetails ? (
+                              <>
+                                {' · '}
+                                <T id="jobs.item.details-later">details coming at the weekly check</T>
+                              </>
+                            ) : (
+                              j.lastSeenOn && ` · checked ${shortDate(j.lastSeenOn)}`
+                            )}
                           </>
                         ) : (
                           <>

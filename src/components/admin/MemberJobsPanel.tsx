@@ -5,16 +5,20 @@ import { supabase } from '../../lib/supabase';
 import Collapsible from './Collapsible';
 
 // Admin → Site content → Shared by members (board, 2026-11-06). Jobs members
-// add from the Job board post right away as "Shared by a member"; here admins
-// see who added each one (job_submissions, admins only) and hide or delete
-// it. A hidden job's link is never posted again, by the sweep either.
+// add from the Job board (link to apply, title, employer) post right away as
+// "Shared by a member"; the weekly sweep then reads each link, fills in the
+// details and the type, and takes closed ones down. Here admins see who
+// added each one (job_submissions, admins only) and hide or delete it. A
+// hidden job's link is never posted again, by the sweep either.
 
 type MemberJob = {
   id: string;
   title: string;
   employer: string;
   location: string;
-  category: string;
+  category: string | null;
+  needs_details: boolean;
+  last_seen_on: string | null;
   posted_on: string;
   expires_on: string;
   open_until_filled: boolean;
@@ -42,7 +46,7 @@ export default function MemberJobsPanel() {
   async function load() {
     const { data, error } = await supabase
       .from('jobs')
-      .select('id, title, employer, location, category, posted_on, expires_on, open_until_filled, hidden, apply_url, description, job_submissions(profiles(full_name, email))')
+      .select('id, title, employer, location, category, needs_details, last_seen_on, posted_on, expires_on, open_until_filled, hidden, apply_url, description, job_submissions(profiles(full_name, email))')
       .eq('source', 'member')
       .order('posted_on', { ascending: false });
     if (error) {
@@ -82,8 +86,10 @@ export default function MemberJobsPanel() {
   return (
     <Collapsible title="Shared by members" count={jobs ? up.length : null} noun={['job', 'jobs']}>
       <p className="text-muted text-[13.5px] mb-4 max-w-[76ch]">
-        Any signed-in member can add a job from the Job board, up to five a day. It shows right away as &ldquo;Shared by a
-        member&rdquo;. Only admins see who added it. Hide takes it off the board; Delete removes it for good.
+        Any signed-in member can add a job from the Job board with the link to apply, the title and the employer, up to five
+        a day. It shows right away as &ldquo;Shared by a member&rdquo;; at the weekly sweep the link is read, the details
+        and type filled in, and closed jobs taken down. Only admins see who added it. Hide takes it off the board; Delete
+        removes it for good.
       </p>
       {err && (
         <p className="text-brand-redink font-semibold text-[13px] mb-3" role="alert">
@@ -107,8 +113,9 @@ export default function MemberJobsPanel() {
                     <span className="font-semibold text-[14.5px]">{j.title}</span>
                   )}
                   <span className="block text-muted text-[13px]">
-                    {[categoryLabel(j.category), j.employer, j.location].filter(Boolean).join(' · ')} · shared by {sharedBy(j)} on{' '}
-                    {short(j.posted_on)} · {j.open_until_filled ? `up until ${short(j.expires_on)}` : `closes ${short(j.expires_on)}`}
+                    {[j.category ? categoryLabel(j.category) : 'type not set yet', j.employer, j.location].filter(Boolean).join(' · ')} · shared by{' '}
+                    {sharedBy(j)} on {short(j.posted_on)} · {j.open_until_filled ? `up until ${short(j.expires_on)}` : `closes ${short(j.expires_on)}`}
+                    {j.needs_details ? ' · details coming at the weekly check' : j.last_seen_on ? ` · checked ${short(j.last_seen_on)}` : ''}
                     {j.hidden && ' · hidden'}
                     {!j.hidden && j.expires_on < today && ' · past its date'}
                   </span>

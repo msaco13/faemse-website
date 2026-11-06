@@ -19,25 +19,30 @@
 --      closed or vanished.
 --   6. get_settings() also returns job_sweep_paused (the Admin switch).
 --   7. Members add jobs themselves (board, 2026-11-06): any current member,
---      signed in on the Job board, through member_add_job(). It posts right
---      away as "Shared by a member"; admins see who in job_submissions and
---      can hide or delete it. The sweep never touches these jobs and skips
---      any job already on the board under the same link.
+--      signed in on the Job board, through member_add_job(), with the link to
+--      apply, the title and the employer. It posts right away as "Shared by a
+--      member", marked "details coming"; admins see who in job_submissions
+--      and can hide or delete it. At the weekly sweep the sweep reads each
+--      member's link, fills in the details (city, closing date, type, a
+--      summary if there is none) and takes the job down if it closed. The
+--      sweep never posts a second copy of a job already on the board.
 
 -- ---------------------------------------------------------------------------
 -- 1. Columns.
-alter table public.jobs add column if not exists category text not null default 'education';
+-- No type yet: a member's job until the weekly sweep sorts it.
+alter table public.jobs add column if not exists category text default 'education';
 alter table public.jobs add column if not exists source text not null default 'board';
 alter table public.jobs add column if not exists hidden boolean not null default false;
 alter table public.jobs add column if not exists confirmed boolean not null default true;
 alter table public.jobs add column if not exists open_until_filled boolean not null default false;
 alter table public.jobs add column if not exists last_seen_on date;
 alter table public.jobs add column if not exists missed_runs integer not null default 0;
+alter table public.jobs add column if not exists needs_details boolean not null default false;
 
 do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'jobs_category_check') then
-    alter table public.jobs add constraint jobs_category_check check (category in ('fire_ems', 'ems', 'education'));
+    alter table public.jobs add constraint jobs_category_check check (category is null or category in ('fire_ems', 'ems', 'education'));
   end if;
   if not exists (select 1 from pg_constraint where conname = 'jobs_source_check') then
     alter table public.jobs add constraint jobs_source_check check (source in ('board', 'sweep', 'member'));
@@ -64,6 +69,8 @@ create table if not exists public.job_sweep_runs (
   removed integer not null default 0,
   hidden_skipped integer not null default 0,
   already_listed integer not null default 0,
+  members_checked integer not null default 0,
+  members_filled integer not null default 0,
   unreadable integer not null default 0,
   notes text not null default ''
 );
@@ -101,7 +108,15 @@ as $$
     -- off its own list instead of posting them twice.
     'already_listed', coalesce((
       select jsonb_agg(jsonb_build_object('url', apply_url, 'title', title, 'employer', employer))
-      from jobs where source <> 'sweep' and not hidden and expires_on >= (now() at time zone 'America/New_York')::date), '[]'::jsonb));
+      from jobs where source <> 'sweep' and not hidden and expires_on >= (now() at time zone 'America/New_York')::date), '[]'::jsonb),
+    -- Jobs members shared that are up: the sweep reads each link, fills in
+    -- what's missing (needs_details: never checked yet) and reports closures.
+    'member_jobs', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', id, 'url', apply_url, 'title', title, 'employer', employer, 'location', location, 'category', category,
+        'description', description, 'closes_on', case when open_until_filled then null else expires_on end,
+        'needs_details', needs_details, 'shared_on', posted_on) order by posted_on)
+      from jobs where source = 'member' and not hidden and expires_on >= (now() at time zone 'America/New_York')::date), '[]'::jsonb));
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -113,6 +128,11 @@ $$;
 --   found: [{ url, title, employer, location, category, summary,
 --             closes_on (YYYY-MM-DD or null), open_until_filled, confirmed }],
 --   closed: [url, ...]   postings the sweep saw are closed or gone,
+--   member_updates: [{ id, status, title, employer, location, category,
+--             summary, closes_on, confirmed }] for jobs members shared;
+--             status: filled (details read from the link), open (still open,
+--             nothing new), closed (closed or gone: comes down), unreadable
+--             (couldn't read it: type set from the title, nothing else),
 --   unreadable: number of pages it could not read,
 --   notes: one short line
 -- }
@@ -126,6 +146,10 @@ $$;
 -- - A posted job missing from a complete run counts a miss; two misses in a
 --   row and it comes down. One on the closed list comes down at once.
 -- - Jobs the board posted by hand are never touched.
+-- - A member's job keeps its link and anything the member wrote in the
+--   description; the sweep fills in the title, employer and city as the
+--   posting gives them, the closing date and the type, and a summary only
+--   when the member left the description empty.
 create or replace function public.job_sweep_apply(payload jsonb)
 returns jsonb
 language plpgsql
@@ -149,6 +173,10 @@ declare
   v_removed integer := 0;
   v_hidden integer := 0;
   v_listed integer := 0;
+  v_mchecked integer := 0;
+  v_mfilled integer := 0;
+  v_mid uuid;
+  v_status text;
   v_n integer;
 begin
   if payload is null or jsonb_typeof(payload) <> 'object' then raise exception 'Payload must be a JSON object'; end if;
@@ -216,6 +244,42 @@ begin
     end if;
   end loop;
 
+  -- Jobs members shared.
+  if jsonb_typeof(coalesce(payload -> 'member_updates', '[]'::jsonb)) <> 'array' then raise exception 'member_updates must be a list'; end if;
+  for v_item in select * from jsonb_array_elements(coalesce(payload -> 'member_updates', '[]'::jsonb)) loop
+    begin
+      v_mid := (v_item ->> 'id')::uuid;
+    exception when others then
+      raise exception 'Bad member job id: %', left(v_item::text, 200);
+    end;
+    v_status := coalesce(v_item ->> 'status', '');
+    v_category := nullif(v_item ->> 'category', '');
+    if v_status not in ('filled', 'open', 'closed', 'unreadable') or (v_category is not null and v_category not in ('fire_ems', 'ems', 'education')) then
+      raise exception 'Bad member job update: %', left(v_item::text, 300);
+    end if;
+    if not exists (select 1 from jobs where id = v_mid and source = 'member' and not hidden) then continue; end if;
+    v_mchecked := v_mchecked + 1;
+    v_closes := nullif(v_item ->> 'closes_on', '')::date;
+    if v_status = 'closed' or (v_closes is not null and v_closes < v_today) then
+      delete from jobs where id = v_mid and source = 'member';
+      v_removed := v_removed + 1;
+      continue;
+    end if;
+    update jobs set
+      title = coalesce(nullif(left(trim(coalesce(v_item ->> 'title', '')), 200), ''), title),
+      employer = coalesce(nullif(left(trim(coalesce(v_item ->> 'employer', '')), 200), ''), employer),
+      location = coalesce(nullif(left(trim(coalesce(v_item ->> 'location', '')), 200), ''), location),
+      category = coalesce(v_category, category),
+      description = case when trim(description) = '' then left(trim(coalesce(v_item ->> 'summary', '')), 500) else description end,
+      expires_on = coalesce(v_closes, expires_on),
+      open_until_filled = case when v_closes is not null then false else open_until_filled end,
+      confirmed = v_status in ('filled', 'open') and coalesce((v_item ->> 'confirmed')::boolean, false),
+      needs_details = false,
+      last_seen_on = v_today
+    where id = v_mid and source = 'member';
+    if v_status = 'filled' then v_mfilled := v_mfilled + 1; end if;
+  end loop;
+
   -- Closed or gone, closing date passed: down now.
   delete from jobs
     where source = 'sweep' and not hidden
@@ -233,11 +297,12 @@ begin
     v_removed := v_removed + v_n;
   end if;
 
-  insert into job_sweep_runs (complete, found, added, kept, removed, hidden_skipped, already_listed, unreadable, notes)
-  values (v_complete, jsonb_array_length(coalesce(payload -> 'found', '[]'::jsonb)), v_added, v_kept, v_removed, v_hidden, v_listed,
+  insert into job_sweep_runs (complete, found, added, kept, removed, hidden_skipped, already_listed, members_checked, members_filled, unreadable, notes)
+  values (v_complete, jsonb_array_length(coalesce(payload -> 'found', '[]'::jsonb)), v_added, v_kept, v_removed, v_hidden, v_listed, v_mchecked, v_mfilled,
           greatest(coalesce((payload ->> 'unreadable')::integer, 0), 0), left(coalesce(payload ->> 'notes', ''), 500));
 
   return jsonb_build_object('added', v_added, 'kept', v_kept, 'removed', v_removed, 'hidden_skipped', v_hidden, 'already_listed', v_listed,
+                            'members_checked', v_mchecked, 'members_filled', v_mfilled,
                             'on_board', (select count(*) from jobs where source = 'sweep' and not hidden and expires_on >= v_today));
 end $$;
 
@@ -283,10 +348,12 @@ begin
 end $$;
 revoke insert, update, delete, truncate on public.job_submissions from anon, authenticated;
 
--- p = { title, employer, location, category, closes_on (YYYY-MM-DD or
--- empty: open until filled), link, description }. Title, employer and type
--- are required, plus a link or a description. Up to five a day per member.
--- Open until filled: up for 30 days. Returns the new job's id.
+-- p = { link, title, employer, location, category (or empty: the sweep
+-- sorts it), closes_on (YYYY-MM-DD or empty: open until filled),
+-- description }. The link to apply, the title and the employer are
+-- required (board, 2026-11-06). Up to five a day per member. Open until
+-- filled: up for 30 days. Marked needs_details until the weekly sweep reads
+-- the link. Returns the new job's id.
 create or replace function public.member_add_job(p jsonb)
 returns uuid
 language plpgsql
@@ -299,7 +366,7 @@ declare
   v_title text := trim(coalesce(p ->> 'title', ''));
   v_employer text := trim(coalesce(p ->> 'employer', ''));
   v_location text := trim(coalesce(p ->> 'location', ''));
-  v_category text := coalesce(p ->> 'category', '');
+  v_category text := nullif(coalesce(p ->> 'category', ''), '');
   v_link text := trim(coalesce(p ->> 'link', ''));
   v_description text := trim(coalesce(p ->> 'description', ''));
   v_closes date;
@@ -314,12 +381,12 @@ begin
   if length(v_title) < 3 or length(v_title) > 200 then raise exception 'Give the job title (up to 200 characters).'; end if;
   if length(v_employer) < 2 or length(v_employer) > 200 then raise exception 'Give the employer (up to 200 characters).'; end if;
   if length(v_location) > 200 then raise exception 'Keep the city under 200 characters.'; end if;
-  if v_category not in ('fire_ems', 'ems', 'education') then raise exception 'Pick the type: Fire/EMS, EMS or Education.'; end if;
-  if v_link <> '' and (v_link !~* '^https?://[^\s]+$' or length(v_link) > 1000) then
+  if v_category is not null and v_category not in ('fire_ems', 'ems', 'education') then raise exception 'Pick the type: Fire/EMS, EMS or Education.'; end if;
+  if v_link = '' then raise exception 'Add the link to apply.'; end if;
+  if v_link !~* '^https?://[^\s]+$' or length(v_link) > 1000 then
     raise exception 'The link has to be a web address starting with https://';
   end if;
   if length(v_description) > 2000 then raise exception 'Keep the description under 2,000 characters.'; end if;
-  if v_link = '' and v_description = '' then raise exception 'Add a link to the posting, a description, or both.'; end if;
   begin
     v_closes := nullif(trim(coalesce(p ->> 'closes_on', '')), '')::date;
   exception when others then
@@ -328,13 +395,14 @@ begin
   if v_closes is not null and (v_closes < v_today or v_closes > v_today + 366) then
     raise exception 'The closing date has to be between today and a year from now.';
   end if;
-  if v_link <> '' and exists (select 1 from jobs where lower(apply_url) = lower(v_link) and not hidden and expires_on >= v_today) then
+  if exists (select 1 from jobs where lower(apply_url) = lower(v_link) and not hidden and expires_on >= v_today) then
     raise exception 'That job is already on the board.';
   end if;
 
-  insert into jobs (source, title, employer, location, category, description, apply_url, posted_on, expires_on, open_until_filled, confirmed)
+  insert into jobs (source, title, employer, location, category, description, apply_url, posted_on, expires_on, open_until_filled,
+                    confirmed, needs_details)
   values ('member', v_title, v_employer, v_location, v_category, v_description, v_link, v_today,
-          coalesce(v_closes, v_today + 30), v_closes is null, true)
+          coalesce(v_closes, v_today + 30), v_closes is null, false, true)
   returning id into v_id;
   insert into job_submissions (job_id, profile_id) values (v_id, v_uid);
   return v_id;

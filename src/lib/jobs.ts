@@ -25,9 +25,15 @@ export function categoryFromSlug(slug: string | null): JobCategory | null {
   return JOB_CATEGORIES.find((c) => c.slug === slug)?.key ?? null;
 }
 
+// Whether a job has one of the three types. A job a member shared has none
+// until the weekly sweep reads its link; it shows under All only.
+export function hasCategory(value: unknown): value is JobCategory {
+  return value === 'fire_ems' || value === 'ems' || value === 'education';
+}
+
 export function countByCategory(items: { category?: unknown }[]): Record<JobCategory, number> {
   const counts: Record<JobCategory, number> = { fire_ems: 0, ems: 0, education: 0 };
-  for (const i of items) counts[categoryOf(i.category)]++;
+  for (const i of items) if (hasCategory(i.category)) counts[i.category]++;
   return counts;
 }
 
@@ -50,13 +56,15 @@ export function lastChecked(items: { source?: string; lastSeenOn?: string | null
 }
 
 // What a member typed into "Add a job", checked before it is sent. The
-// database checks the same rules again (member_add_job()); this only spares
-// a round trip. Returns the first problem, in plain words, or null.
+// link to apply, the title and the employer are required (board,
+// 2026-11-06); the type is optional, since the weekly sweep reads the link
+// and sorts it. The database checks the same rules again (member_add_job());
+// this only spares a round trip. Returns the first problem, or null.
 export type JobForm = {
   title: string;
   employer: string;
   location: string;
-  category: string;
+  category: string; // '' when the member isn't sure
   closesOn: string; // YYYY-MM-DD or '' (open until filled)
   link: string;
   description: string;
@@ -64,11 +72,11 @@ export type JobForm = {
 
 export function jobFormProblem(f: JobForm, today: string): string | null {
   const t = (s: string) => s.trim();
+  if (!t(f.link)) return 'Add the link to apply.';
+  if (!/^https?:\/\/\S+$/i.test(t(f.link))) return 'The link has to be a web address starting with https://';
   if (t(f.title).length < 3) return 'Give the job title.';
   if (t(f.employer).length < 2) return 'Give the employer.';
-  if (!['fire_ems', 'ems', 'education'].includes(f.category)) return 'Pick the type: Fire/EMS, EMS or Education.';
-  if (!t(f.link) && !t(f.description)) return 'Add a link to the posting, a description, or both.';
-  if (t(f.link) && !/^https?:\/\/\S+$/i.test(t(f.link))) return 'The link has to be a web address starting with https://';
+  if (f.category && !hasCategory(f.category)) return 'Pick the type: Fire/EMS, EMS or Education.';
   if (t(f.description).length > 2000) return 'Keep the description under 2,000 characters.';
   if (f.closesOn && f.closesOn < today) return 'The closing date has already passed.';
   return null;

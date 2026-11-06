@@ -33,6 +33,9 @@ type Run = {
   kept: number;
   removed: number;
   hidden_skipped: number;
+  already_listed?: number;
+  members_checked?: number;
+  members_filled?: number;
   unreadable: number;
   notes: string;
 };
@@ -130,6 +133,9 @@ export default function JobSweepPanel() {
             </b>{' '}
             Found {run.found} open: <b>{run.added} new</b>, {run.kept} still open, <b>{run.removed} taken down</b>.
             {run.hidden_skipped > 0 && ` ${run.hidden_skipped} hidden job${run.hidden_skipped === 1 ? '' : 's'} left off.`}
+            {(run.already_listed ?? 0) > 0 && ` ${run.already_listed} already on the board from a member or the board.`}
+            {(run.members_checked ?? 0) > 0 &&
+              ` Checked ${run.members_checked} job${run.members_checked === 1 ? '' : 's'} shared by members, filled in ${run.members_filled ?? 0}.`}
             {run.unreadable > 0 && ` ${run.unreadable} page${run.unreadable === 1 ? '' : 's'} couldn't be read.`}
             {!run.complete && ' The run was cut short, so nothing counted as missing.'}
             {run.notes && <span className="block text-muted mt-1">{run.notes}</span>}

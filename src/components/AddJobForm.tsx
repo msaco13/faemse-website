@@ -5,9 +5,12 @@ import { supabase } from '../lib/supabase';
 import { T } from '../lib/text';
 
 // "Add a job" on the Job board (board, 2026-11-06): any signed-in member can
-// add an opening. It posts right away as "Shared by a member"; admins see who
-// shared it and can hide or delete it (Admin → Site content). The database
-// checks it again and allows five a day per member (member_add_job()).
+// add an opening with the link to apply, the title and the employer. It posts
+// right away as "Shared by a member", marked "details coming"; at the weekly
+// sweep the sweep reads the link, fills in the rest and files it under the
+// right type. Admins see who shared it and can hide or delete it (Admin →
+// Site content). The database checks it again and allows five a day per
+// member (member_add_job()).
 
 const input = 'mt-1.5 w-full rounded-xl border border-line px-4 py-3 bg-white focus:border-brand-blue outline-none';
 const label = 'text-[13px] font-bold uppercase tracking-wide text-muted';
@@ -69,8 +72,8 @@ export default function AddJobForm({ onAdded }: { onAdded: () => void }) {
           </h2>
           <p className="text-muted text-[15px] max-w-[64ch]">
             <T id="jobs.add.text">
-              Add it to the board. Paste the link to the posting, the job description, or both. It shows up right away
-              for every member.
+              Add it to the board with the link to apply, the job title and the employer. It shows up right away; at the
+              weekly check we read the link, fill in the details and file it under the right type.
             </T>
           </p>
         </div>
@@ -99,6 +102,12 @@ export default function AddJobForm({ onAdded }: { onAdded: () => void }) {
 
       {open && (
         <form onSubmit={onSubmit} noValidate className="mt-6 grid sm:grid-cols-2 gap-4">
+          <label className="block sm:col-span-2">
+            <span className={label}>
+              <T id="jobs.add.link">Link to apply</T>
+            </span>
+            <input name="link" type="url" inputMode="url" required maxLength={1000} placeholder="https://… (the employer's posting)" className={input} />
+          </label>
           <label className="block">
             <span className={label}>
               <T id="jobs.add.title">Job title</T>
@@ -113,12 +122,10 @@ export default function AddJobForm({ onAdded }: { onAdded: () => void }) {
           </label>
           <label className="block">
             <span className={label}>
-              <T id="jobs.add.type">Type</T>
+              <T id="jobs.add.type">Type (optional)</T>
             </span>
-            <select name="category" required defaultValue="" className={input}>
-              <option value="" disabled>
-                Choose one
-              </option>
+            <select name="category" defaultValue="" className={input}>
+              <option value="">Not sure: the weekly check sorts it</option>
               {JOB_CATEGORIES.map((c) => (
                 <option key={c.key} value={c.key}>
                   {c.label}
@@ -134,19 +141,13 @@ export default function AddJobForm({ onAdded }: { onAdded: () => void }) {
           </label>
           <label className="block sm:col-span-2">
             <span className={label}>
-              <T id="jobs.add.link">Link to the posting</T>
-            </span>
-            <input name="link" type="url" inputMode="url" maxLength={1000} placeholder="https://…" className={input} />
-          </label>
-          <label className="block sm:col-span-2">
-            <span className={label}>
-              <T id="jobs.add.description">Job description</T>
+              <T id="jobs.add.description">Job description (optional)</T>
             </span>
             <textarea
               name="description"
               rows={5}
               maxLength={2000}
-              placeholder="Paste the description, or a few lines about the job and how to apply."
+              placeholder="Anything members should know. Left blank, the weekly check adds a short summary."
               className={input}
             />
           </label>
@@ -181,8 +182,8 @@ export default function AddJobForm({ onAdded }: { onAdded: () => void }) {
           </div>
           <p className="sm:col-span-2 text-muted text-[12.5px]">
             <T id="jobs.add.note">
-              Give a link, a description, or both. The board shows it as shared by a member; admins can see who added it
-              and take it down.
+              The board shows it as shared by a member; admins can see who added it and take it down. If the posting
+              closes, the weekly check takes it down.
             </T>
           </p>
         </form>
