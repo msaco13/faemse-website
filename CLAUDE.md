@@ -59,3 +59,21 @@
   outsider gets nothing from the private tables. When a migration adds a
   table or function that holds member data, add it to that script's PRIVATE
   list in the same change.
+
+## Weekly job sweep (Job board)
+
+- Once a week a scheduled session follows `.claude/skills/job-sweep/SKILL.md`:
+  it finds Fire/EMS, EMS and EMS education jobs in Florida and posts them on
+  the Job board by itself (board, 2026-11-06). Jobs that closed come down.
+- The sweep never gets database access. It writes only through the
+  `job-sweep` edge function (its own key, header `x-sweep-key`), which calls
+  only `job_sweep_state()` and `job_sweep_apply()`
+  (`supabase/migrations/20261106_job_sweep.sql`). Those touch only jobs with
+  source = sweep and the `job_sweep_runs` log. Keep it that way.
+- It reads pages only through `scripts/job-sweep/fetch.mjs`, which obeys
+  robots.txt (`scripts/job-sweep/robots.mjs`, tested in
+  `tests/robots.test.ts`) and never reads job aggregators or
+  governmentjobs.com. Never add a way around a block.
+- Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
+  sweep never posts a hidden job again. Jobs the board posts by hand
+  (source = board) are never touched by the sweep.

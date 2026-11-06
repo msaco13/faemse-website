@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { todayISO } from '../lib/dates';
+import { categoryLabel, JOB_CATEGORIES } from '../lib/jobs';
 import { defaultSlideTags } from '../content/data';
 import Collapsible from './admin/Collapsible';
+import JobSweepPanel from './admin/JobSweepPanel';
 import { supabase } from '../lib/supabase';
 
 // Admin CRUD for the brief's posting types: jobs, classes, Q&A entries,
@@ -18,7 +20,8 @@ type Row = Record<string, unknown> & { id: string };
 type Field = {
   name: string;
   label: string;
-  type: 'date' | 'text' | 'textarea' | 'number' | 'tags' | 'checkbox' | 'media';
+  type: 'date' | 'text' | 'textarea' | 'number' | 'tags' | 'checkbox' | 'media' | 'select';
+  options?: { value: string; label: string }[]; // select fields
   required?: boolean;
   placeholder?: string;
   accept?: string; // media fields: which files the upload button offers
@@ -39,6 +42,9 @@ type Section = {
   // A yes/no column the list row switches directly, without opening Edit
   // (spotlights: show_slide, "Show on homepage"). Off dims the row.
   showKey?: { column: string; label: string; offNote: string };
+  // Only the rows with this column value are listed, and new rows get it
+  // (jobs: source = board; the weekly sweep's jobs have their own panel).
+  scope?: { column: string; value: string };
   fields: Field[];
   summary: (r: Row) => { date: string; primary: string; secondary: string };
 };
@@ -101,13 +107,21 @@ const SECTIONS: Section[] = [
   },
   {
     table: 'jobs',
-    title: 'Job board',
+    title: 'Job board (posted by the board)',
     addLabel: '+ Add job',
-    emptyNote: 'No jobs yet. Until the first one is posted, the job board says nothing is listed.',
+    emptyNote: 'No jobs posted by the board yet. Jobs the weekly sweep finds are under Weekly job sweep below.',
     orderBy: { column: 'posted_on', ascending: false },
     expiresKey: 'expires_on',
+    scope: { column: 'source', value: 'board' },
     fields: [
       { name: 'title', label: 'Position title', type: 'text', required: true },
+      {
+        name: 'category',
+        label: 'Type',
+        type: 'select',
+        newValue: 'education',
+        options: JOB_CATEGORIES.map((c) => ({ value: c.key, label: c.label })),
+      },
       { name: 'employer', label: 'Employer', type: 'text' },
       { name: 'location', label: 'Location', type: 'text', placeholder: 'City, FL' },
       { name: 'expires_on', label: 'Listing comes down after', type: 'date', required: true },
@@ -118,7 +132,7 @@ const SECTIONS: Section[] = [
     summary: (r) => ({
       date: s(r, 'expires_on'),
       primary: s(r, 'title'),
-      secondary: [s(r, 'employer'), s(r, 'location')].filter(Boolean).join(' · '),
+      secondary: [categoryLabel(r.category), s(r, 'employer'), s(r, 'location')].filter(Boolean).join(' · '),
     }),
   },
   {
@@ -328,6 +342,7 @@ function RowForm({
         row[f.name] = raw;
       }
     }
+    if (!initial && section.scope) row[section.scope.column] = section.scope.value;
     setSaving(true);
     setErr('');
     const q = initial
@@ -355,6 +370,20 @@ function RowForm({
           : f.newValue ?? '';
         if (f.type === 'media') {
           return <MediaInput key={f.name} field={f} initial={initialVal} />;
+        }
+        if (f.type === 'select') {
+          return (
+            <label key={f.name} className={f.span ? 'sm:col-span-2' : undefined}>
+              <span className={labelCls}>{f.label}</span>
+              <select name={f.name} defaultValue={initialVal || f.newValue} className={input}>
+                {(f.options ?? []).map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          );
         }
         if (f.type === 'checkbox') {
           return (
@@ -435,10 +464,9 @@ function SectionBlock({ section, defaultOpen = false }: { section: Section; defa
   const [loaded, setLoaded] = useState(false);
 
   async function load() {
-    const { data, error } = await supabase
-      .from(section.table)
-      .select('*')
-      .order(section.orderBy.column, { ascending: section.orderBy.ascending });
+    let q = supabase.from(section.table).select('*');
+    if (section.scope) q = q.eq(section.scope.column, section.scope.value);
+    const { data, error } = await q.order(section.orderBy.column, { ascending: section.orderBy.ascending });
     if (error) {
       if (error.code === MISSING_TABLE) setNeedsSetup(true);
       else setLoadError(error.message);
@@ -617,7 +645,11 @@ export default function PostingsManager() {
         SECTIONS.map((sec) => (
           // Arriving from the homepage's "this slide is a spotlight" note
           // (/members#boards) opens the spotlights; everything else starts closed.
-          <SectionBlock key={sec.table} section={sec} defaultOpen={sec.table === 'spotlights' && openSpotlights} />
+          // The weekly job sweep's panel sits right under the board's own jobs.
+          <Fragment key={sec.table}>
+            <SectionBlock section={sec} defaultOpen={sec.table === 'spotlights' && openSpotlights} />
+            {sec.table === 'jobs' && <JobSweepPanel />}
+          </Fragment>
         ))
       )}
     </div>
