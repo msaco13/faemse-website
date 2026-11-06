@@ -62,6 +62,11 @@
 
 ## Weekly job sweep (Job board)
 
+- Every job on the board has a link to apply, whoever adds it: the sweep, a
+  member, or the board by hand in Admin (board, 2026-11-06). The database
+  refuses a job without one (`jobs_apply_url_check`); the forms say so
+  (`applyLinkProblem()` in `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`).
+
 - Once a week a scheduled session follows `.claude/skills/job-sweep/SKILL.md`:
   it finds Fire/EMS, EMS and EMS education jobs in Florida and posts them on
   the Job board by itself (board, 2026-11-06). Jobs that closed come down.

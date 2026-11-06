@@ -70,10 +70,24 @@ export type JobForm = {
   description: string;
 };
 
+// Every job on the board needs a link to apply, whoever adds it: a member,
+// the board by hand, or the sweep (board, 2026-11-06). The database refuses
+// a job without one (jobs_apply_url_check).
+export function isApplyLink(value: string): boolean {
+  const v = value.trim();
+  return v.length <= 1000 && /^https?:\/\/\S+$/i.test(v);
+}
+
+export function applyLinkProblem(value: string): string | null {
+  if (!value.trim()) return 'Add the link to apply. Every job on the board needs one.';
+  if (!isApplyLink(value)) return 'The link has to be a web address starting with https://';
+  return null;
+}
+
 export function jobFormProblem(f: JobForm, today: string): string | null {
   const t = (s: string) => s.trim();
-  if (!t(f.link)) return 'Add the link to apply.';
-  if (!/^https?:\/\/\S+$/i.test(t(f.link))) return 'The link has to be a web address starting with https://';
+  const linkProblem = applyLinkProblem(f.link);
+  if (linkProblem) return linkProblem;
   if (t(f.title).length < 3) return 'Give the job title.';
   if (t(f.employer).length < 2) return 'Give the employer.';
   if (f.category && !hasCategory(f.category)) return 'Pick the type: Fire/EMS, EMS or Education.';

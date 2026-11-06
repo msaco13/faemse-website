@@ -61,8 +61,8 @@ export default function Jobs() {
             <T id="jobs.employers.text">Hiring and not a member? Employers can</T>{' '}
             <Link to={contactPath('Job posting for the FAEMSE board')} className="text-brand-blue font-semibold hover:underline">
               <T id="jobs.employers.link">send the posting to the board</T>
-            </Link>
-            .
+            </Link>{' '}
+            <T id="jobs.employers.link-rule">with the link to apply. Every job on the board needs one.</T>
           </p>
 
           <p className="text-muted text-[14px] mt-6 max-w-[80ch]">

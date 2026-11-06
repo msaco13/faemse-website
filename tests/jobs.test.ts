@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { categoryFromSlug, categoryLabel, categoryOf, countByCategory, isNew, jobFormProblem, lastChecked } from '../src/lib/jobs.ts';
+import { applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, isApplyLink, isNew, jobFormProblem, lastChecked } from '../src/lib/jobs.ts';
 
 describe('job board categories', () => {
   it('three categories, with anything unknown counted as Education', () => {
@@ -55,7 +55,7 @@ describe('adding a job from the Job board', () => {
   it('the link to apply, the title and the employer; the type is optional', () => {
     assert.equal(jobFormProblem(ok, '2026-11-08'), null);
     assert.equal(jobFormProblem({ ...ok, category: 'ems' }, '2026-11-08'), null);
-    assert.equal(jobFormProblem({ ...ok, link: '', description: 'Evening shifts.' }, '2026-11-08'), 'Add the link to apply.');
+    assert.equal(jobFormProblem({ ...ok, link: '', description: 'Evening shifts.' }, '2026-11-08'), 'Add the link to apply. Every job on the board needs one.');
     assert.equal(jobFormProblem({ ...ok, title: ' ' }, '2026-11-08'), 'Give the job title.');
     assert.equal(jobFormProblem({ ...ok, employer: '' }, '2026-11-08'), 'Give the employer.');
     assert.equal(jobFormProblem({ ...ok, category: 'police' }, '2026-11-08'), 'Pick the type: Fire/EMS, EMS or Education.');
@@ -66,5 +66,23 @@ describe('adding a job from the Job board', () => {
     assert.match(jobFormProblem({ ...ok, link: 'example.org/job' }, '2026-11-08') ?? '', /web address/);
     assert.equal(jobFormProblem({ ...ok, closesOn: '2026-11-07' }, '2026-11-08'), 'The closing date has already passed.');
     assert.equal(jobFormProblem({ ...ok, closesOn: '2026-11-08' }, '2026-11-08'), null);
+  });
+});
+
+describe('every job needs a link to apply (board, 2026-11-06)', () => {
+  it('a web address, whoever adds the job', () => {
+    assert.equal(isApplyLink('https://example.org/jobs/123'), true);
+    assert.equal(isApplyLink('  http://example.org/apply  '), true);
+    assert.equal(isApplyLink(''), false);
+    assert.equal(isApplyLink('example.org/jobs'), false);
+    assert.equal(isApplyLink('mailto:hr@example.org'), false);
+    assert.equal(isApplyLink('https://example.org/a b'), false);
+    assert.equal(isApplyLink(`https://example.org/${'x'.repeat(1000)}`), false);
+  });
+
+  it('says what is missing in plain words', () => {
+    assert.equal(applyLinkProblem(''), 'Add the link to apply. Every job on the board needs one.');
+    assert.equal(applyLinkProblem('www.example.org'), 'The link has to be a web address starting with https://');
+    assert.equal(applyLinkProblem('https://example.org/apply'), null);
   });
 });

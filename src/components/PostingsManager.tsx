@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { todayISO } from '../lib/dates';
-import { categoryLabel, JOB_CATEGORIES } from '../lib/jobs';
+import { applyLinkProblem, categoryLabel, JOB_CATEGORIES } from '../lib/jobs';
 import { defaultSlideTags } from '../content/data';
 import Collapsible from './admin/Collapsible';
 import JobSweepPanel from './admin/JobSweepPanel';
@@ -46,6 +46,8 @@ type Section = {
   // Only the rows with this column value are listed, and new rows get it
   // (jobs: source = board; the weekly sweep's jobs have their own panel).
   scope?: { column: string; value: string };
+  // A plain-words problem with the row before it is saved, or null.
+  validate?: (row: Record<string, unknown>) => string | null;
   fields: Field[];
   summary: (r: Row) => { date: string; primary: string; secondary: string };
 };
@@ -114,6 +116,7 @@ const SECTIONS: Section[] = [
     orderBy: { column: 'posted_on', ascending: false },
     expiresKey: 'expires_on',
     scope: { column: 'source', value: 'board' },
+    validate: (row) => applyLinkProblem(String(row.apply_url ?? '')),
     fields: [
       { name: 'title', label: 'Position title', type: 'text', required: true },
       {
@@ -126,7 +129,9 @@ const SECTIONS: Section[] = [
       { name: 'employer', label: 'Employer', type: 'text' },
       { name: 'location', label: 'Location', type: 'text', placeholder: 'City, FL' },
       { name: 'expires_on', label: 'Listing comes down after', type: 'date', required: true },
-      { name: 'apply_url', label: 'Application link (optional)', type: 'text', placeholder: 'https://…' },
+      // Every job needs a link to apply (board, 2026-11-06); the database
+      // refuses one without it.
+      { name: 'apply_url', label: 'Link to apply (required: every job needs one)', type: 'text', required: true, placeholder: 'https://… (the employer\'s posting)' },
       { name: 'posted_on', label: 'Posted on', type: 'date' },
       { name: 'description', label: 'Description', type: 'textarea', span: true },
     ],
@@ -344,6 +349,11 @@ function RowForm({
       }
     }
     if (!initial && section.scope) row[section.scope.column] = section.scope.value;
+    const problem = section.validate?.(row) ?? null;
+    if (problem) {
+      setErr(problem);
+      return;
+    }
     setSaving(true);
     setErr('');
     const q = initial

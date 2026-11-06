@@ -7,8 +7,8 @@
 -- the two functions below, which touch only the jobs the sweep posted and its
 -- own run log. Member data is out of its reach.
 --
---   1. jobs: a category (fire_ems, ems, education), who posted it (board or
---      sweep), and what the sweep needs: whether it read the employer's own
+--   1. jobs: a category (fire_ems, ems, education), who posted it (board,
+--      sweep or member), a required link to apply, and what the sweep needs: whether it read the employer's own
 --      posting (confirmed) or only a search listing, open until filled, when
 --      it last saw the job, how many runs in a row missed it, and Hide.
 --   2. Hidden jobs leave the public board; admins still see them, and the
@@ -46,6 +46,11 @@ begin
   end if;
   if not exists (select 1 from pg_constraint where conname = 'jobs_source_check') then
     alter table public.jobs add constraint jobs_source_check check (source in ('board', 'sweep', 'member'));
+  end if;
+  -- Every job on the board has a link to apply, whoever posts it: the
+  -- sweep, a member or the board by hand (board, 2026-11-06).
+  if not exists (select 1 from pg_constraint where conname = 'jobs_apply_url_check') then
+    alter table public.jobs add constraint jobs_apply_url_check check (apply_url ~* '^https?://[^\s]+$' and length(apply_url) <= 1000);
   end if;
 end $$;
 
@@ -382,7 +387,7 @@ begin
   if length(v_employer) < 2 or length(v_employer) > 200 then raise exception 'Give the employer (up to 200 characters).'; end if;
   if length(v_location) > 200 then raise exception 'Keep the city under 200 characters.'; end if;
   if v_category is not null and v_category not in ('fire_ems', 'ems', 'education') then raise exception 'Pick the type: Fire/EMS, EMS or Education.'; end if;
-  if v_link = '' then raise exception 'Add the link to apply.'; end if;
+  if v_link = '' then raise exception 'Add the link to apply. Every job on the board needs one.'; end if;
   if v_link !~* '^https?://[^\s]+$' or length(v_link) > 1000 then
     raise exception 'The link has to be a web address starting with https://';
   end if;
