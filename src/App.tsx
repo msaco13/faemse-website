@@ -204,7 +204,10 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
             {/* The member portal and its tabs: /members, /members/resources,
-                /members/jobs, /members/account, /members/board (admins). */}
+                /members/sponsors, /members/account, /members/board (admins).
+                Its old Jobs & classes tab went to the main menu's Jobs
+                (board, 2026-11-06); old links land on the Job board. */}
+            <Route path="/members/jobs" element={<Navigate to="/jobs" replace />} />
             <Route path="/members/:tab?" element={<Members />} />
             <Route path="/payment-complete" element={<PaymentComplete />} />
             <Route path="/privacy" element={<Privacy />} />

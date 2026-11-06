@@ -39,7 +39,7 @@ A job that fits two, such as a fire department's training officer, goes where mo
    - from search: search for its title and employer. If the search shows it is still open (closing date ahead, or no sign it closed), keep it. If the search shows it closed, or its closing date passed, put it on `closed`. If it doesn't show up at all, leave it out: two runs in a row without it and it comes down by itself.
 
 2b. **Check the jobs members shared** (board, 2026-11-06). Members give the link to apply, the title and the employer; you fill in the rest. For each entry in `member_jobs`, read its `url` with the fetch helper (or, if BLOCKED, search for it as in step 2) and add one entry to `member_updates`:
-   - `filled`: you read the posting (or its search listing) and it is open. Give `title`, `employer` and `location` as the posting shows them, `category` (the three categories below), `closes_on` (or null), `confirmed` (true only if you read the posting itself), and a `summary` in your own words (rule 7). The database keeps the member's link, and keeps their description if they wrote one.
+   - `filled`: you read the posting (or its search listing) and it is open. Give `title`, `employer` (one name per employer, step 4) and `location` as the posting shows them, `category` (the three categories below), `closes_on` (or null), `confirmed` (true only if you read the posting itself), and a `summary` in your own words (rule 7). The database keeps the member's link, and keeps their description if they wrote one.
    - `open`: you checked it before (`needs_details` false), it's still open and nothing changed. Send only `id`, `status` and `confirmed`.
    - `closed`: the posting is closed, filled, gone (404/410) or its closing date passed. It comes down.
    - `unreadable`: you couldn't read it and search doesn't show it. Send `category`, chosen from the title and employer the member gave, so it lands under the right tab, and nothing else.
@@ -68,6 +68,7 @@ A job that fits two, such as a fire department's training officer, goes where mo
    - `complete` is true only if steps 2 and 3 both ran all the way. If searches failed or the run was cut short, send `false`: then nothing on the board counts a miss.
    - `closes_on` is the posting's last day to apply (YYYY-MM-DD), or null with `open_until_filled: true`.
    - `location` is the city, or the county if no city is given ("Brevard County").
+   - `employer` is one name per employer, the same on every one of its jobs: the Job board shows an employer's openings on a tab under one card with a dropdown, matched by that name (board, 2026-11-06). If `listings` or `already_listed` already has jobs from that employer, use the exact name already there. Brands the employer's own careers page lists together share one name, with the brand at the start of each title: AMR and Medics Ambulance Service jobs are employer "AMR and Medics Ambulance Service", titles like "AMR Paramedic" and "Medics EMT-Basic". Lake County's fire and EMS jobs are "Lake County Fire Rescue".
    - `url` is the employer's own posting, never an aggregator.
    - `unreadable` counts the pages the helper answered BLOCKED or FAILED for.
    Save the payload to a file in your scratchpad, then:

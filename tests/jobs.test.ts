@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, isApplyLink, isNew, jobFormProblem, lastChecked } from '../src/lib/jobs.ts';
+import { allSame, applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, employerKey, groupByEmployer, isApplyLink, isNew, jobFormProblem, lastChecked, placesOf, tabFromSlug } from '../src/lib/jobs.ts';
 
 describe('job board categories', () => {
   it('three categories, with anything unknown counted as Education', () => {
@@ -84,5 +84,50 @@ describe('every job needs a link to apply (board, 2026-11-06)', () => {
     assert.equal(applyLinkProblem(''), 'Add the link to apply. Every job on the board needs one.');
     assert.equal(applyLinkProblem('www.example.org'), 'The link has to be a web address starting with https://');
     assert.equal(applyLinkProblem('https://example.org/apply'), null);
+  });
+});
+
+describe('three tabs, no All (board, 2026-11-06)', () => {
+  it('opens on Fire/EMS; an old or unknown ?type= lands there too', () => {
+    assert.equal(tabFromSlug(null), 'fire_ems');
+    assert.equal(tabFromSlug('all'), 'fire_ems');
+    assert.equal(tabFromSlug('nonsense'), 'fire_ems');
+    assert.equal(tabFromSlug('ems'), 'ems');
+    assert.equal(tabFromSlug('education'), 'education');
+  });
+});
+
+describe('one card per employer (board, 2026-11-06)', () => {
+  const job = (title: string, employer: string | null, location = '') => ({ title, employer, location });
+
+  it('groups an employer\'s openings, keeping the order of its first job', () => {
+    const groups = groupByEmployer([
+      job('AMR Paramedic', 'AMR and Medics Ambulance Service', 'Medley'),
+      job('Paramedic', 'Sunstar Paramedics'),
+      job('Medics EMT-Basic', 'AMR and Medics Ambulance Service', 'Lake Worth'),
+      job('AMR EMT-Basic', 'AMR and Medics Ambulance Service', 'Pompano Beach'),
+    ]);
+    assert.deepEqual(groups.map((g) => g.map((j) => j.title)), [
+      ['AMR Paramedic', 'Medics EMT-Basic', 'AMR EMT-Basic'],
+      ['Paramedic'],
+    ]);
+  });
+
+  it('matches names whatever the case or spacing, and never by a blank name', () => {
+    assert.equal(employerKey('  Lake County   Fire Rescue '), employerKey('lake county fire rescue'));
+    const groups = groupByEmployer([job('A', 'Lake County Fire Rescue'), job('B', 'LAKE COUNTY FIRE RESCUE'), job('C', ''), job('D', null), job('E', '  ')]);
+    assert.deepEqual(groups.map((g) => g.length), [2, 1, 1, 1]);
+  });
+
+  it('different names stay apart: the sweep writes one name per employer', () => {
+    const groups = groupByEmployer([job('A', 'AMR (American Medical Response)'), job('B', 'Medics Ambulance Service (AMR)')]);
+    assert.equal(groups.length, 2);
+  });
+
+  it('what every opening shares shows once; places in order without repeats', () => {
+    const g = [job('A', 'X', 'Medley'), job('B', 'X', 'medley'), job('C', 'X', 'Pompano Beach'), job('D', 'X', '')];
+    assert.equal(allSame(g, (j) => j.employer), true);
+    assert.equal(allSame(g, (j) => j.location), false);
+    assert.deepEqual(placesOf(g), ['Medley', 'Pompano Beach']);
   });
 });

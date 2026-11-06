@@ -25,6 +25,13 @@ export function categoryFromSlug(slug: string | null): JobCategory | null {
   return JOB_CATEGORIES.find((c) => c.slug === slug)?.key ?? null;
 }
 
+// The tab the Job board opens on. There is no All tab (board, 2026-11-06):
+// Fire/EMS, then EMS, then Education, opening on Fire/EMS, which is also
+// where an old or unknown ?type= lands.
+export function tabFromSlug(slug: string | null): JobCategory {
+  return categoryFromSlug(slug) ?? 'fire_ems';
+}
+
 // Whether a job has one of the three types. A job a member shared has none
 // until the weekly sweep reads its link; it shows under All only.
 export function hasCategory(value: unknown): value is JobCategory {
@@ -94,4 +101,46 @@ export function jobFormProblem(f: JobForm, today: string): string | null {
   if (t(f.description).length > 2000) return 'Keep the description under 2,000 characters.';
   if (f.closesOn && f.closesOn < today) return 'The closing date has already passed.';
   return null;
+}
+
+// One card per employer (board, 2026-11-06): when an employer has more than
+// one opening on a tab, the page shows them under one card with a dropdown.
+// Employers match by name, ignoring case and extra spaces, so the weekly
+// sweep writes one name per employer (.claude/skills/job-sweep). Cards keep
+// the order of each employer's first job; a job with no employer is its own
+// card.
+export function employerKey(name: string | null | undefined): string {
+  return (name ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+export function groupByEmployer<T extends { employer?: string | null }>(items: T[]): T[][] {
+  const groups: T[][] = [];
+  const at = new Map<string, number>();
+  for (const item of items) {
+    const key = employerKey(item.employer);
+    const i = key ? at.get(key) : undefined;
+    if (i === undefined) {
+      if (key) at.set(key, groups.length);
+      groups.push([item]);
+    } else {
+      groups[i].push(item);
+    }
+  }
+  return groups;
+}
+
+// True when every job in a group has the same value, so the card shows it
+// once instead of on every row.
+export function allSame<T>(items: T[], pick: (item: T) => unknown): boolean {
+  return items.every((i) => pick(i) === pick(items[0]));
+}
+
+// The group's places, in order, without repeats or blanks.
+export function placesOf(items: { location?: string | null }[]): string[] {
+  const out: string[] = [];
+  for (const i of items) {
+    const p = (i.location ?? '').trim();
+    if (p && !out.some((o) => o.toLowerCase() === p.toLowerCase())) out.push(p);
+  }
+  return out;
 }

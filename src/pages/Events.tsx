@@ -22,10 +22,12 @@ function EventRow({ e, past = false }: { e: EventItem; past?: boolean }) {
         past ? 'bg-paper/50' : ''
       }`}
     >
+      {/* A conference over several days shows the range (board, 2026-11-06). */}
       <div className={`font-disp uppercase leading-none ${past ? 'text-muted' : ''}`}>
-        <b className="block text-[32px] font-bold">{e.day}</b>
-        <span className="text-[13px] tracking-[0.16em] text-muted">
-          {e.month} {e.year}
+        <span className="sr-only">{e.dateLabel}</span>
+        <b aria-hidden className="block text-[32px] font-bold whitespace-nowrap">{e.days}</b>
+        <span aria-hidden className="text-[13px] tracking-[0.16em] text-muted">
+          {e.months} {e.years}
         </span>
       </div>
       <div>

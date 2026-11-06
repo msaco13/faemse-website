@@ -198,7 +198,7 @@ export const resourceCategories = [
 export const sponsors: { name: string; logo: string | null; url: string }[] = [
   { name: '3B Scientific', logo: null, url: 'https://www.3bscientific.com/' },
   { name: 'American Medical Academy', logo: 'ama', url: 'https://ama.edu/' },
-  { name: 'Braxton College', logo: null, url: 'https://braxton.edu/' },
+  { name: 'Braxton College', logo: 'braxton', url: 'https://braxton.edu/' },
   { name: 'Coral Springs Regional Institute of Public Safety', logo: 'csrips', url: 'https://www.csrips.org/' },
   { name: 'Dinsch Consulting Group', logo: null, url: '' },
   { name: 'Emergency Education Institute', logo: 'eei', url: 'https://eei.edu/' },

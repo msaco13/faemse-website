@@ -7,15 +7,18 @@ import { T, useText } from '../lib/text';
 import { useMemberStatus } from '../lib/useMemberStatus';
 
 // One header, two states (board, 2026-10-20). Members-only features (the
-// hubs, Q&A, jobs, resources) no longer sit in the menu as locked tabs: they
-// live in the member portal, and visitors learn about them from the homepage's
-// member benefits slide.
+// hubs, Q&A, resources) don't sit in the menu as locked tabs: they live in
+// the member portal, and visitors learn about them from the homepage's
+// member benefits slide. The Job board is the one exception (board,
+// 2026-11-06): members get Jobs in the menu, between Foundation and About,
+// in place of the portal's old "Jobs & classes" tab. Visitors don't see it.
 //
 // Visitors:  Membership · Events · News · Program map · Foundation · About,
 //            then Contact, Member sign in and Join on the right.
-// Members:   the same without Membership; "My portal" and Sign out replace
-//            sign-in and Join. Someone signed in whose membership has lapsed
-//            keeps Membership and gets a Renew button.
+// Members:   Events · News · Program map · Foundation · Jobs · About;
+//            "My portal" and Sign out replace sign-in and Join. Someone
+//            signed in whose membership has lapsed keeps Membership, gets a
+//            Renew button, and no Jobs (the board is for current members).
 // News shows only once a post exists. Foundation opens the Foundation page
 // on this site (board, 2026-10-22), which links on to the Foundation's own
 // website. About sits last among the public links (board request, 2026-10-13);
@@ -30,6 +33,7 @@ function navFor(member: boolean, hasNews: boolean, admin: boolean): NavItem[] {
     ...(hasNews ? [{ to: '/news', label: 'News', textId: 'news' }] : []),
     { to: '/programs', label: 'Program map', textId: 'programs' },
     { to: '/foundation', label: 'Foundation', textId: 'foundation' },
+    ...(member || admin ? [{ to: '/jobs', label: 'Jobs', textId: 'jobs' }] : []),
     { to: '/about', label: 'About', textId: 'about' },
     ...(admin ? [{ to: '/admin', label: 'Admin', textId: 'admin' }] : []),
   ];

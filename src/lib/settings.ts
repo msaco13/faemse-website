@@ -12,6 +12,8 @@ export type SiteSettings = {
   reminders_paused?: boolean;
   // Holds the weekly job sweep (Admin → Site content → Weekly job sweep).
   job_sweep_paused?: boolean;
+  // Holds the weekly event sweep (Admin → Site content → Weekly event sweep).
+  event_sweep_paused?: boolean;
 };
 
 const CACHE_KEY = 'faemse:settings';

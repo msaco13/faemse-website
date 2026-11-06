@@ -79,6 +79,12 @@
   robots.txt (`scripts/job-sweep/robots.mjs`, tested in
   `tests/robots.test.ts`) and never reads job aggregators or
   governmentjobs.com. Never add a way around a block.
+- The Job board has three tabs, Fire/EMS first, then EMS and Education, and
+  no All tab. On each tab an employer's openings share one card with a
+  dropdown, matched by employer name (`groupByEmployer()` in
+  `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`), so the sweep writes one
+  name per employer. Members reach it from Jobs in the main menu; visitors
+  don't see that link, and the portal has no jobs tab (board, 2026-11-06).
 - Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
   sweep never posts a hidden job again. Jobs the board posts by hand
   (source = board) are never touched by the sweep.
@@ -89,3 +95,29 @@
   link, fills in the details and type (`member_updates`), and takes closed
   ones down. Who added each one is in `job_submissions`, admins only (in
   locked-doors' PRIVATE list), and never shown on the board.
+
+## Weekly event sweep (calendar)
+
+- Events can run several days: `events.ends_on` is the last day (optional).
+  The Events page and the "On the board" strip show the range ("04–08 JAN
+  2027") and keep an event upcoming until its last day (`eventDates()` in
+  `src/lib/eventDates.ts`, tested in `tests/eventDates.test.ts`; board,
+  2026-11-06).
+- The same Sunday session runs `.claude/skills/event-sweep/SKILL.md` after
+  the job sweep (board, 2026-11-06). By itself it fills in dates and places
+  that were TBA and moves past events to next year's dates once posted. New
+  events (any EMS-related educational conference, trainings and meetings for
+  educators first) only become suggestions that an admin adds, edits first
+  or dismisses in Admin → Site content → Weekly event sweep.
+- Every change it makes is in `event_sweep_changes` with what it replaced;
+  admins undo one with `admin_undo_event_sweep_change()`, which refuses if
+  the event was edited since, and the sweep never makes an undone change
+  again. It never changes an event tagged "Meeting" (a FAEMSE membership
+  meeting is the board's call).
+- Like the job sweep it has no database access: it writes only through the
+  `event-sweep` edge function (same key and header as the job sweep), which
+  calls only `event_sweep_state()` and `event_sweep_apply()`
+  (`supabase/migrations/20261106_event_sweep.sql`). Those touch only events'
+  dates, place, wording and title, `event_suggestions`, the change log and
+  `event_sweep_runs`. Keep it that way. Its tables are in locked-doors'
+  PRIVATE list.

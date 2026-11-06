@@ -113,8 +113,7 @@ association's Supabase organization.
   listing, and the Foundation scholarship band, which reads the Foundation
   slide so its deadlines change in one place), `/members/resources` (program
   hubs, Q&A and videos once published, the library once stocked, the
-  reference shelf), `/members/jobs` (jobs and classes on one board; the tab
-  shows only when something is posted), `/members/account` (profile,
+  reference shelf), `/members/sponsors`, `/members/account` (profile,
   directory, password, dues history, organizations, bylaws link) and
   `/members/board` (admins: the admin workspace). The banner's membership
   card asks for payment only when it is due: the last 60 days before the

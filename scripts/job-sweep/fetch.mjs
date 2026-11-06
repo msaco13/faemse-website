@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Reads one page for the weekly job sweep, only if the site allows it.
+// Reads one page for the weekly job and event sweeps, only if the site
+// allows it (.claude/skills/job-sweep, .claude/skills/event-sweep).
 //
 //   node scripts/job-sweep/fetch.mjs <url>
 //   node scripts/job-sweep/fetch.mjs --links <url>   also lists the page's links
@@ -27,7 +28,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { allowed, crawlDelay, parseRobots, ROBOT, verdictForStatus } from './robots.mjs';
 
-const UA = `${ROBOT}/1.0 (+https://faemse.org/jobs; weekly Florida EMS job listing for the FAEMSE job board)`;
+const UA = `${ROBOT}/1.0 (+https://faemse.org/jobs; weekly Florida EMS job and event listing for faemse.org)`;
 
 // Never read, whatever robots.txt says: aggregators and boards whose terms
 // forbid automated collection, and the government job sites that forbid
