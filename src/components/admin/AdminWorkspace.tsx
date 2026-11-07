@@ -10,6 +10,7 @@ import PostingsManager from '../PostingsManager';
 import BoardEditor from './BoardEditor';
 import BylawsEditor from './BylawsEditor';
 import FoundationEditor from './FoundationEditor';
+import HubCheckPanel from './HubCheckPanel';
 import HubsEditor from './HubsEditor';
 import InboxPane from './InboxPane';
 import LaunchPad from './LaunchPad';
@@ -193,7 +194,12 @@ export default function AdminWorkspace({ defaultTab = 'inbox' }: { defaultTab?: 
           </section>
 
           <section id="admin-pane-hubs" role="tabpanel" aria-labelledby="admin-tab-hubs" hidden={tab !== 'hubs'}>
-            {tab === 'hubs' && <HubsEditor />}
+            {tab === 'hubs' && (
+              <>
+                <HubCheckPanel />
+                <HubsEditor />
+              </>
+            )}
           </section>
 
           <section id="admin-pane-inbox" role="tabpanel" aria-labelledby="admin-tab-inbox" hidden={tab !== 'inbox'}>
