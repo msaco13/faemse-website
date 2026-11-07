@@ -20,6 +20,19 @@
   generated, so nothing needs renumbering by hand.
 - Each draft's "Maintenance notes" section stays in the text: the site shows
   it to admins only (`forViewer` in `src/lib/hubs.ts`).
+- Once a month (the 1st) a scheduled session follows
+  `.claude/skills/hub-check/SKILL.md`: it checks every fact in the five hubs
+  against the official sources and leaves each fix, with its source, in
+  Admin → Program hubs → Monthly hub check (AJ, 2026-11-07). It never
+  changes a hub: an admin applies, edits or dismisses each fix, and a
+  dismissed one never comes back. Apply builds the new text with the hub
+  editor's rules (`swapOnce()` in `src/lib/hubCheck.ts`, tested in
+  `tests/hubCheck.test.ts`) and refuses if the hub changed since it was
+  read. The check reads and writes only through the `hub-check` edge
+  function (same key as the sweeps), which calls only `hub_check_state()`
+  and `hub_check_apply()` (`supabase/migrations/20261107_hub_check.sql`);
+  those write only `hub_check_items` and `hub_check_runs`, both in
+  locked-doors' PRIVATE list. Keep it that way.
 - Admins edit hubs themselves in Admin → Program hubs, which applies the two
   rules above and the faemse.org spelling fix on every save
   (`src/lib/hubDraft.ts`, tested in `tests/hubDraft.test.ts`). A change to

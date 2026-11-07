@@ -43,6 +43,8 @@ const PRIVATE = [
   ['events the sweep found', 'event_suggestions?select=*&limit=1'],
   ['event sweep changes', 'event_sweep_changes?select=*&limit=1'],
   ['event sweep runs', 'event_sweep_runs?select=*&limit=1'],
+  ['hub check findings', 'hub_check_items?select=*&limit=1'],
+  ['hub check runs', 'hub_check_runs?select=*&limit=1'],
   // Read-only functions that must return nothing to an outsider.
   ['admin member list', 'rpc/admin_list_members'],
   ['admin payment list', 'rpc/admin_list_payments'],
@@ -51,6 +53,7 @@ const PRIVATE = [
   ['member directory', 'rpc/get_directory'],
   ['job sweep state', 'rpc/job_sweep_state'],
   ['event sweep state', 'rpc/event_sweep_state'],
+  ['hub check state (the hubs\' text)', 'rpc/hub_check_state'],
   // The directory before board positions (renamed 2026-10-21, closed to
   // everyone; nothing calls it).
   ['old member directory', 'rpc/get_directory_before_positions'],
