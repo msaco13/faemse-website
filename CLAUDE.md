@@ -114,8 +114,7 @@
   (`opensLater()` in `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`). The
   sweep posts one only when the employer's page, or the testing-service
   posting it names (National Testing Network), gives that day; the board
-  can set it by hand in Admin. Job fairs and hiring events stay off both
-  the Job board and the calendar for now (AJ, 2026-11-10).
+  can set it by hand in Admin.
 - Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
   sweep never posts a hidden job again. Jobs the board posts by hand
   (source = board) are never touched by the sweep.
