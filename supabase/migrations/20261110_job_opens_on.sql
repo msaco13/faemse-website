@@ -8,16 +8,8 @@
 -- Who sets it: the weekly sweep (job_sweep_apply below: `opens_on` on found
 -- jobs and member updates) and the board by hand in Admin. A date that is
 -- today or past is stored as null: the job is simply open.
---
--- The link is the department's application page when it is up, even before
--- the window opens. When it isn't up yet (AJ: "just TBA and monitor"), the
--- link is the page where the department announced it and apply_link_tba is
--- true: the card says "Application link TBA" and the sweep checks every
--- week, posting the application link once it appears. Every job still has
--- a link (jobs_apply_url_check, board 2026-11-06).
 
 alter table public.jobs add column if not exists opens_on date;
-alter table public.jobs add column if not exists apply_link_tba boolean not null default false;
 
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'jobs_opens_on_check') then
@@ -37,7 +29,7 @@ returns jsonb language sql stable security definer set search_path = public as $
     'listings', coalesce((
       select jsonb_agg(jsonb_build_object(
         'url', apply_url, 'title', title, 'employer', employer, 'location', location, 'category', category,
-        'opens_on', opens_on, 'apply_link_tba', apply_link_tba,
+        'opens_on', opens_on,
         'closes_on', case when open_until_filled then null else expires_on end,
         'open_until_filled', open_until_filled, 'confirmed', confirmed,
         'found_on', posted_on, 'last_seen_on', last_seen_on, 'missed_runs', missed_runs, 'hidden', hidden)
@@ -53,15 +45,14 @@ returns jsonb language sql stable security definer set search_path = public as $
     'member_jobs', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', id, 'url', apply_url, 'title', title, 'employer', employer, 'location', location, 'category', category,
-        'description', description, 'opens_on', opens_on, 'apply_link_tba', apply_link_tba, 'closes_on', case when open_until_filled then null else expires_on end,
+        'description', description, 'opens_on', opens_on, 'closes_on', case when open_until_filled then null else expires_on end,
         'needs_details', needs_details, 'shared_on', posted_on) order by posted_on)
       from jobs where source = 'member' and not hidden and expires_on >= (now() at time zone 'America/New_York')::date), '[]'::jsonb));
 $$;
 
--- As in 20261106_job_sweep.sql, plus opens_on and apply_link_tba: on found
--- jobs opens_on is the day applications open (null or missing: open now) and
--- apply_link_tba says the link is the announcement (missing: false); on
--- member updates each is changed only when the update carries it.
+-- As in 20261106_job_sweep.sql, plus opens_on: on found jobs it is the day
+-- applications open (null or missing: open now); on member updates it is
+-- changed only when the update carries it.
 create or replace function public.job_sweep_apply(payload jsonb)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare
@@ -139,7 +130,6 @@ begin
       expires_on = v_expires,
       open_until_filled = v_open,
       opens_on = v_opens,
-      apply_link_tba = coalesce((v_item ->> 'apply_link_tba')::boolean, false),
       confirmed = coalesce((v_item ->> 'confirmed')::boolean, false),
       last_seen_on = v_today,
       missed_runs = 0
@@ -149,14 +139,13 @@ begin
       v_kept := v_kept + 1;
     else
       insert into jobs (source, apply_url, title, employer, location, category, description, posted_on, expires_on,
-                        open_until_filled, opens_on, apply_link_tba, confirmed, last_seen_on, missed_runs)
+                        open_until_filled, opens_on, confirmed, last_seen_on, missed_runs)
       values ('sweep', v_url, v_title,
               left(trim(coalesce(v_item ->> 'employer', '')), 200),
               left(trim(coalesce(v_item ->> 'location', '')), 200),
               v_category,
               left(trim(coalesce(v_item ->> 'summary', '')), 500),
-              v_today, v_expires, v_open, v_opens, coalesce((v_item ->> 'apply_link_tba')::boolean, false),
-              coalesce((v_item ->> 'confirmed')::boolean, false), v_today, 0);
+              v_today, v_expires, v_open, v_opens, coalesce((v_item ->> 'confirmed')::boolean, false), v_today, 0);
       v_added := v_added + 1;
     end if;
   end loop;
@@ -196,7 +185,6 @@ begin
       expires_on = coalesce(v_closes, expires_on),
       open_until_filled = case when v_closes is not null then false else open_until_filled end,
       opens_on = case when v_item ? 'opens_on' then v_opens when opens_on <= v_today then null else opens_on end,
-      apply_link_tba = case when v_item ? 'apply_link_tba' then coalesce((v_item ->> 'apply_link_tba')::boolean, false) else apply_link_tba end,
       confirmed = v_status in ('filled', 'open') and coalesce((v_item ->> 'confirmed')::boolean, false),
       needs_details = false,
       last_seen_on = v_today

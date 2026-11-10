@@ -29,8 +29,6 @@ export type JobItem = {
   // and the same as words. Null when the job is open now.
   opensOn?: string | null;
   opens?: string;
-  // The link is the announcement: the application page isn't up yet.
-  applyLinkTba?: boolean;
   postedOn?: string; // ISO: found by the sweep, or posted by the board
   lastSeenOn?: string | null; // ISO: last time the sweep saw it open
   needsDetails?: boolean; // a member's job the weekly sweep hasn't read yet
@@ -272,7 +270,6 @@ export function useJobs(): Loaded<JobItem> {
             openUntilFilled: r.open_until_filled === true,
             opensOn: r.opens_on ? String(r.opens_on).slice(0, 10) : null,
             opens: r.opens_on ? shortMonthDate(String(r.opens_on)) : '',
-            applyLinkTba: r.apply_link_tba === true,
             postedOn: String(r.posted_on).slice(0, 10),
             lastSeenOn: r.last_seen_on ? String(r.last_seen_on).slice(0, 10) : null,
             needsDetails: r.needs_details === true,

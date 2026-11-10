@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { allSame, applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, applyKind, datesKey, employerKey, groupByEmployer, isApplyLink, isNew, jobFormProblem, lastChecked, opensLater, placesOf, tabFromSlug } from '../src/lib/jobs.ts';
+import { allSame, applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, datesKey, employerKey, groupByEmployer, isApplyLink, isNew, jobFormProblem, lastChecked, opensLater, placesOf, tabFromSlug } from '../src/lib/jobs.ts';
 
 describe('job board categories', () => {
   it('three categories, with anything unknown counted as Education', () => {
@@ -158,13 +158,5 @@ describe('hiring announcements', () => {
       datesKey({ opensOn: '2026-12-01', closes: 'December 15, 2026' }, today),
       datesKey({ opensOn: '2026-12-01', closes: 'December 31, 2026' }, today),
     );
-  });
-
-  it('links the announcement while the application link is TBA, then the application page', () => {
-    assert.equal(applyKind({ opensOn: '2026-12-01', applyLinkTba: true }, today), 'announcement');
-    assert.equal(applyKind({ opensOn: null, applyLinkTba: true }, today), 'announcement', 'still TBA after it opens');
-    assert.equal(applyKind({ opensOn: '2026-12-01' }, today), 'how');
-    assert.equal(applyKind({ opensOn: '2026-12-01' }, '2026-12-01'), 'apply');
-    assert.equal(applyKind({}, today), 'apply');
   });
 });

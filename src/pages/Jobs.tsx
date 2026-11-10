@@ -5,7 +5,7 @@ import PageHead from '../components/PageHead';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { contactPath } from '../content/data';
 import { todayISO } from '../lib/dates';
-import { allSame, applyKind, categoryLabel, countByCategory, datesKey, groupByEmployer, hasCategory, isNew, JOB_CATEGORIES, lastChecked, opensLater, placesOf, tabFromSlug, type JobCategory } from '../lib/jobs';
+import { allSame, categoryLabel, countByCategory, datesKey, groupByEmployer, hasCategory, isNew, JOB_CATEGORIES, lastChecked, opensLater, placesOf, tabFromSlug, type JobCategory } from '../lib/jobs';
 import type { JobItem } from '../lib/postings';
 import { useJobs } from '../lib/postings';
 import { T } from '../lib/text';
@@ -237,29 +237,16 @@ function TypeChip({ category }: { category: unknown }) {
   );
 }
 
-// Before the application page is up, the link is the department's
-// announcement and the card says the application link is TBA; the weekly
-// sweep swaps in the application page once it appears (AJ, 2026-11-10).
 function ApplyButton({ j, today }: { j: JobItem; today: string }) {
   if (!j.applyUrl) return null;
-  const kind = applyKind(j, today);
   return (
-    <>
-      <a href={j.applyUrl} target="_blank" rel="noreferrer" className="btn-outline !py-2 !px-4 text-[13.5px]">
-        {kind === 'announcement' ? (
-          <T id="jobs.item.see-announcement">See the announcement ↗</T>
-        ) : kind === 'how' ? (
-          <T id="jobs.item.announcement">How to apply ↗</T>
-        ) : (
-          <T id="jobs.item.apply">Apply on the employer&apos;s site ↗</T>
-        )}
-      </a>
-      {kind === 'announcement' && (
-        <span className="text-[12.5px] font-semibold text-[#8A4B00]">
-          <T id="jobs.item.link-tba">Application link TBA</T>
-        </span>
+    <a href={j.applyUrl} target="_blank" rel="noreferrer" className="btn-outline !py-2 !px-4 text-[13.5px]">
+      {opensLater(j, today) ? (
+        <T id="jobs.item.announcement">How to apply ↗</T>
+      ) : (
+        <T id="jobs.item.apply">Apply on the employer&apos;s site ↗</T>
       )}
-    </>
+    </a>
   );
 }
 

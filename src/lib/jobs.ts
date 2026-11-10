@@ -136,14 +136,6 @@ export function opensLater(j: { opensOn?: string | null }, today: string): boole
   return !!j.opensOn && j.opensOn.slice(0, 10) > today;
 }
 
-// The job's button (AJ, 2026-11-10): the announcement while the application
-// link is TBA, "How to apply" before the window opens, else "Apply".
-export type ApplyKind = 'announcement' | 'how' | 'apply';
-export function applyKind(j: { opensOn?: string | null; applyLinkTba?: boolean }, today: string): ApplyKind {
-  if (j.applyLinkTba) return 'announcement';
-  return opensLater(j, today) ? 'how' : 'apply';
-}
-
 // What a job's date chips say, as text: the card shows them once when every
 // opening in a group says the same.
 export function datesKey(j: { opensOn?: string | null; openUntilFilled?: boolean; closes?: string }, today: string): string {

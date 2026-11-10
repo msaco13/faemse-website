@@ -132,7 +132,6 @@ const SECTIONS: Section[] = [
       // A hiring announcement (AJ, 2026-11-10): the card says "Applications
       // open <date>" until then. Leave empty for a job that is open now.
       { name: 'opens_on', label: 'Applications open on (optional: only for an announced opening)', type: 'date', nullable: true },
-      { name: 'apply_link_tba', label: 'Application link TBA (the link below is the announcement)', type: 'checkbox' },
       // Every job needs a link to apply (board, 2026-11-06); the database
       // refuses one without it.
       { name: 'apply_url', label: 'Link to apply (required: every job needs one)', type: 'text', required: true, placeholder: 'https://… (the employer\'s posting)' },
