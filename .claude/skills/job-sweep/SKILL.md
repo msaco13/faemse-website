@@ -33,10 +33,12 @@ A job that fits two, such as a fire department's training officer, goes where mo
 AJ, 2026-11-10: "include announcements that people are hiring and not just during the open period." Many fire departments hire in windows: they announce the next one ("applications open December 1", "testing period January 5 to 30") before it opens. Members want to know early, so post the announcement now:
 
 - Post it when the employer's own page, or the testing-service posting it names (rule 5), says the window is coming **and gives the day it opens**. Send that day as `opens_on`. If it also says when the window closes, that is `closes_on`; if not, `open_until_filled: true`. The board shows "Applications open <date>" until that day.
-- The link is the page that tells people how to apply: the announcement or the posting. The summary says what to do before the window opens, in your own words (for example the exam or physical ability test to register for).
+- The link is the department's application page (its careers page, or the testing-service posting), even before the window opens (AJ, 2026-11-10). If there is no application page yet, the link is the page where the department announced it, with `apply_link_tba: true`: the board says "Application link TBA". The summary says what to do before the window opens, in your own words (for example the exam or physical ability test to register for).
 - No opening day given ("check back for future updates", "next window coming soon"): don't post it. Mention the employer in the summary as "announced, no date yet".
-- Every week, while the window hasn't opened, send the job with its `opens_on` again (leaving it out tells the board the job is open now). Once it opens, send it without `opens_on`. If the employer moved the job to a new posting when the window opened, post the new link and put the announcement's link on `closed`.
+- Every week, while the window hasn't opened, send the job with its `opens_on` again (leaving it out tells the board the job is open now). Once it opens, send it without `opens_on`.
+- Every week, for a job with `apply_link_tba`, look for the application page (re-read the announcement and the department's careers page, and search). Still none: send it again with `apply_link_tba: true`. Found: post the job with the application page's link (no `apply_link_tba`) and put the announcement's link on `closed`. Do the same if the employer moved the job to a new posting when the window opened.
 - A window the page says closed, with no next opening day, is closed (step 2).
+- Job fairs and recruiting events (AJ, 2026-11-10): never post the event itself, but read the event page and its flyer when you come across one from a department (PDF and Word flyers open through the fetch helper; a flyer that is only an image can't be read, so say so in the summary). If either gives the actual application window for jobs (the day applications open, and the closing day if stated), post those jobs as above: the application page if there is one, otherwise the event page with `apply_link_tba: true`. The fair's own date is never the day applications open unless the page says applications open that day.
 - A search result, a news story or a social media post can point you to an announcement, never be the source of its date: confirm the date on the employer's own page or its testing-service posting. If you can't, skip it and say so in the summary.
 
 ## Steps
@@ -46,7 +48,7 @@ AJ, 2026-11-10: "include announcements that people are hiring and not just durin
    It returns `paused`, `today` (Florida date), `listings` (every job the sweep posted, with `hidden`), `already_listed` (jobs the board or a member posted that are up now) and `member_jobs` (jobs members shared, with `needs_details` true for ones never checked). If `paused` is true, stop and end with "Job sweep paused in Admin; nothing changed." If the call fails or answers 401 or 503, stop and end with "Job sweep failed:" and the answer.
 
 2. **Re-check what's on the board.** For each listing that is not hidden:
-   - confirmed: read its link with the fetch helper. Still open, or an announced window that hasn't opened yet: keep it (step 4), with its current `opens_on`. Closed, filled, removed, or the page is gone (HTTP 404/410): put its link on the `closed` list. A page that says the window closed but gives the next opening day is an announcement again: keep it with that `opens_on`. BLOCKED or FAILED this time: re-read the employer's page that listed it (rule 5), or search for it (below), instead of guessing.
+   - confirmed: read its link with the fetch helper. Still open, or an announced window that hasn't opened yet: keep it (step 4), with its current `opens_on` and `apply_link_tba` (see Hiring announcements for looking for the application link). Closed, filled, removed, or the page is gone (HTTP 404/410): put its link on the `closed` list. A page that says the window closed but gives the next opening day is an announcement again: keep it with that `opens_on`. BLOCKED or FAILED this time: re-read the employer's page that listed it (rule 5), or search for it (below), instead of guessing.
    - from search: search for its title and employer. If the search shows it is still open (closing date ahead, or no sign it closed), keep it. If the search shows it closed, or its closing date passed, put it on `closed`. If it doesn't show up at all, leave it out: two runs in a row without it and it comes down by itself.
 
 2b. **Check the jobs members shared** (board, 2026-11-06). Members give the link to apply, the title and the employer; you fill in the rest. For each entry in `member_jobs`, read its `url` with the fetch helper (or, if BLOCKED, search for it as in step 2) and add one entry to `member_updates`:
@@ -60,15 +62,15 @@ AJ, 2026-11-10: "include announcements that people are hiring and not just durin
    - Fire/EMS: "firefighter paramedic" Florida hiring; "firefighter EMT" Florida; "fire medic" Florida; fire rescue careers Florida; plus searches limited to governmentjobs.com for Florida firefighter jobs.
    - EMS: paramedic Florida ambulance hiring; EMT Florida EMS hiring; hospital paramedic Florida; flight paramedic Florida; emergency medical dispatcher Florida; 911 telecommunicator Florida.
    - Education: EMS instructor Florida college; paramedic program director Florida; EMT instructor Florida technical college; adjunct EMS faculty Florida.
-   - Announcements (see Hiring announcements): fire rescue "hiring window" Florida; firefighter "applications open" Florida; fire department "recruitment" "opens" Florida; "accepting applications beginning" firefighter Florida; National Testing Network Florida fire department postings. Also re-read the recruitment pages of fire departments already on the board, or listed before, for their next window.
-   Spread across the state: if the results cluster in one region, add searches for the Panhandle, North, Central, Tampa Bay, Southwest and South Florida. For each promising result, find the employer's own posting and confirm it (rules 3, 5 and 6). Skip jobs that are closed, outside Florida, not in the three categories, or that you can't tie to an employer's own posting. Job fairs, career fairs and hiring events are not jobs and not announcements: never post them (AJ, 2026-11-10). Skip any job in `already_listed` (same link, or the same title at the same employer): a member or the board already posted it.
+   - Announcements (see Hiring announcements): fire rescue "hiring window" Florida; firefighter "applications open" Florida; fire department "recruitment" "opens" Florida; "accepting applications beginning" firefighter Florida; fire rescue "job fair" OR "recruitment event" Florida (for the application dates they give); National Testing Network Florida fire department postings. Also re-read the recruitment pages of fire departments already on the board, or listed before, for their next window.
+   Spread across the state: if the results cluster in one region, add searches for the Panhandle, North, Central, Tampa Bay, Southwest and South Florida. For each promising result, find the employer's own posting and confirm it (rules 3, 5 and 6). Skip jobs that are closed, outside Florida, not in the three categories, or that you can't tie to an employer's own posting. Never post a job fair, career fair or recruiting event itself (AJ, 2026-11-10), but read it for application dates (see Hiring announcements). Skip any job in `already_listed` (same link, or the same title at the same employer): a member or the board already posted it.
 
 4. **Send the results.** Build one JSON payload and POST it:
    ```
    {
      "complete": true,
      "found": [ { "url": "...", "title": "...", "employer": "...", "location": "City", "category": "fire_ems",
-                  "summary": "...", "opens_on": null, "closes_on": "2026-12-01", "open_until_filled": false, "confirmed": true } ],
+                  "summary": "...", "opens_on": null, "apply_link_tba": false, "closes_on": "2026-12-01", "open_until_filled": false, "confirmed": true } ],
      "closed": [ "https://..." ],
      "member_updates": [ { "id": "...", "status": "filled", "title": "...", "employer": "...", "location": "City",
                            "category": "ems", "summary": "...", "closes_on": null, "confirmed": true } ],
@@ -80,6 +82,7 @@ AJ, 2026-11-10: "include announcements that people are hiring and not just durin
    - `complete` is true only if steps 2 and 3 both ran all the way. If searches failed or the run was cut short, send `false`: then nothing on the board counts a miss.
    - `closes_on` is the posting's last day to apply (YYYY-MM-DD), or null with `open_until_filled: true`.
    - `opens_on` is the day applications open, only for an announced window that hasn't opened yet (YYYY-MM-DD); null or left out means open now. It can't be after `closes_on`.
+   - `apply_link_tba` is true only when `url` is the department's announcement because its application page isn't up yet; left out means false.
    - `location` is the city, or the county if no city is given ("Brevard County").
    - `employer` is one name per employer, the same on every one of its jobs: the Job board shows an employer's openings on a tab under one card with a dropdown, matched by that name (board, 2026-11-06). If `listings` or `already_listed` already has jobs from that employer, use the exact name already there. Brands the employer's own careers page lists together share one name, with the brand at the start of each title: AMR and Medics Ambulance Service jobs are employer "AMR and Medics Ambulance Service", titles like "AMR Paramedic" and "Medics EMT-Basic". Lake County's fire and EMS jobs are "Lake County Fire Rescue".
    - `url` is the employer's own posting, never an aggregator.
@@ -90,6 +93,8 @@ AJ, 2026-11-10: "include announcements that people are hiring and not just durin
 
 5. **Summary.** End with a short plain message, easy to read on a phone:
    - First line: "Job sweep <M-D-YY>: <added> new, <kept> still open, <removed> taken down, <on_board> on the board; <members_checked> member jobs checked, <members_filled> filled in."
-   - New jobs by category: title, employer, city, one per line; announcements marked "(opens Dec 1)".
+   - New jobs by category: title, employer, city, one per line; announcements marked "(opens Dec 1)", and "(application link TBA)" while it is.
+   - Application links found this week for jobs that had them TBA.
+   - Job fairs or recruiting events read for application dates, and any flyer you couldn't read.
    - How many pages could not be read, and anything odd (rule 4, a site that changed, a category with nothing new).
    If the run stopped early, start the message with "Job sweep incomplete:" and say how far it got.

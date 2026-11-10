@@ -21,6 +21,7 @@ type SweepJob = {
   expires_on: string;
   open_until_filled: boolean;
   opens_on: string | null; // a hiring announcement: the day applications open
+  apply_link_tba: boolean; // the link is the announcement; application page not up yet
   confirmed: boolean;
   hidden: boolean;
   apply_url: string;
@@ -54,7 +55,7 @@ export default function JobSweepPanel() {
 
   async function load() {
     const [j, r] = await Promise.all([
-      supabase.from('jobs').select('id, title, employer, location, category, posted_on, expires_on, open_until_filled, opens_on, confirmed, hidden, apply_url').eq('source', 'sweep').order('posted_on', { ascending: false }),
+      supabase.from('jobs').select('id, title, employer, location, category, posted_on, expires_on, open_until_filled, opens_on, apply_link_tba, confirmed, hidden, apply_url').eq('source', 'sweep').order('posted_on', { ascending: false }),
       supabase.from('job_sweep_runs').select('*').order('ran_at', { ascending: false }).limit(1),
     ]);
     if (j.error || r.error) {
@@ -158,6 +159,7 @@ export default function JobSweepPanel() {
                   {[categoryLabel(j.category), j.employer, j.location].filter(Boolean).join(' · ')} · found {short(j.posted_on)} ·{' '}
                   {j.opens_on && j.opens_on > today && `applications open ${short(j.opens_on)} · `}
                   {j.open_until_filled ? 'open until filled' : `closes ${short(j.expires_on)}`}
+                  {j.apply_link_tba && ' · application link TBA'}
                   {!j.confirmed && ' · from a search listing'}
                   {j.hidden && ' · hidden'}
                 </span>
