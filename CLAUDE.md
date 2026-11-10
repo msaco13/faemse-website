@@ -66,6 +66,16 @@
   drives both screens with the database played (nightly, in the site audit).
   A new editor that loads one record before saving follows the same rule.
 
+## Password links
+
+- Every email with a password link (`password-link`, `stripe-webhook`) links
+  to `faemse.org/set-password?token_hash=…&type=recovery`, built from
+  `generateLink`'s `hashed_token`, never its `action_link` (AJ, 2026-11-10).
+  The page spends the one-time code only when the person presses "Set my
+  password" (`src/pages/SetPassword.tsx`). Microsoft 365's link scanner opens
+  every link in an email and used up the old `/verify` links before members
+  clicked. A new email with a password link follows the same rule.
+
 ## Database access rules
 
 - `scripts/locked-doors.mjs` (run nightly by the site audit) checks that an

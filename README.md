@@ -493,7 +493,20 @@ one), so since 2026-10-01 the portal puts a "Set your password now" card
 first on the page for anyone who arrived through a link (`?setpw=1` from
 `RecoveryRedirect` in `src/App.tsx`, or `type=recovery` in the landing
 hash, read once in `src/lib/recovery.ts`); on an ordinary visit the same
-card sits lower down as "Set a new password". The other Auth
+card sits lower down as "Set a new password".
+
+Since 2026-11-10 the link in these emails (and in the stripe-webhook welcome
+emails) opens `faemse.org/set-password?token_hash=…&type=recovery`
+(`src/pages/SetPassword.tsx`), not Supabase's `/auth/v1/verify`. Workplace
+email scanners such as Microsoft 365 Safe Links open every link in a
+message, and that used up the single-use `/verify` links seconds after they
+were sent (3B Scientific's representatives on 2026-10-29, an SF College
+reset on 2026-11-10). The page spends the code only when the person presses
+"Set my password" (`supabase.auth.verifyOtp`), then opens the portal with
+`?setpw=1`. An old link that fails lands on the site root with
+`#error=...otp_expired`; `RecoveryRedirect` sends that to
+`/set-password?expired=1`, which explains and points to Forgot password
+(`linkFailedInHash()`, tested in `tests/recovery.test.ts`). The other Auth
 emails (email change, invites from the dashboard) still use the built-in
 mailer until Supabase → Authentication → SMTP is pointed at Resend (host
 `smtp.resend.com`, port 465, user `resend`, password = the API key).

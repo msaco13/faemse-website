@@ -22,7 +22,7 @@ const SITE = (process.env.A11Y_SITE ?? 'https://faemse.org').replace(/\/$/, '');
 const PAGES = [
   '/', '/about', '/board', '/foundation', '/bylaws', '/membership', '/events', '/news', '/resources', '/sponsors',
   '/jobs', '/classes', '/qa', '/videos', '/program-directors', '/programs', '/contact', '/login',
-  '/privacy', '/terms', '/this-page-does-not-exist',
+  '/set-password', '/privacy', '/terms', '/this-page-does-not-exist',
 ];
 const TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'];
 

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
-import { arrivedByPasswordLink } from './lib/recovery';
+import { arrivedByFailedLink, arrivedByPasswordLink } from './lib/recovery';
 import { SiteTextProvider } from './lib/text';
 import { MediaProvider } from './lib/media';
 import EditModeBar from './components/EditModeBar';
@@ -23,6 +23,7 @@ const News = lazy(() => import('./pages/News'));
 const Sponsors = lazy(() => import('./pages/Sponsors'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Login = lazy(() => import('./pages/Login'));
+const SetPassword = lazy(() => import('./pages/SetPassword'));
 const Members = lazy(() => import('./pages/Members'));
 const Admin = lazy(() => import('./pages/Admin'));
 const Privacy = lazy(() => import('./pages/Privacy'));
@@ -98,6 +99,13 @@ function RecoveryRedirect() {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') go();
     });
+    // A password link that was already used or had expired (Supabase puts
+    // the reason in the hash): the "get a new link" page, not the homepage.
+    // Emails sent before 2026-11-10 still carry links that can end this way.
+    if (arrivedByFailedLink) {
+      navigate('/set-password?expired=1', { replace: true });
+      return () => data.subscription.unsubscribe();
+    }
     if (arrivedByPasswordLink) {
       // getSession waits for supabase-js to finish reading the hash.
       supabase.auth.getSession().then(({ data: s }) => {
@@ -203,6 +211,7 @@ export default function App() {
             <Route path="/admin/hubs/*" element={<OldHubsAddress />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/set-password" element={<SetPassword />} />
             {/* The member portal and its tabs: /members, /members/resources,
                 /members/sponsors, /members/account, /members/board (admins).
                 Its old Jobs & classes tab went to the main menu's Jobs

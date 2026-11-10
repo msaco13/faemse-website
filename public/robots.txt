@@ -7,6 +7,7 @@ Disallow: /admin
 Disallow: /members$
 Disallow: /members/
 Disallow: /login
+Disallow: /set-password
 Disallow: /payment-complete
 
 Sitemap: https://faemse.org/sitemap.xml
