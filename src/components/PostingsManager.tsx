@@ -129,6 +129,9 @@ const SECTIONS: Section[] = [
       { name: 'employer', label: 'Employer', type: 'text' },
       { name: 'location', label: 'Location', type: 'text', placeholder: 'City, FL' },
       { name: 'expires_on', label: 'Listing comes down after', type: 'date', required: true },
+      // A hiring announcement (AJ, 2026-11-10): the card says "Applications
+      // open <date>" until then. Leave empty for a job that is open now.
+      { name: 'opens_on', label: 'Applications open on (optional: only for an announced opening)', type: 'date', nullable: true },
       // Every job needs a link to apply (board, 2026-11-06); the database
       // refuses one without it.
       { name: 'apply_url', label: 'Link to apply (required: every job needs one)', type: 'text', required: true, placeholder: 'https://… (the employer\'s posting)' },

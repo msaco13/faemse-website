@@ -108,6 +108,13 @@
   `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`), so the sweep writes one
   name per employer. Members reach it from Jobs in the main menu; visitors
   don't see that link, and the portal has no jobs tab (board, 2026-11-06).
+- Hiring announcements count (AJ, 2026-11-10): a department that announces
+  the day its next hiring window opens goes on the board before it opens,
+  with `jobs.opens_on`; the card says "Applications open <date>" until then
+  (`opensLater()` in `src/lib/jobs.ts`, tested in `tests/jobs.test.ts`). The
+  sweep posts one only when the employer's page, or the testing-service
+  posting it names (National Testing Network), gives that day; the board
+  can set it by hand in Admin.
 - Admins hide a sweep job in Admin → Site content → Weekly job sweep; the
   sweep never posts a hidden job again. Jobs the board posts by hand
   (source = board) are never touched by the sweep.
