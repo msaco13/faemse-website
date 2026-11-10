@@ -7,17 +7,23 @@
 // function needs no dashboard step: it mints the same recovery link Supabase
 // Auth would have emailed (auth.admin.generateLink) and sends it through the
 // Resend account the site already uses for board notifications and renewal
-// reminders. Clicking the link lands on the site root with a recovery
-// session, exactly like the built-in email, and the portal shows its "Set a
-// new password" card.
+// reminders.
+//
+// The link goes to faemse.org/set-password with the code's hash, not to
+// Supabase's /verify (2026-11-10). Workplace email scanners (Microsoft 365
+// Safe Links) open every link in a message to check it, which used up the
+// single-use /verify link seconds after it was sent, before the member
+// clicked. The page spends the code only when the person presses "Set my
+// password" (verifyOtp), then the portal shows its "Set your password now"
+// card. Supabase's docs recommend this ("Email prefetching").
 //
 // Behaviour:
 //   * Always answers 200 for a well-formed address, whether or not a login
 //     exists, so the form cannot be used to discover who is a member.
 //   * At most 3 links per address per hour (password_link_log); beyond that
 //     it answers 200 and sends nothing.
-//   * The link is single use and expires after Supabase Auth's OTP window
-//     (one hour by default).
+//   * The code is single use, spent when the button is pressed, and expires
+//     after Supabase Auth's OTP window (one hour by default).
 //
 // Secrets: RESEND_API_KEY (shared). SUPABASE_SERVICE_ROLE_KEY and
 // SUPABASE_URL are provided by the platform.
@@ -79,18 +85,20 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
 
-  // The same recovery link Supabase Auth would have emailed. Unknown address:
-  // say nothing different.
+  // A recovery code, as Supabase Auth would have emailed. Unknown address:
+  // say nothing different. The email links our own page with the code's
+  // hash (see the top of this file), never action_link.
   const { data, error } = await admin.auth.admin.generateLink({
     type: 'recovery',
     email,
     options: { redirectTo: `${SITE}/` },
   });
-  const link = data?.properties?.action_link;
-  if (error || !link) {
-    console.log(`no link for ${email}: ${error?.message ?? 'no action_link'}`);
+  const hashed = data?.properties?.hashed_token;
+  if (error || !hashed) {
+    console.log(`no link for ${email}: ${error?.message ?? 'no hashed_token'}`);
     return json({ ok: true });
   }
+  const link = `${SITE}/set-password?token_hash=${encodeURIComponent(hashed)}&type=recovery`;
 
   let firstName = 'there';
   if (data.user?.id) {
@@ -101,13 +109,14 @@ Deno.serve(async (req) => {
   const text = [
     `Hi ${firstName},`,
     '',
-    'Use this link to set your password for the FAEMSE member portal. It works',
-    'once and expires in one hour:',
+    'Use this link to set your password for the FAEMSE member portal:',
     '',
     link,
     '',
-    'The page that opens asks you to choose a password. Save it there, then',
-    `sign in with it and this email address at ${SITE}/login from any device.`,
+    'It opens a page with a "Set my password" button. The link works once,',
+    'when you press that button, and expires in one hour. Choose your password',
+    `on the page that follows, then sign in with it and this email address at`,
+    `${SITE}/login from any device.`,
     '',
     'If you did not ask for this, you can ignore this message. Nothing changes',
     'until the link is used.',

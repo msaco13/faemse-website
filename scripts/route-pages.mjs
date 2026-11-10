@@ -23,7 +23,7 @@ import { join } from 'node:path';
 
 const SITE = 'https://faemse.org';
 const DIST = 'dist';
-const EXTRA = ['jobs', 'qa', 'hubs', 'login', 'members', 'admin', 'payment-complete'];
+const EXTRA = ['jobs', 'qa', 'hubs', 'login', 'set-password', 'members', 'admin', 'payment-complete'];
 
 const sitemap = readFileSync('public/sitemap.xml', 'utf8');
 const fromSitemap = [...sitemap.matchAll(/<loc>https:\/\/faemse\.org\/([^<]*)<\/loc>/g)].map((m) => m[1]).filter(Boolean);

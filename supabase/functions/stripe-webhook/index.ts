@@ -133,16 +133,27 @@ async function loginFor(supabase: Admin, email: string, fullName: string, tier?:
 }
 
 // How the email tells someone to get into the portal: a set-password link
-// for a login made just now (the same one Forgot password sends), otherwise
-// the sign-in page.
+// for a login made just now (the same kind Forgot password sends), otherwise
+// the sign-in page. The link opens faemse.org/set-password, whose button
+// spends the code, never Supabase's /verify: Microsoft 365's link scanner
+// used up 3B Scientific's /verify links seconds after they were sent
+// (2026-10-29), before anyone clicked (see password-link).
 async function passwordLines(supabase: Admin, email: string, created: boolean): Promise<string[]> {
   if (!created) {
     return [`Sign in at ${SITE}/login with this email address. If you have not set a password yet, use "Forgot password" there.`];
   }
   const { data: link } = await supabase.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: `${SITE}/` } });
-  const actionLink = link?.properties?.action_link;
-  return actionLink
-    ? ['Set your portal password with this link (it works once and expires in one hour):', '', actionLink, '', `Your login is this email address. After that, sign in at ${SITE}/login`]
+  const hashed = link?.properties?.hashed_token;
+  return hashed
+    ? [
+        'Set your portal password with this link:',
+        '',
+        `${SITE}/set-password?token_hash=${encodeURIComponent(hashed)}&type=recovery`,
+        '',
+        'It opens a page with a "Set my password" button. The link works once, when you press that button, and expires in one hour; after that, use "Forgot password" on the sign-in page for a new one.',
+        '',
+        `Your login is this email address. After that, sign in at ${SITE}/login`,
+      ]
     : [`Your login is this email address. Go to ${SITE}/login and use "Forgot password" to set your password.`];
 }
 
