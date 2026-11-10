@@ -5,7 +5,7 @@ import PageHead from '../components/PageHead';
 import { CantLoad, SavedCopyNote } from '../components/SavedCopy';
 import { contactPath } from '../content/data';
 import { todayISO } from '../lib/dates';
-import { allSame, categoryLabel, countByCategory, datesKey, groupByEmployer, hasCategory, isNew, JOB_CATEGORIES, lastChecked, opensLater, placesOf, tabFromSlug, type JobCategory } from '../lib/jobs';
+import { allSame, categoryLabel, countByCategory, groupByEmployer, hasCategory, isNew, JOB_CATEGORIES, lastChecked, placesOf, tabFromSlug, type JobCategory } from '../lib/jobs';
 import type { JobItem } from '../lib/postings';
 import { useJobs } from '../lib/postings';
 import { T } from '../lib/text';
@@ -196,24 +196,7 @@ function NewChip() {
   );
 }
 
-// A hiring announcement (AJ, 2026-11-10) says when applications open, and
-// when they close if the employer said; once that day comes it reads like
-// any other job.
-function ClosesChip({ j, today }: { j: JobItem; today: string }) {
-  if (opensLater(j, today)) {
-    return (
-      <>
-        <span className={`${chip} text-[#8A4B00] bg-[#FFF1DB]`}>
-          <T id="jobs.item.opens">Applications open</T> {j.opens}
-        </span>
-        {!j.openUntilFilled && (
-          <span className={`${chip} text-[#0E7A4A] bg-[#E2F7EC]`}>
-            <T id="jobs.item.open">Closes</T> {j.closes}
-          </span>
-        )}
-      </>
-    );
-  }
+function ClosesChip({ j }: { j: JobItem }) {
   return (
     <span className={`${chip} text-[#0E7A4A] bg-[#E2F7EC]`}>
       {j.openUntilFilled ? (
@@ -237,15 +220,11 @@ function TypeChip({ category }: { category: unknown }) {
   );
 }
 
-function ApplyButton({ j, today }: { j: JobItem; today: string }) {
+function ApplyButton({ j }: { j: JobItem }) {
   if (!j.applyUrl) return null;
   return (
     <a href={j.applyUrl} target="_blank" rel="noreferrer" className="btn-outline !py-2 !px-4 text-[13.5px]">
-      {opensLater(j, today) ? (
-        <T id="jobs.item.announcement">How to apply ↗</T>
-      ) : (
-        <T id="jobs.item.apply">Apply on the employer&apos;s site ↗</T>
-      )}
+      <T id="jobs.item.apply">Apply on the employer&apos;s site ↗</T>
     </a>
   );
 }
@@ -298,7 +277,7 @@ function JobCard({ j, today }: { j: JobItem; today: string }) {
         <h2 className="font-disp font-bold uppercase text-2xl">{j.title}</h2>
         <span className="flex flex-wrap gap-2">
           {isNew(j.postedOn, today) && <NewChip />}
-          <ClosesChip j={j} today={today} />
+          <ClosesChip j={j} />
         </span>
       </div>
       <p className="text-[14.5px] font-semibold text-brand-blue mb-3">{[j.employer, j.location].filter(Boolean).join(' · ')}</p>
@@ -307,7 +286,7 @@ function JobCard({ j, today }: { j: JobItem; today: string }) {
       </p>
       {j.description && <p className="text-muted text-[15px] mb-4 max-w-[80ch] whitespace-pre-line">{j.description}</p>}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13.5px]">
-        <ApplyButton j={j} today={today} />
+        <ApplyButton j={j} />
         <SourceLine j={j} />
       </div>
     </article>
@@ -322,7 +301,7 @@ function EmployerCard({ jobs, today }: { jobs: JobItem[]; today: string }) {
   const places = placesOf(jobs);
   const byPlace = places.length > 1 && jobs.every((j) => (j.location ?? '').trim());
   const allNew = jobs.every((j) => isNew(j.postedOn, today));
-  const sameCloses = allSame(jobs, (j) => datesKey(j, today));
+  const sameCloses = allSame(jobs, (j) => (j.openUntilFilled ? 'open' : j.closes));
   const sameText = allSame(jobs, (j) => j.description ?? '');
   const sameSource = allSame(jobs, sourceKey);
   const first = jobs[0];
@@ -337,13 +316,13 @@ function EmployerCard({ jobs, today }: { jobs: JobItem[]; today: string }) {
         {((!allNew && isNew(j.postedOn, today)) || !sameCloses) && (
           <span className="flex flex-wrap gap-2">
             {!allNew && isNew(j.postedOn, today) && <NewChip />}
-            {!sameCloses && <ClosesChip j={j} today={today} />}
+            {!sameCloses && <ClosesChip j={j} />}
           </span>
         )}
       </div>
       {!sameText && j.description && <p className="text-muted text-[15px] max-w-[80ch] whitespace-pre-line">{j.description}</p>}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13.5px]">
-        <ApplyButton j={j} today={today} />
+        <ApplyButton j={j} />
         {!sameSource && <SourceLine j={j} />}
       </div>
     </div>
@@ -356,7 +335,7 @@ function EmployerCard({ jobs, today }: { jobs: JobItem[]; today: string }) {
         {(allNew || sameCloses) && (
           <span className="flex flex-wrap gap-2">
             {allNew && <NewChip />}
-            {sameCloses && <ClosesChip j={first} today={today} />}
+            {sameCloses && <ClosesChip j={first} />}
           </span>
         )}
       </div>

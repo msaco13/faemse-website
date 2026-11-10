@@ -25,10 +25,6 @@ export type JobItem = {
   source?: 'board' | 'sweep' | 'member';
   confirmed?: boolean; // false: from a search listing, not the posting itself
   openUntilFilled?: boolean;
-  // A hiring announcement (AJ, 2026-11-10): the day applications open (ISO)
-  // and the same as words. Null when the job is open now.
-  opensOn?: string | null;
-  opens?: string;
   postedOn?: string; // ISO: found by the sweep, or posted by the board
   lastSeenOn?: string | null; // ISO: last time the sweep saw it open
   needsDetails?: boolean; // a member's job the weekly sweep hasn't read yet
@@ -116,11 +112,6 @@ function longDate(iso: string): string {
     month: 'long',
     day: 'numeric',
   });
-}
-
-// "Nov 24, 2026": short enough for a chip inside a phone-width dropdown.
-function shortMonthDate(iso: string): string {
-  return new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function monthYear(iso: string): string {
@@ -268,8 +259,6 @@ export function useJobs(): Loaded<JobItem> {
             source: r.source === 'sweep' || r.source === 'member' ? r.source : 'board',
             confirmed: r.confirmed !== false,
             openUntilFilled: r.open_until_filled === true,
-            opensOn: r.opens_on ? String(r.opens_on).slice(0, 10) : null,
-            opens: r.opens_on ? shortMonthDate(String(r.opens_on)) : '',
             postedOn: String(r.posted_on).slice(0, 10),
             lastSeenOn: r.last_seen_on ? String(r.last_seen_on).slice(0, 10) : null,
             needsDetails: r.needs_details === true,
