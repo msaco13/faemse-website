@@ -200,7 +200,7 @@ export const sponsors: { name: string; logo: string | null; url: string }[] = [
   { name: 'American Medical Academy', logo: 'ama', url: 'https://ama.edu/' },
   { name: 'Braxton College', logo: 'braxton', url: 'https://braxton.edu/' },
   { name: 'Coral Springs Regional Institute of Public Safety', logo: 'csrips', url: 'https://www.csrips.org/' },
-  { name: 'Dinsch Consulting Group', logo: null, url: '' },
+  { name: 'Dinsch Consulting Group', logo: 'dinsch', url: '' },
   { name: 'Emergency Education Institute', logo: 'eei', url: 'https://eei.edu/' },
   { name: 'Emergency Educational Training Institute, Inc.', logo: 'eeti', url: 'https://eeti.org/' },
   { name: 'EMETSEEI Institute, Inc.', logo: 'emetseei', url: 'https://emetseei.edu/' },
