@@ -40,6 +40,11 @@ type Run = {
   members_filled?: number;
   unreadable: number;
   notes: string;
+  // How hard the run looked (2026-11-11); null on runs before then.
+  searches?: number | null;
+  agencies_checked?: number | null;
+  agencies_total?: number | null;
+  ntn_florida?: number | null;
 };
 
 function short(iso: string): string {
@@ -139,6 +144,12 @@ export default function JobSweepPanel() {
             {(run.members_checked ?? 0) > 0 &&
               ` Checked ${run.members_checked} job${run.members_checked === 1 ? '' : 's'} shared by members, filled in ${run.members_filled ?? 0}.`}
             {run.unreadable > 0 && ` ${run.unreadable} page${run.unreadable === 1 ? '' : 's'} couldn't be read.`}
+            {run.searches != null && (
+              <span className="block mt-1">
+                Looked: {run.searches} search{run.searches === 1 ? '' : 'es'}, {run.agencies_checked ?? 0} of {run.agencies_total ?? 0} agencies on the
+                watch list, {run.ntn_florida ?? 0} Florida opening{run.ntn_florida === 1 ? '' : 's'} on National Testing Network.
+              </span>
+            )}
             {!run.complete && ' The run was cut short, so nothing counted as missing.'}
             {run.notes && <span className="block text-muted mt-1">{run.notes}</span>}
           </>
