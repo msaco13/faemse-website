@@ -118,9 +118,19 @@
   the window opens; with none yet, it is the announcement and the card says
   "Application link TBA" (`jobs.apply_link_tba`, `applyKind()`), and the
   sweep checks weekly and swaps in the application page once it appears.
-- Employers AJ hears are hiring go on the "Employers the board asked us to
-  check" list in the job-sweep skill; the sweep searches each by name every
-  week and reports on each until the board takes it off (AJ, 2026-11-11).
+- The sweep doesn't rely on general searches alone (AJ, 2026-11-11). Every
+  run reads National Testing Network's Florida openings
+  (`fetch.mjs --full`), then checks every agency on the watch list,
+  `.claude/skills/job-sweep/agencies.md`, by name, then runs the general
+  searches. Employers AJ hears are hiring go at the top of that list ("The
+  board's list") and get a line each in the summary until the board takes
+  them off. Each run records how hard it looked (searches, agencies
+  checked, NTN openings) in `job_sweep_runs`, shown in Admin.
+- A sweep job comes down when the sweep shows it closed (closed list, 404,
+  closing date passed) or after 4 complete runs in a row without it, about
+  a month; an open-until-filled job stays up 5 weeks past its last sighting
+  (`supabase/migrations/20261111_job_sweep_keep.sql`). A page the sweep
+  couldn't read is never a reason to take a job down.
 - Job fairs and recruiting events stay off both the Job board and the
   calendar for now, but the job sweep reads their pages and flyers for the
   real application dates and posts those jobs (AJ, 2026-11-10).

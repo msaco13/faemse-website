@@ -5,6 +5,11 @@
 //
 //   node scripts/job-sweep/fetch.mjs <url>
 //   node scripts/job-sweep/fetch.mjs --links <url>   also lists the page's links
+//   node scripts/job-sweep/fetch.mjs --full --links <url>
+//                                          the whole page and every link, for
+//                                          long listings (National Testing
+//                                          Network's openings run past the
+//                                          usual 20,000 characters and 300 links)
 //
 // Prints "OK <final url>" and the page's readable text (all of a PDF's text
 // through pdftotext, and of a Word file's through LibreOffice: flrules.org
@@ -48,7 +53,8 @@ const say = (kind, url, why) => {
 
 const args = process.argv.slice(2);
 const wantLinks = args.includes('--links');
-const target = args.filter((a) => a !== '--links')[0];
+const wantFull = args.includes('--full');
+const target = args.filter((a) => a !== '--links' && a !== '--full')[0];
 let url;
 try {
   url = new URL(target);
@@ -224,5 +230,5 @@ if (text.length < 600 && process.env.JOB_SWEEP_NO_BROWSER !== '1') {
 
 console.log(`OK ${finalUrl.href}`);
 if (title) console.log(`TITLE ${title}`);
-console.log(text.slice(0, 20000));
-if (wantLinks) console.log(links(html, finalUrl.href).slice(0, 300).join('\n'));
+console.log(wantFull ? text : text.slice(0, 20000));
+if (wantLinks) console.log((wantFull ? links(html, finalUrl.href) : links(html, finalUrl.href).slice(0, 300)).join('\n'));
