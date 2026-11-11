@@ -118,6 +118,9 @@
   the window opens; with none yet, it is the announcement and the card says
   "Application link TBA" (`jobs.apply_link_tba`, `applyKind()`), and the
   sweep checks weekly and swaps in the application page once it appears.
+- Employers AJ hears are hiring go on the "Employers the board asked us to
+  check" list in the job-sweep skill; the sweep searches each by name every
+  week and reports on each until the board takes it off (AJ, 2026-11-11).
 - Job fairs and recruiting events stay off both the Job board and the
   calendar for now, but the job sweep reads their pages and flyers for the
   real application dates and posts those jobs (AJ, 2026-11-10).

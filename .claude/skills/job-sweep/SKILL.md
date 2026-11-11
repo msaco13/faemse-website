@@ -41,6 +41,15 @@ AJ, 2026-11-10: "include announcements that people are hiring and not just durin
 - Job fairs and recruiting events (AJ, 2026-11-10): never post the event itself, but read the event page and its flyer when you come across one from a department (PDF and Word flyers open through the fetch helper; a flyer that is only an image can't be read, so say so in the summary). If either gives the actual application window for jobs (the day applications open, and the closing day if stated), post those jobs as above: the application page if there is one, otherwise the event page with `apply_link_tba: true`. The fair's own date is never the day applications open unless the page says applications open that day.
 - A search result, a news story or a social media post can point you to an announcement, never be the source of its date: confirm the date on the employer's own page or its testing-service posting. If you can't, skip it and say so in the summary.
 
+## Employers the board asked us to check
+
+AJ names employers he hears are hiring (often from their Facebook posts, which this sweep can't read). Every run, in step 3, search for each one by name on top of the general searches, and find its posting by the usual rules (5 and 6). In the summary, give one line for each: posted, announced with an opening day, nothing open found, or couldn't confirm (and why). An employer stays on this list until the board takes it off; a run never removes it.
+
+- **Highland Beach Fire Rescue** (Town of Highland Beach, Palm Beach County; AJ, 2026-11-11). The town runs its own fire rescue department. Its website (highlandbeach.us) answers the fetch helper with HTTP 404, so use search results for its postings; postings on governmentjobs.com are never read (rule 5: from search, `confirmed: false`).
+- **Key Largo** (Monroe County; AJ, 2026-11-11). Two agencies; check both: the Key Largo Fire Rescue & EMS District, and the Ocean Reef Fire Department in North Key Largo, which takes applications through National Testing Network (its NTN posting counts as its own, rule 5).
+- **Deerfield Beach** (Broward County; AJ, 2026-11-11). The City of Deerfield Beach is starting its own fire department to take over from the Broward Sheriff's Office (BSO Fire Rescue). Its postings are on governmentjobs.com (never read: from search). Use the department's name as its postings give it.
+- **Davie Fire Rescue** (Town of Davie, Broward County; AJ, 2026-11-11).
+
 ## Steps
 
 1. **Read the state.**
@@ -96,5 +105,6 @@ AJ, 2026-11-10: "include announcements that people are hiring and not just durin
    - New jobs by category: title, employer, city, one per line; announcements marked "(opens Dec 1)", and "(application link TBA)" while it is.
    - Application links found this week for jobs that had them TBA.
    - Job fairs or recruiting events read for application dates, and any flyer you couldn't read.
+   - One line for each employer the board asked us to check (see that section).
    - How many pages could not be read, and anything odd (rule 4, a site that changed, a category with nothing new).
    If the run stopped early, start the message with "Job sweep incomplete:" and say how far it got.
