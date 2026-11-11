@@ -51,7 +51,18 @@ async function checkSite() {
   if (bundle) {
     const js = await fetchText(`${SITE}${bundle}`);
     ok('JS bundle is served', js.res.status === 200 && js.text.length > 10000, `status ${js.res.status}, ${js.text.length} bytes`);
-    ok('bundle points at the right database', js.text.includes(SUPABASE_URL), SUPABASE_URL);
+    // The database address can sit in a shared file the bundle imports rather
+    // than in the bundle itself: since 2026-11-10 the build puts
+    // src/lib/supabase.ts in the Seal chunk. Look in the bundle and every file
+    // it imports up front.
+    const imports = [...new Set([...js.text.matchAll(/(?:from|import)\s*["']\.\/([A-Za-z0-9_.-]+\.js)["']/g)].map((m) => m[1]))];
+    let where = js.text.includes(SUPABASE_URL) ? bundle : '';
+    for (const file of imports) {
+      if (where) break;
+      const chunk = await fetchText(`${SITE}/assets/${file}`);
+      if (chunk.res.status === 200 && chunk.text.includes(SUPABASE_URL)) where = `/assets/${file}`;
+    }
+    ok('bundle points at the right database', !!where, where ? `${SUPABASE_URL} in ${where}` : `${SUPABASE_URL} not in ${bundle} or its ${imports.length} imports`);
   }
   const css = home.text.match(/\/assets\/index-[A-Za-z0-9_-]+\.css/)?.[0];
   if (css) {
