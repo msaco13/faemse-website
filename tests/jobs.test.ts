@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { allSame, applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, employerKey, groupByEmployer, isApplyLink, isNew, jobFormProblem, lastChecked, placesOf, tabFromSlug } from '../src/lib/jobs.ts';
+import { allSame, applyLinkProblem, categoryFromSlug, categoryLabel, categoryOf, countByCategory, applyKind, datesKey, employerKey, groupByEmployer, isApplyLink, isNew, jobFormProblem, lastChecked, opensLater, placesOf, tabFromSlug } from '../src/lib/jobs.ts';
 
 describe('job board categories', () => {
   it('three categories, with anything unknown counted as Education', () => {
@@ -129,5 +129,42 @@ describe('one card per employer (board, 2026-11-06)', () => {
     assert.equal(allSame(g, (j) => j.employer), true);
     assert.equal(allSame(g, (j) => j.location), false);
     assert.deepEqual(placesOf(g), ['Medley', 'Pompano Beach']);
+  });
+});
+
+// Hiring announcements (AJ, 2026-11-10): a department that announces its next
+// hiring window goes on the board before the window opens.
+describe('hiring announcements', () => {
+  const today = '2026-11-10';
+
+  it('says "applications open" only until the opening day', () => {
+    assert.equal(opensLater({ opensOn: '2026-12-01' }, today), true);
+    assert.equal(opensLater({ opensOn: '2026-11-11' }, today), true);
+    assert.equal(opensLater({ opensOn: '2026-11-10' }, today), false, 'opens today: open now');
+    assert.equal(opensLater({ opensOn: '2026-11-01' }, today), false);
+    assert.equal(opensLater({ opensOn: null }, today), false);
+    assert.equal(opensLater({}, today), false);
+  });
+
+  it('a card shows its dates once only when every opening says the same', () => {
+    const a = { opensOn: '2026-12-01', openUntilFilled: true, closes: 'November 24, 2026' };
+    const b = { opensOn: '2026-12-01', openUntilFilled: true, closes: 'November 30, 2026' };
+    const c = { opensOn: null, openUntilFilled: true, closes: 'November 24, 2026' };
+    assert.equal(allSame([a, b], (j) => datesKey(j, today)), true, 'both open-until-filled after Dec 1');
+    assert.equal(allSame([a, c], (j) => datesKey(j, today)), false, 'one announced, one open now');
+    // Once the day comes, an announced job reads like any other.
+    assert.equal(datesKey(a, '2026-12-01'), datesKey(c, '2026-12-01'));
+    assert.notEqual(
+      datesKey({ opensOn: '2026-12-01', closes: 'December 15, 2026' }, today),
+      datesKey({ opensOn: '2026-12-01', closes: 'December 31, 2026' }, today),
+    );
+  });
+
+  it('links the announcement while the application link is TBA, then the application page', () => {
+    assert.equal(applyKind({ opensOn: '2026-12-01', applyLinkTba: true }, today), 'announcement');
+    assert.equal(applyKind({ opensOn: null, applyLinkTba: true }, today), 'announcement', 'still TBA after it opens');
+    assert.equal(applyKind({ opensOn: '2026-12-01' }, today), 'how');
+    assert.equal(applyKind({ opensOn: '2026-12-01' }, '2026-12-01'), 'apply');
+    assert.equal(applyKind({}, today), 'apply');
   });
 });

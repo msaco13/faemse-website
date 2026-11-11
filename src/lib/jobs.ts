@@ -129,6 +129,27 @@ export function groupByEmployer<T extends { employer?: string | null }>(items: T
   return groups;
 }
 
+// Hiring announcements (AJ, 2026-11-10): a job whose applications open on a
+// later day (opensOn, YYYY-MM-DD) says "Applications open <date>" until that
+// day, then reads like any other job.
+export function opensLater(j: { opensOn?: string | null }, today: string): boolean {
+  return !!j.opensOn && j.opensOn.slice(0, 10) > today;
+}
+
+// The job's button (AJ, 2026-11-10): the announcement while the application
+// link is TBA, "How to apply" before the window opens, else "Apply".
+export type ApplyKind = 'announcement' | 'how' | 'apply';
+export function applyKind(j: { opensOn?: string | null; applyLinkTba?: boolean }, today: string): ApplyKind {
+  if (j.applyLinkTba) return 'announcement';
+  return opensLater(j, today) ? 'how' : 'apply';
+}
+
+// What a job's date chips say, as text: the card shows them once when every
+// opening in a group says the same.
+export function datesKey(j: { opensOn?: string | null; openUntilFilled?: boolean; closes?: string }, today: string): string {
+  return [opensLater(j, today) ? j.opensOn!.slice(0, 10) : '', j.openUntilFilled ? 'open' : (j.closes ?? '')].join('|');
+}
+
 // True when every job in a group has the same value, so the card shows it
 // once instead of on every row.
 export function allSame<T>(items: T[], pick: (item: T) => unknown): boolean {
