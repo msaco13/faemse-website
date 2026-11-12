@@ -206,7 +206,7 @@ export const sponsors: { name: string; logo: string | null; url: string }[] = [
   { name: 'EMETSEEI Institute, Inc.', logo: 'emetseei', url: 'https://emetseei.edu/' },
   { name: 'First Response Training Group', logo: 'frtg', url: 'https://www.frtg.edu/' },
   { name: 'Henry Schein', logo: 'henry-schein', url: 'https://www.henryschein.com/' },
-  { name: 'Limmer Education', logo: null, url: 'https://limmereducation.com/' },
+  { name: 'Limmer Education', logo: 'limmer', url: 'https://limmereducation.com/' },
   { name: 'Medical Career Academy', logo: 'mca', url: 'https://mcaedu.org/' },
   { name: 'Platinum Educational Group', logo: 'platinum-ed', url: 'https://www.platinumed.com/' },
   { name: 'Public Safety Group', logo: 'jblpsg', url: 'https://www.psglearning.com/' },
