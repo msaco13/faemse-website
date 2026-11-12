@@ -25,6 +25,7 @@ export default function PageHead({
   crest = false,
   aside,
   wideAside = false,
+  top,
 }: {
   id: string;
   eyebrow: string;
@@ -34,6 +35,11 @@ export default function PageHead({
   crest?: boolean;
   aside?: ReactNode;
   wideAside?: boolean;
+  // Something across the top of the header, under the site header's gold
+  // line, on the header's own backdrop: the member portal's sponsor band
+  // (AJ, 2026-11-12), the way the homepage hero carries it. The header's
+  // top padding is trimmed to make room.
+  top?: ReactNode;
 }) {
   const editedTitle = useText(`${id}.title`, title);
   const liveTitle = dynamicTitle ? title : editedTitle;
@@ -78,7 +84,8 @@ export default function PageHead({
       {/* The title sits above the aside (z-10): the map's glow reaches about
           9% past its box, and on a phone it lay over the subtitle and
           washed it out. */}
-      <div className={`wrap relative ${wideAside ? 'py-12 md:py-14' : 'py-16 md:py-20'} ${aside ? `flex flex-wrap items-center justify-between gap-x-10 ${wideAside ? 'gap-y-12' : 'gap-y-8'}` : ''}`}>
+      {top}
+      <div className={`wrap relative ${wideAside ? 'py-12 md:py-14' : top ? 'pt-8 pb-16 md:pt-10 md:pb-20' : 'py-16 md:py-20'} ${aside ? `flex flex-wrap items-center justify-between gap-x-10 ${wideAside ? 'gap-y-12' : 'gap-y-8'}` : ''}`}>
         <div className={aside ? 'relative z-10 flex-[1_1_420px] min-w-0' : ''}>
           <p className="eyebrow !text-brand-goldsoft">
             <T id={`${id}.eyebrow`}>{eyebrow}</T>

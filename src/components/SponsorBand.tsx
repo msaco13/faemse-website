@@ -5,9 +5,11 @@ import { sponsorInitials } from '../lib/sponsors';
 import { T, useText } from '../lib/text';
 
 // The moving band of corporate sponsors: each name with its logo beside it
-// (board, 2026-10-21). Two places: the top of the homepage hero, and across
-// the bottom of the member portal on every tab but Corporate sponsors, which
-// shows the same companies as a still wall (SponsorWall).
+// (board, 2026-10-21). Two places: the top of the homepage hero, and the top
+// of the member portal's header (AJ, 2026-11-12; it sat above the footer
+// before), on every tab but Corporate sponsors, which shows the same
+// companies as a still wall (SponsorWall). Both sit under the site header's
+// gold line, on the backdrop of the section they open.
 //
 // Logos sit on small white tiles. Several are dark on a clear background
 // (American Medical Academy, Coral Springs, EETI, Public Safety Group) and all
@@ -26,12 +28,9 @@ export default function SponsorBand({ where }: { where: 'home' | 'portal' }) {
   const pause = useText('home.sponsors.aria.pause', 'Pause the sponsor names');
   const play = useText('home.sponsors.aria.play', 'Play the sponsor names');
 
-  // Home: transparent, on the hero's own backdrop, under the header's gold
-  // line. Portal: its own navy band above the footer.
-  const outer =
-    where === 'home'
-      ? 'relative z-10 pt-4 overflow-hidden'
-      : 'velvet relative overflow-hidden text-white border-t-2 border-brand-gold/50 py-7 bg-[radial-gradient(900px_300px_at_50%_0%,#143257_0%,#0A213B_60%,#071A32_100%)]';
+  // Transparent in both places, on the backdrop of the section it opens
+  // (the homepage hero, the portal's header), under the header's gold line.
+  const outer = 'relative z-10 pt-4 overflow-hidden';
 
   return (
     <section className={outer} aria-label={aria}>

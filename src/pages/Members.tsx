@@ -438,6 +438,7 @@ export default function Members() {
         title={`Welcome, ${firstName}`}
         sub="Your member home — resources, meetings, and association business in one place."
         aside={membershipCard}
+        top={active !== 'sponsors' ? <SponsorBand where="portal" /> : undefined}
       />
 
       {/* The portal's sections, one address each. */}
@@ -826,7 +827,6 @@ export default function Members() {
         </div>
       </section>
 
-      {active !== 'sponsors' && <SponsorBand where="portal" />}
     </>
   );
 }
