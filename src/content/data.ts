@@ -196,7 +196,7 @@ export const resourceCategories = [
 // web search, Sept 2026; the board is checking them), or '' when none is on
 // file, in which case the name is shown without a link.
 export const sponsors: { name: string; logo: string | null; url: string }[] = [
-  { name: '3B Scientific', logo: null, url: 'https://www.3bscientific.com/' },
+  { name: '3B Scientific', logo: '3b-scientific', url: 'https://www.3bscientific.com/' },
   { name: 'American Medical Academy', logo: 'ama', url: 'https://ama.edu/' },
   { name: 'Braxton College', logo: 'braxton', url: 'https://braxton.edu/' },
   { name: 'Coral Springs Regional Institute of Public Safety', logo: 'csrips', url: 'https://www.csrips.org/' },
@@ -204,7 +204,7 @@ export const sponsors: { name: string; logo: string | null; url: string }[] = [
   { name: 'Emergency Education Institute', logo: 'eei', url: 'https://eei.edu/' },
   { name: 'Emergency Educational Training Institute, Inc.', logo: 'eeti', url: 'https://eeti.org/' },
   { name: 'EMETSEEI Institute, Inc.', logo: 'emetseei', url: 'https://emetseei.edu/' },
-  { name: 'First Response Training Group', logo: null, url: 'https://www.frtg.edu/' },
+  { name: 'First Response Training Group', logo: 'frtg', url: 'https://www.frtg.edu/' },
   { name: 'Henry Schein', logo: 'henry-schein', url: 'https://www.henryschein.com/' },
   { name: 'Limmer Education', logo: null, url: 'https://limmereducation.com/' },
   { name: 'Medical Career Academy', logo: 'mca', url: 'https://mcaedu.org/' },
