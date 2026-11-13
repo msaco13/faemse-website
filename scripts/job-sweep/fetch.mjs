@@ -10,6 +10,11 @@
 //                                          long listings (National Testing
 //                                          Network's openings run past the
 //                                          usual 20,000 characters and 300 links)
+//   node scripts/job-sweep/fetch.mjs --save <file.pdf> <url>
+//                                          a PDF: also keeps the file, so the
+//                                          monthly meeting sweep can render a
+//                                          schedule's table (pdftoppm) and see
+//                                          which time and room a line is in
 //
 // Prints "OK <final url>" and the page's readable text (all of a PDF's text
 // through pdftotext, and of a Word file's through LibreOffice: flrules.org
@@ -54,7 +59,10 @@ const say = (kind, url, why) => {
 const args = process.argv.slice(2);
 const wantLinks = args.includes('--links');
 const wantFull = args.includes('--full');
-const target = args.filter((a) => a !== '--links' && a !== '--full')[0];
+const saveAt = args.indexOf('--save');
+const savePath = saveAt >= 0 ? args[saveAt + 1] : '';
+if (saveAt >= 0 && (!savePath || savePath.startsWith('--'))) say('FAILED', String(args.at(-1)), '--save needs a file name');
+const target = args.filter((a, i) => a !== '--links' && a !== '--full' && i !== saveAt && i !== saveAt + 1)[0];
 let url;
 try {
   url = new URL(target);
@@ -168,7 +176,9 @@ if (bytes.subarray(0, 5).toString('latin1') === '%PDF-') {
   } finally {
     rmSync(file, { force: true });
   }
+  if (savePath) writeFileSync(savePath, bytes);
   console.log(`OK ${finalUrl.href}`);
+  if (savePath) console.log(`SAVED ${savePath}`);
   console.log('TITLE (PDF)');
   console.log(pdfText.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim());
   process.exit(0);
