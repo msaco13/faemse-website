@@ -62,7 +62,7 @@ const wantFull = args.includes('--full');
 const saveAt = args.indexOf('--save');
 const savePath = saveAt >= 0 ? args[saveAt + 1] : '';
 if (saveAt >= 0 && (!savePath || savePath.startsWith('--'))) say('FAILED', String(args.at(-1)), '--save needs a file name');
-const target = args.filter((a, i) => a !== '--links' && a !== '--full' && i !== saveAt && i !== saveAt + 1)[0];
+const target = args.filter((a, i) => a !== '--links' && a !== '--full' && (saveAt < 0 || (i !== saveAt && i !== saveAt + 1)))[0];
 let url;
 try {
   url = new URL(target);
