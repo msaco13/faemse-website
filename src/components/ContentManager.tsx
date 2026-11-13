@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Collapsible from './admin/Collapsible';
 import EventForm, { type DbEvent } from './admin/EventForm';
 import EventSweepPanel from './admin/EventSweepPanel';
+import MeetingSweepPanel from './admin/MeetingSweepPanel';
 import { todayISO } from '../lib/dates';
 import { supabase } from '../lib/supabase';
 
@@ -248,6 +249,8 @@ export default function ContentManager() {
           </Collapsible>
 
           <EventSweepPanel onChanged={load} />
+
+          <MeetingSweepPanel onChanged={load} />
 
           <Collapsible
             title="News"

@@ -16,6 +16,8 @@ export type SiteSettings = {
   event_sweep_paused?: boolean;
   // Holds the monthly program hub check (Admin → Program hubs).
   hub_check_paused?: boolean;
+  // Holds the monthly meeting sweep (Admin → Site content → Monthly meeting sweep).
+  meeting_sweep_paused?: boolean;
 };
 
 const CACHE_KEY = 'faemse:settings';

@@ -164,7 +164,8 @@
   admins undo one with `admin_undo_event_sweep_change()`, which refuses if
   the event was edited since, and the sweep never makes an undone change
   again. It never changes an event tagged "Meeting" (a FAEMSE membership
-  meeting is the board's call).
+  meeting is the board's call; only the monthly meeting sweep below fills in
+  their day, time and room).
 - Like the job sweep it has no database access: it writes only through the
   `event-sweep` edge function (same key and header as the job sweep), which
   calls only `event_sweep_state()` and `event_sweep_apply()`
@@ -172,3 +173,30 @@
   dates, place, wording and title, `event_suggestions`, the change log and
   `event_sweep_runs`. Keep it that way. Its tables are in locked-doors'
   PRIVATE list.
+
+## Monthly meeting sweep (homepage meeting slide)
+
+- FAEMSE's statewide meetings happen during the state EMS Advisory Council's
+  (EMSAC) meetings, posted on flemsac.org/meetings with a schedule PDF on
+  floridahealth.gov. The homepage's meeting slide (`spotlights.meeting_slide`)
+  shows the day, time and room with a "See the meeting schedule" button to
+  the state's PDF, comes down after the last day of the meetings
+  (`expires_on`), and a "to be announced" meeting slide takes over the next
+  day (AJ, 2026-11-13). Never two meeting slides on the same day: the
+  database refuses it.
+- Once a month a scheduled session follows `.claude/skills/meeting-sweep/SKILL.md`.
+  When the state's schedule lists FAEMSE it updates the meeting slide, adds
+  the next "to be announced" slide, and fills in the calendar's "Meeting"
+  entry (or adds one) by itself (AJ chose this over admin approval,
+  2026-11-13). Every change is in `meeting_sweep_changes` with what it
+  replaced; admins undo one in Admin → Site content → Monthly meeting sweep
+  (`admin_undo_meeting_sweep_change()`, refuses if the slide or event was
+  edited since), and the sweep never makes an undone change again.
+- Like the other sweeps it has no database access: it writes only through
+  the `meeting-sweep` edge function (same key and header), which calls only
+  `meeting_sweep_state()` and `meeting_sweep_apply()`
+  (`supabase/migrations/20261113_meeting_sweep.sql`). Those touch only the
+  meeting slides, events tagged "Meeting", `meeting_sweep_changes` and
+  `meeting_sweep_runs` (both in locked-doors' PRIVATE list). The slide's
+  button may only open floridahealth.gov, flemsac.org or /events. Keep it
+  that way.
