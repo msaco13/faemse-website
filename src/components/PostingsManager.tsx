@@ -659,7 +659,7 @@ export default function PostingsManager() {
       ) : (
         SECTIONS.map((sec) => (
           // Arriving from the homepage's "this slide is a spotlight" note
-          // (/members#boards) opens the spotlights; everything else starts closed.
+          // (/admin#boards) opens the spotlights; everything else starts closed.
           // Jobs members shared and the weekly sweep's panel sit right under
           // the board's own jobs.
           <Fragment key={sec.table}>
