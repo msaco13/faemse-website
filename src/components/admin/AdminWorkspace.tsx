@@ -102,7 +102,7 @@ export default function AdminWorkspace({ defaultTab = 'inbox' }: { defaultTab?: 
   }, []);
 
   // Follow the hash when it changes (the hero's "this slide is a spotlight"
-  // note links to /members#boards from another page).
+  // note links to /admin#boards from another page).
   useEffect(() => {
     const onHash = () => setTab(tabFromHash(defaultTab));
     window.addEventListener('hashchange', onHash);

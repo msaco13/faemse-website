@@ -182,8 +182,8 @@ export default function HeroSpotlight({
               {editing && (
                 <p className="text-[13px] font-semibold text-brand-goldsoft bg-black/40 border border-brand-goldsoft/40 rounded-xl px-4 py-2.5 max-w-[52ch]">
                   This slide is a homepage spotlight. Its words are changed in{' '}
-                  <Link to="/members#boards" className="underline text-white">
-                    Members → Boards &amp; library → Homepage spotlights
+                  <Link to="/admin#boards" className="underline text-white">
+                    Admin → Site content → Boards &amp; library → Homepage spotlights
                   </Link>
                   , with the Edit button on this spotlight.
                 </p>

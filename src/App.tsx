@@ -64,7 +64,7 @@ function ScrollToTop() {
       }
     }
     firstRender.current = false;
-    // A hash names a section (e.g. /members#boards from the homepage's edit
+    // A hash names a section (e.g. /admin#boards from the homepage's edit
     // mode). The admin panels render only after the session check, so keep
     // looking for the target for a few seconds rather than only once.
     if (hash.length < 2) return;
