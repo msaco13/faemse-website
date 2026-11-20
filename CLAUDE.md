@@ -93,9 +93,13 @@
 - A function anyone can call with the public anon key (renewal-reminders)
   answers with counts only, never member addresses or names.
 - The contact form: anonymous visitors and signed-in people can both send
-  it; the database refuses a message once 10 arrived in the last hour or 50
+  it; the database refuses a message once 10 arrived in the last hour or 20
   in the last day (`contact_messages_cap()`,
-  `supabase/migrations/20261120_contact_messages_limits.sql`).
+  `supabase/migrations/20261120_contact_messages_limits_2.sql`).
+- Email goes through Resend's free plan: 100 emails a day for everything
+  (password links, renewal reminders, board notices, receipts), and an email
+  to both board members counts twice (AJ, 2026-11-20). A change that sends
+  more mail, or raises the contact cap, keeps the day's total well under 100.
 
 ## Weekly job sweep (Job board)
 
