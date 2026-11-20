@@ -13,15 +13,24 @@
 // Secrets (supabase secrets set ... --project-ref iybsnqcffrhzhdpyoaqt):
 //   WEBHOOK_SECRET   any long random string; the webhook must send it back
 //   RESEND_API_KEY   from resend.com (same account as renewal-reminders)
-//   NOTIFY_TO        comma-separated recipients; defaults to the board
-//                    inbox below (the site prints no email address, so
-//                    this is where contact-form messages reach people)
+//   NOTIFY_TO        the board's addresses, comma-separated. Required: the
+//                    site prints no email address, so this is where
+//                    contact-form messages reach people. Without it the
+//                    function logs an error and answers 500.
 //
 // Deploy: supabase functions deploy notify-board --no-verify-jwt --project-ref iybsnqcffrhzhdpyoaqt
 // Until RESEND_API_KEY is set, the function logs what it would send and
 // returns 200 (the webhook stays healthy).
 
-const DEFAULT_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
+// The board's addresses live only in the NOTIFY_TO secret (comma-separated,
+// Supabase -> Edge Functions -> Secrets), never in this public repository
+// (security review, AJ, 2026-11-20).
+function boardAddresses(): string[] {
+  return (Deno.env.get('NOTIFY_TO') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s));
+}
 const FROM = 'FAEMSE website <notifications@faemse.org>';
 const PORTAL = 'https://faemse.org/members';
 
@@ -97,10 +106,14 @@ Deno.serve(async (req) => {
   const mail = compose(payload);
   if (!mail) return new Response('ignored table', { status: 200 });
 
-  const to = (Deno.env.get('NOTIFY_TO') ?? DEFAULT_TO.join(','))
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const to = boardAddresses();
+  if (to.length === 0) {
+    console.error(`NOTIFY_TO is not set: the board was not emailed about this ${payload.table} row`);
+    return new Response(JSON.stringify({ sent: false, reason: 'NOTIFY_TO not set' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const resendKey = Deno.env.get('RESEND_API_KEY');
   if (!resendKey) {
     console.log('RESEND_API_KEY not set; would send:', { to, subject: mail.subject });

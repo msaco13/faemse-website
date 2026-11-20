@@ -83,6 +83,20 @@
   table or function that holds member data, add it to that script's PRIVATE
   list in the same change.
 
+## Board addresses and what functions hand back (security review, 2026-11-20)
+
+- The board's email addresses live only in the `NOTIFY_TO` secret
+  (comma-separated, Supabase → Edge Functions → Secrets), never in code: this
+  repository is public. notify-board, stripe-webhook, password-link and
+  renewal-reminders read it for board emails and for the reply-to on member
+  emails. Without it notify-board answers 500 and the others log an error.
+- A function anyone can call with the public anon key (renewal-reminders)
+  answers with counts only, never member addresses or names.
+- The contact form: anonymous visitors and signed-in people can both send
+  it; the database refuses a message once 10 arrived in the last hour or 50
+  in the last day (`contact_messages_cap()`,
+  `supabase/migrations/20261120_contact_messages_limits.sql`).
+
 ## Weekly job sweep (Job board)
 
 - Every job on the board has a link to apply, whoever adds it: the sweep, a
