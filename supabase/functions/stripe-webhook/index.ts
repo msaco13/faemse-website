@@ -76,10 +76,17 @@ type Session = {
 
 const SITE = 'https://faemse.org';
 const FROM = 'FAEMSE <notifications@faemse.org>';
-const DEFAULT_BOARD = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
-// Member-facing emails reply to the board directly: the site prints no email
-// address (board, 2026-10-21; info@faemse.org has no mailbox).
-const REPLY_TO = DEFAULT_BOARD;
+// The board's addresses live only in the NOTIFY_TO secret (comma-separated,
+// Supabase -> Edge Functions -> Secrets), never in this public repository
+// (security review, AJ, 2026-11-20). The board's receipts go to them, and
+// member-facing emails reply to them: the site prints no email address
+// (board, 2026-10-21; info@faemse.org has no mailbox).
+function boardAddresses(): string[] {
+  return (Deno.env.get('NOTIFY_TO') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s));
+}
 const TIER_LABEL: Record<string, string> = { active: 'Active', institutional: 'Institutional', corporate: 'Corporate', honorary: 'Honorary' };
 
 function dollars(cents: number | null | undefined): string {
@@ -92,7 +99,14 @@ function longDate(iso: string): string {
 
 // Best effort: a failed email never fails the webhook, the membership is
 // already active by the time these run.
-async function sendMail(to: string[], subject: string, text: string, replyTo: string | string[] = REPLY_TO): Promise<void> {
+async function sendMail(to: string[], subject: string, text: string, replyTo: string[] = boardAddresses()): Promise<void> {
+  if (to.length === 0) {
+    // Only the board's receipt can have no one to go to: NOTIFY_TO is
+    // missing. The payment is already recorded; only this email is skipped.
+    console.error(`NOTIFY_TO is not set: not sent: ${subject}`);
+    return;
+  }
+  if (replyTo.length === 0) console.error(`NOTIFY_TO is not set: "${subject}" goes out without a reply-to, so replies are lost`);
   const key = Deno.env.get('RESEND_API_KEY');
   if (!key) {
     console.log(`RESEND_API_KEY not set; would email ${to.join(', ')}: ${subject}`);
@@ -101,7 +115,7 @@ async function sendMail(to: string[], subject: string, text: string, replyTo: st
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to, subject, text, reply_to: replyTo }),
+    body: JSON.stringify({ from: FROM, to, subject, text, ...(replyTo.length ? { reply_to: replyTo } : {}) }),
   });
   if (!resp.ok) console.error(`Resend refused (${resp.status}) for ${to.join(', ')}: ${subject}`);
 }
@@ -264,10 +278,7 @@ Deno.serve(async (req) => {
   const profileId = login.id;
   const created = login.created;
 
-  const boardTo = (Deno.env.get('NOTIFY_TO') ?? DEFAULT_BOARD.join(','))
-    .split(',')
-    .map((x) => x.trim())
-    .filter(Boolean);
+  const boardTo = boardAddresses();
 
   // ---- Path 2b: an organization paid from the form ------------------------
   // Board decision 2026-10-01: the organization is created or found, its

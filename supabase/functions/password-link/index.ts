@@ -36,8 +36,16 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const SITE = 'https://faemse.org';
 const FROM = 'FAEMSE <notifications@faemse.org>';
 // Replies go to the board directly: the site prints no email address
-// (board, 2026-10-21; info@faemse.org has no mailbox).
-const REPLY_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
+// (board, 2026-10-21; info@faemse.org has no mailbox). The board's addresses
+// live only in the NOTIFY_TO secret (comma-separated, Supabase -> Edge
+// Functions -> Secrets), never in this public repository (security review,
+// AJ, 2026-11-20).
+function boardAddresses(): string[] {
+  return (Deno.env.get('NOTIFY_TO') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s));
+}
 const PER_HOUR = 3;
 
 const cors = {
@@ -126,10 +134,12 @@ Deno.serve(async (req) => {
     'The FAEMSE board',
   ].join('\n');
 
+  const replyTo = boardAddresses();
+  if (replyTo.length === 0) console.error('NOTIFY_TO is not set: the password email goes out without a reply-to, so replies are lost');
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [email], subject: 'Set your FAEMSE password', text, reply_to: REPLY_TO }),
+    body: JSON.stringify({ from: FROM, to: [email], subject: 'Set your FAEMSE password', text, ...(replyTo.length ? { reply_to: replyTo } : {}) }),
   });
   if (!resp.ok) {
     console.error(`Resend refused (${resp.status}) for ${email}`);

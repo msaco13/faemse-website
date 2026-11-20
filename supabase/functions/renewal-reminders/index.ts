@@ -25,7 +25,10 @@
 // Auth: the gateway already requires a JWT signed by this project (verify_jwt).
 // Inside, the token's role must be anon (the cron job) or service_role. Anyone
 // holding the site's public anon key can only make today's reminders go out
-// now instead of at noon — nothing extra ever sends.
+// now instead of at 12:00 UTC — nothing extra ever sends. The response gives
+// counts only, never addresses or names (security review, AJ, 2026-11-20):
+// who was reminded is in reminder_log, and problems are in the function logs
+// (by member or organization id), which only project admins can read.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -43,8 +46,15 @@ const WINDOWS = [90, 60, 30, 7] as const;
 const FROM = 'FAEMSE <renewals@faemse.org>';
 // Replies go to the board directly: the site prints no email address
 // (board, 2026-10-21; info@faemse.org has no mailbox), so a member's reply
-// must land with people.
-const REPLY_TO = ['Jlanzardo@gmail.com', 'Mbsaco13@gmail.com'];
+// must land with people. The board's addresses live only in the NOTIFY_TO
+// secret (comma-separated, Supabase -> Edge Functions -> Secrets), never in
+// this public repository (security review, AJ, 2026-11-20).
+function boardAddresses(): string[] {
+  return (Deno.env.get('NOTIFY_TO') ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s));
+}
 const PORTAL = 'https://faemse.org/members';
 const RENEW_FORM = 'https://faemse.org/membership';
 
@@ -96,16 +106,19 @@ Deno.serve(async (req) => {
   const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', serviceKey);
   const resendKey = Deno.env.get('RESEND_API_KEY');
   const today = new Date();
-  const results: Record<string, unknown>[] = [];
+  // Counts only: the response and the logs never carry an address or a name.
+  const counts = { sent: 0, failed: 0, skipped: 0, errors: 0 };
+  const reply = (paused: boolean) =>
+    new Response(JSON.stringify({ ran_at: today.toISOString(), paused, email_configured: Boolean(resendKey), ...counts }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
 
   const { data: settings } = await supabase.rpc('get_settings');
   const s = (settings ?? {}) as { online_dues?: boolean; reminders_paused?: boolean };
-  if (s.reminders_paused === true) {
-    return new Response(JSON.stringify({ ran_at: today.toISOString(), paused: true, results: [] }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (s.reminders_paused === true) return reply(true);
   const onlineDues = s.online_dues === true;
+  const replyTo = boardAddresses();
+  if (replyTo.length === 0) console.error('NOTIFY_TO is not set: reminders go out without a reply-to, so member replies are lost');
 
   // One send, with the claim-then-send dance that makes re-runs safe.
   async function send(
@@ -114,23 +127,26 @@ Deno.serve(async (req) => {
     subject: string,
     body: string,
   ) {
+    const who = claim.profile_id ? `member ${claim.profile_id}` : `organization ${claim.organization_id}`;
     const { error: logError } = await supabase.from('reminder_log').insert(claim);
     if (logError) return; // already sent (unique violation) or transient — skip
     if (!resendKey) {
-      results.push({ days: claim.days_before, to, sent: false, note: 'RESEND_API_KEY not set' });
+      counts.skipped++;
+      console.log(`RESEND_API_KEY not set: ${claim.days_before}-day reminder for ${who} not sent`);
       await supabase.from('reminder_log').delete().match(claim);
       return;
     }
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to, subject, text: body, reply_to: REPLY_TO }),
+      body: JSON.stringify({ from: FROM, to, subject, text: body, ...(replyTo.length ? { reply_to: replyTo } : {}) }),
     });
     if (!resp.ok) {
       await supabase.from('reminder_log').delete().match(claim); // retry tomorrow
-      results.push({ days: claim.days_before, to, sent: false, status: resp.status });
+      counts.failed++;
+      console.error(`Resend refused (${resp.status}) the ${claim.days_before}-day reminder for ${who}; it retries tomorrow`);
     } else {
-      results.push({ days: claim.days_before, to, sent: true });
+      counts.sent++;
     }
   }
 
@@ -146,7 +162,10 @@ Deno.serve(async (req) => {
       .eq('expires_at', target)
       .not('email', 'is', null)
       .neq('tier', 'honorary');
-    if (error) results.push({ days, error: error.message });
+    if (error) {
+      counts.errors++;
+      console.error(`${days}-day members query failed: ${error.message}`);
+    }
     for (const m of due ?? []) {
       const firstName = (m.full_name ?? '').split(' ')[0] || 'there';
       const body = [
@@ -168,12 +187,16 @@ Deno.serve(async (req) => {
       .from('organizations')
       .select('id, name, kind, expires_at, contact_email, coordinator:profiles!organizations_coordinator_id_fkey(email, full_name)')
       .eq('expires_at', target);
-    if (orgErr) results.push({ days, error: orgErr.message });
+    if (orgErr) {
+      counts.errors++;
+      console.error(`${days}-day organizations query failed: ${orgErr.message}`);
+    }
     for (const o of orgs ?? []) {
       const coord = (Array.isArray(o.coordinator) ? o.coordinator[0] : o.coordinator) as { email?: string; full_name?: string } | null;
       const to = [...new Set([coord?.email, o.contact_email].filter((e): e is string => Boolean(e)).map((e) => e.toLowerCase()))];
       if (to.length === 0) {
-        results.push({ days, org: o.name, sent: false, note: 'no coordinator or contact email' });
+        counts.skipped++;
+        console.log(`${days}-day reminder for organization ${o.id} not sent: no coordinator or contact email`);
         continue;
       }
       const firstName = (coord?.full_name ?? '').split(' ')[0] || 'there';
@@ -198,7 +221,6 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ran_at: today.toISOString(), paused: false, email_configured: Boolean(resendKey), results }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  console.log(`renewal reminders: ${counts.sent} sent, ${counts.failed} failed, ${counts.skipped} skipped, ${counts.errors} query errors`);
+  return reply(false);
 });
